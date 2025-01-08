@@ -71,9 +71,25 @@ def reload_paper(file_path):
     global sections_dict, full_paper
     sections_dict, full_paper = extract_sections(file_path)
 
+
+def add_info_set(gpt, sections = None, sections_dict = {}, clear = True):
+    if clear: gpt.clear_chat()
+
+    if sections:
+        for section in sections:
+            section_clean = clean_tex(sections_dict[section])
+            gpt.expand_chat('\nThis is the '+section+' section of my new paper:\n'+section_clean, 'user')
+
+
+
+
 from mychatgpt import GPT
 ###
 class Writers:
+    """
+    Writers class initialize a GPT agent with a latex file slitted
+    into modular sections
+    """
     def __init__(self,
                  gpt = GPT(),
                  tex_file = None,
@@ -85,46 +101,58 @@ class Writers:
         self.context = context
         self.tex_file = tex_file
         self.gpt.format = format
+
         if self.context:
-            gpt.add_system(context)
+            gpt.add_system(f"\n\nUnderstand the context: {self.context}")
         if tex_file:
-            self.sections_dict, self.content = extract_sections(tex_file)
+            self.sections_dict, self.content = extract_sections(self.tex_file)
             display(pd.Series(self.sections_dict, index=self.sections_dict.keys()))
+
+            self.sections = list(self.sections_dict.keys())
 
         self.table_template = table_template
 
     def reload_paper(self):
-        self.sections_dict, full_paper = self.extract_sections(self.tex_file)
+        self.sections_dict, self.content = extract_sections(self.tex_file)
+
+
+    # def add_info_set(self, sections = None, clear = True):
+    #     if clear: self.gpt.clear_chat()
+    #
+    #     if sections:
+    #         for section in sections:
+    #             section_clean = clean_tex(self.sections_dict[section])
+    #             self.gpt.expand_chat('\nThis is the '+section+' section of my new paper:\n'+section_clean, 'user')
 
 
 
-    def add_info_set(self, sections, clear = True):
-        if clear: self.gpt.clear_chat()
-
-        for section in sections:
-            section_clean = clean_tex(self.sections_dict[section])
-            self.gpt.expand_chat('\nThis is the '+section+' section of my new paper:\n'+section_clean, 'user')
-
-    def enhancer(self, section = None,
+    ### request functions ###
+    def enhancer(self, text = None,
                  instructions = None,
                  task = None):
-        if not section:
-            section = pc.paste()
+        # automatic paste
+        if not text:
+            text = pc.paste()
 
+        # default instruction
         if not instructions:
-            instructions= f"""The Paper I have written needs to be revised. It must use current and correct terminology of the “Infomatics Engineering” domain. Methods should be described accurately, consistently and precisely with the correct current computer science terminology. Make also the text more fluent."""
+            instructions = (
+                "The paper I have written needs to be revised. "
+                "It must use current and correct terminology of the 'Informatics Engineering' domain. "
+                "Methods should be described accurately, consistently, and precisely with the correct current computer science terminology. "
+                "Make the text more fluent."
+            )
+            #if self.context:
+            #    instructions += f"\n\nUnderstand the context: {self.context}"
 
-            """
-            Understand the context: construction of a Dataset by joining different sources, for targeted retrieval based on queries built with MeSH terms (Nutrigenetics field).
-            """
-
+        # default task
         if not task:
             task = f"""Apply this criteria to this section below (in english) more concise and clear:
             write better this section 
             
             """
 
-        self.gpt.c(instructions+task+"["+section+"]", gpt=self.model)
+        self.gpt.c(instructions+task+"["+text+"]", gpt=self.model)
 
     def table_maker(self,
                     template= None,
@@ -138,9 +166,10 @@ class Writers:
             instructions = ''
         if not task:
             task = """
-Using this table provided as a template, make a table out of this data:
-
-"""
+            Using this table provided as a template, make a table out of this data:
+            
+            """
+        # automatic paste
         if not data:
             data = pc.paste()
 
@@ -149,15 +178,18 @@ Using this table provided as a template, make a table out of this data:
 
 
     def ask_paper(self,
-                  sections: list = [],
-                    template= None,
-                    task= None,
-                    data = None,
-                    instructions = None,
-                    clear = True
-                    ):
-        if not template:
+                  sections: list = None,
+                  table_template = False,
+                  task= None,
+                  data = None,
+                  instructions = None,
+                  clear = True
+                  ):
+        if table_template:
             template = self.table_template
+        elif isinstance(table_template, str):
+            template = table_template
+
         if not instructions:
             instructions = ''
         if not task:
@@ -166,9 +198,20 @@ Using this table provided as a template, make a table out of this data:
             data = "\n\nData:"+data
         else:
             data = ''
-        self.add_info_set(sections, clear=clear)
-        if template: self.gpt.expand_chat(template)
-        self.gpt.c(instructions+task+data, gpt=self.model)
+
+        # add sections
+        #self.add_info_set(sections, clear=clear)
+        add_info_set(self.gpt, sections=sections, sections_dict=self.sections_dict, clear = False)
+
+        # add template
+        if table_template:
+            self.gpt.expand_chat(template)
+
+        # request
+        self.gpt.c(f"{instructions}{task}{data}", gpt=self.model)
+
+
+
 
 #### TEMPLATES ###
 table_template = r"""template table :

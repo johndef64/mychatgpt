@@ -387,8 +387,8 @@ models_info='''
 ### Main Class ###
 class GPT:
     def __init__(self,
-                 assistant: str = '',                    # in-build assistant name
-                 persona: str = '',                      # any known character
+                 assistant: str = None,                    # in-build assistant name
+                 persona: str = None,                      # any known character
                  format: str = None,                     # output format (latex,python,markdown)
                  translate: bool = False,                # translate outputs
                  translate_jap: bool = False,            # translate in jap outputs
@@ -439,12 +439,15 @@ class GPT:
         who = self.assistant
         if self.assistant in assistants:
             self.add_system(assistants[who])
-        elif len(who.split()) < 8:
+        elif who and len(who.split()) < 8:
             self.add_persona(who)
-        elif len(who.split()) >= 8:
+        elif who and len(who.split()) >= 8:
             self.add_system(self.assistant)
         else:
             pass
+
+        if persona and not who:
+            self.add_persona(persona)
 
         if self.bio:
             self.add_bio()#add = "and you are his assistant. ***")
@@ -699,7 +702,7 @@ class GPT:
             cut_length = prune_chat(token_limit, self.chat_thread)
             self.chat_thread = self.chat_thread[cut_length:]
 
-            if self.keep_persona and self.persona != '':
+            if self.keep_persona and self.persona:
                 self.add_persona(self.persona)
             if self.keep_persona and system != '':
                 self.chat_thread.append({"role": "system", "content": system})
@@ -986,7 +989,7 @@ class GPT:
         who = self.assistant
         if who in assistants:
             system = assistants[who]
-        elif who != '':
+        elif who:
             self.add_persona(who, language)
         else:
             system = system
@@ -1010,11 +1013,14 @@ class GPT:
         transcript = self.whisper("temp.wav", print_transcription=printall)
 
         who = self.assistant
-        if who in assistants:
+        if who and who in assistants:
             system = assistants[who]
-        else:
+        elif who:
             self.add_persona(who, language)
             system = ''
+        else:
+            system = assistants["base"]
+
         play = not write
         printall = printall if not write else True
         self.send_message(transcript,system=system, model=gpt, maxtoken=max,  print_reply=printall, print_token=False, play=play, voice=voice, tts=tts)
