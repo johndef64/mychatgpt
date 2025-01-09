@@ -21,21 +21,53 @@ def count_words_in_string(text):
 
 ##########
 
+# def extract_sections(file_path):
+#     with open(file_path, 'r', encoding='utf-8') as file:
+#         content = file.read()
+#     content = clean_tex(content)
+#
+#     # Use non-greedy matching to avoid issues with nested sections
+#     section_pattern = r'\\section\{(.+?)\}(.*?)(?=\\section|\Z)'
+#     sections = re.findall(section_pattern, content, re.DOTALL)
+#
+#     sections_dict = {}
+#     for title, body in sections:
+#         # Create a key by converting title to lowercase and replacing spaces with underscores
+#         key = title.lower().replace(' ', '_')
+#         sections_dict[key] = body.strip()
+#     df = pd.Series(sections_dict, index=sections_dict.keys())
+#     #display(df)
+#     return sections_dict, content
+
 def extract_sections(file_path):
+    # Determine file type based on extension
+    if file_path.endswith('.tex'):
+        section_pattern = r'\\section\{(.+?)\}(.*?)(?=\\section|\Z)'  # LaTeX section pattern
+    elif file_path.endswith('.md'):
+        section_pattern = r'^(#{1,6})\s(.+)$'  # Markdown header pattern
+    else:
+        raise ValueError("Unsupported file type. Only '.tex' and '.md' are supported.")
+
     with open(file_path, 'r', encoding='utf-8') as file:
-        content = file.read()
+        content = file.read()  # Read file content
     content = clean_tex(content)
 
-    # Use non-greedy matching to avoid issues with nested sections
-    sections = re.findall(r'\\section\{(.+?)\}(.*?)(?=\\section|\Z)', content, re.DOTALL)
+    # Find sections in the content based on the determined pattern
+    sections = re.findall(section_pattern, content, re.DOTALL if file_path.endswith('.tex') else re.MULTILINE)
 
     sections_dict = {}
-    for title, body in sections:
-        # Create a key by converting title to lowercase and replacing spaces with underscores
-        key = title.lower().replace(' ', '_')
-        sections_dict[key] = body.strip()
-    df = pd.Series(sections_dict, index=sections_dict.keys())
-    #display(df)
+    for match in sections:
+        if file_path.endswith('.tex'):
+            title, body = match  # Unpack LaTeX sections
+        else:
+            header, title = match  # Unpack Markdown headers
+            body = header  # Use header as body for Markdown
+
+        key = title.lower().replace(' ', '_')  # Convert title to lowercase and replace spaces with underscores
+        sections_dict[key] = body.strip()  # Store section body
+
+    df = pd.Series(sections_dict, index=sections_dict.keys())  # Create a series from the dictionary
+    # display(df)
     return sections_dict, content
 
 def clip_tex(tex_content):
@@ -65,6 +97,17 @@ def clean_tex(tex_content):
     #tex_content = re.sub(r'^%.*$', '', tex_content, flags=re.MULTILINE)
     tex_content = re.sub(r'^\s*%.*$', '', tex_content, flags=re.MULTILINE)
     return tex_content
+
+def clean_markdown(md_content):
+    # Remove images ![alt text](image_url)
+    md_content = re.sub(r'!\[.*?\]\(.*?\)', '', md_content)
+    # Remove tables | Header | Header |
+    md_content = re.sub(r'(\|.*?\|)+', '', md_content)
+    # Remove code blocks ```
+    md_content = re.sub(r'```.*?```', '', md_content, flags=re.DOTALL)
+    # Remove HTML comments <!-- comment -->
+    md_content = re.sub(r'<!\-\-.*?\-\->', '', md_content, flags=re.DOTALL)
+    return md_content
 
 
 def reload_paper(file_path):
