@@ -704,6 +704,7 @@ class GPT:
         if isinstance(model, int):
             model = make_model(model)
         if print_debug: print('using model: ',model)
+        print(f"using {model}")
 
         dalle = dalle if dalle != self.dalle else self.dalle
         image_size = image_size if image_size != self.image_size else self.image_size
@@ -783,7 +784,7 @@ class GPT:
             self.reply = self.stream_reply(response, print_reply=print_reply, lag = lag)
         else:
             self.reply = response['message']['content']
-            print(self.ask_reply)
+            print(self.reply)
         time.sleep(0.85)
 
         ### Add Reply to chat ###
