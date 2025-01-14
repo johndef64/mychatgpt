@@ -3,6 +3,8 @@ import sys
 import ast
 import json
 
+import ollama
+
 from .utils import *
 from .assistants import *
 
@@ -113,8 +115,11 @@ gpt_models_dict = {
     "gpt-3.5-turbo-0125": 16385,
     "gpt-3.5-turbo": 16385,
     "gpt-3.5-turbo-1106": 16385,
-    "gpt-3.5-turbo-instruct": 4096
+    "gpt-3.5-turbo-instruct": 4096,
+
+    "dolphin-mistral": 16385
 }
+
 
 ####### Image Models #######
 '''
@@ -171,9 +176,10 @@ def num_tokens_from_messages(messages, model="gpt-4o-mini-2024-07-18", warning =
     elif "gpt-4" in model:
         return num_tokens_from_messages(messages, model="gpt-4-0613")
     else:
-        raise NotImplementedError(
-            f"""num_tokens_from_messages() is not implemented for model {model}."""
-        )
+        #raise NotImplementedError(
+        #    f"""num_tokens_from_messages() is not implemented for model {model}.""" )
+        return num_tokens_from_messages(messages, model="gpt-4o-mini-2024-07-18") # use gpt-4o-mini
+
     num_tokens = 0
     for message in messages:
         num_tokens += tokens_per_message
@@ -435,6 +441,8 @@ class GPT:
         self.image_size = image_size
         self.dummy_img = "https://avatars.githubusercontent.com/u/116732521?v=4"
 
+        self.server = "openai" if self.model.startswith("gpt") else "local"
+
         # init assistant
         who = self.assistant
         if self.assistant in assistants:
@@ -602,19 +610,29 @@ class GPT:
 
         if isinstance(model, int): model = make_model(model)
 
-        response = client.chat.completions.create(
-            # https://platform.openai.com/docs/models/gpt-4
-            model=model,
-            stream=True,
-            messages=[
-                {"role": "system", "content": system},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=temperature,
-            max_tokens=maxtoken,
-            top_p=1,
-            frequency_penalty=0,
-            presence_penalty=0)
+        if self.server == "openai":
+            response = client.chat.completions.create(
+                # https://platform.openai.com/docs/models/gpt-4
+                model=model,
+                stream=True,
+                messages=[
+                    {"role": "system", "content": system},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=temperature,
+                max_tokens=maxtoken,
+                top_p=1,
+                frequency_penalty=0,
+                presence_penalty=0)
+        else:
+            response = ollama.chat(
+                model=model,
+                stream=True,
+                messages=[
+                    {"role": "system", "content": system},
+                    {"role": "user", "content": prompt}
+                ]
+            )
 
         if print_user:
             print_mess = prompt.replace('\r', '\n').replace('\n\n', '\n')
