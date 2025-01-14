@@ -441,7 +441,7 @@ class GPT:
         self.image_size = image_size
         self.dummy_img = "https://avatars.githubusercontent.com/u/116732521?v=4"
 
-        self.server = "openai" if self.model.startswith("gpt") else "local"
+        self.server = "openai" if self.model in gpt_models_dict.keys() else "local"
 
         # init assistant
         who = self.assistant
@@ -615,7 +615,7 @@ class GPT:
             model = make_model(model)
         #print(f"using {model}")
 
-        if self.server == "openai":
+        if self.server == "openai" or model in gpt_models_dict.keys():
             response = client.chat.completions.create(
                 # https://platform.openai.com/docs/models/gpt-4
                 model=model,
@@ -629,6 +629,11 @@ class GPT:
                 top_p=1,
                 frequency_penalty=0,
                 presence_penalty=0)
+
+            if print_user:
+                print_mess = prompt.replace('\r', '\n').replace('\n\n', '\n')
+                print('user:',print_mess,'\n...')
+            self.ask_reply = self.stream_reply(response, print_reply=print_reply, lag=lag)
         else:
             response = ollama.chat(
                 model=model,
@@ -639,27 +644,8 @@ class GPT:
                 ]
             )
 
-        if print_user:
-            print_mess = prompt.replace('\r', '\n').replace('\n\n', '\n')
-            print('user:',print_mess,'\n...')
-
-        if self.server == "openai":
-            ## stream reply ##
-            self.ask_reply = self.stream_reply(response, print_reply=print_reply, lag=lag)
-            # collected_messages = []
-            # for chunk in response:
-            #     chunk_message = chunk.choices[0].delta.content or ""  # extract the message
-            #     collected_messages.append(chunk_message)
-            #     if print_reply:
-            #         if chunk_message is not None:
-            #             time.sleep(lag)
-            #             print(chunk_message, end='')
-            #
-            #     self.ask_reply = ''.join(collected_messages).strip()
-        else:
             self.ask_reply = response['message']['content']
             print(self.ask_reply)
-
 
         time.sleep(0.85)
 
@@ -763,7 +749,7 @@ class GPT:
         ### Send message ###
         messages = self.build_messages(self.chat_thread)
 
-        if self.server == "openai":
+        if self.server == "openai" or "gpt" in model:
             response = client.chat.completions.create(
                 model=model,
                 messages=messages,
@@ -782,7 +768,7 @@ class GPT:
             )
 
         ## stream reply ##
-        if self.server == "openai":
+        if self.server == "openai" or "gpt" in model:
             self.reply = self.stream_reply(response, print_reply=print_reply, lag = lag)
         else:
             self.reply = response['message']['content']
