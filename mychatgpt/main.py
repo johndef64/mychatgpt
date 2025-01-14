@@ -643,16 +643,18 @@ class GPT:
             print('user:',print_mess,'\n...')
 
         if self.server == "openai":
-            collected_messages = []
-            for chunk in response:
-                chunk_message = chunk.choices[0].delta.content or ""  # extract the message
-                collected_messages.append(chunk_message)
-                if print_reply:
-                    if chunk_message is not None:
-                        time.sleep(lag)
-                        print(chunk_message, end='')
-
-                self.ask_reply = ''.join(collected_messages).strip()
+            ## stream reply ##
+            self.ask_reply = self.stream_reply(response, print_reply=print_reply, lag=lag)
+            # collected_messages = []
+            # for chunk in response:
+            #     chunk_message = chunk.choices[0].delta.content or ""  # extract the message
+            #     collected_messages.append(chunk_message)
+            #     if print_reply:
+            #         if chunk_message is not None:
+            #             time.sleep(lag)
+            #             print(chunk_message, end='')
+            #
+            #     self.ask_reply = ''.join(collected_messages).strip()
         else:
             self.ask_reply = response['message']['content']
             print(self.ask_reply)
@@ -758,25 +760,36 @@ class GPT:
         ### Send message ###
         messages = self.build_messages(self.chat_thread)
 
-        response = client.chat.completions.create(
-            model=model,
-            messages=messages,
-            temperature=temperature,
-            stream=True,
-            max_tokens=maxtoken,  # set max token
-            top_p=1,
-            frequency_penalty=0,
-            presence_penalty=0
-        )
+        if self.server == "openai":
+            response = client.chat.completions.create(
+                model=model,
+                messages=messages,
+                temperature=temperature,
+                stream=True,
+                max_tokens=maxtoken,  # set max token
+                top_p=1,
+                frequency_penalty=0,
+                presence_penalty=0
+            )
+        else:
+            response = ollama.chat(
+                model=model,
+                stream=False,
+                messages=messages
+            )
 
         ## stream reply ##
-        self.reply = self.stream_reply(response, print_reply=print_reply, lag = lag)
+        if self.server == "openai":
+            self.reply = self.stream_reply(response, print_reply=print_reply, lag = lag)
+        else:
+            self.reply = response['message']['content']
+            print(self.ask_reply)
         time.sleep(0.85)
 
         ### Add Reply to chat ###
         self.chat_thread.append({"role": "assistant", "content":self.reply})
         if image:
-            self.chat_thread[-2] = {"role": "user", "content": message+":\nImage:"+dummy}
+                self.chat_thread[-2] = {"role": "user", "content": message+":\nImage:"+dummy}
 
         if create:
             self.ask(self.reply, "Convert the input text into prompt instruction for Dall-e image generation model 'Create an image of ...' ")
