@@ -120,7 +120,8 @@ gpt_models_dict = {
     "dolphin-mistral": 16385
 }
 
-gpt_models = [i for i in gpt_models_dict.keys() if "gpt" or "o1" in i]
+gpt_models = [i for i in gpt_models_dict.keys() if "gpt" in i or "o1" in i]
+
 
 ####### Image Models #######
 '''
