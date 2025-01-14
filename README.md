@@ -3,7 +3,9 @@
 
 `mychatgpt` is a small and useful Python module that provides functions for interacting with OpenAI's GPT models to create conversational agents. This module allows users to have interactive conversations with the GPT models and keeps track of the conversation history in your Python Projects and Jupyter Notebooks.
 
-Now implemented with vision, hearing and drawing functions.
+The package includes vision, hearing and drawing functions for openai models.
+
+Now implemented with **ollama**. Run 🤗 open-source models locally and interact through in-build functions.
 
 ## Installation
 
@@ -175,6 +177,28 @@ delamain.chat('your message',
 ```
 
 
+## Setup Ollama (linux)
+guide: https://github.com/RamiKrispin/ollama-poc/blob/main/ollama-poc.ipynb
+```bash
+# Install ollama in Linux System
+curl -fsSL https://ollama.com/install.sh | sh
+```
+```bash
+# Pull desired models from 🤗
+ollama pull mistral
+```
+```bash
+# Start ollama server
+ollama serve
+```
+```python
+from mychatgpt import GPT
+
+# simply pass to chat functions
+elon = GPT('Elon Musk',
+           model = "mistral")
+elon.chat("""What do you think about OpenAI?""")
+```
 
 
 ## Notes

@@ -162,7 +162,7 @@ def ollama_start_server():
 
 def ollama_pull_model(model = "llama2"):
     ollama.pull(model)
-    
+
 
 #########
 
