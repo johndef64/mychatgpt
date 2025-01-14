@@ -751,7 +751,7 @@ class GPT:
         ### Send message ###
         messages = self.build_messages(self.chat_thread)
 
-        if self.server == "openai" or "gpt" in model:
+        if model in gpt_models:
             response = client.chat.completions.create(
                 model=model,
                 messages=messages,
@@ -762,6 +762,8 @@ class GPT:
                 frequency_penalty=0,
                 presence_penalty=0
             )
+
+            self.reply = self.stream_reply(response, print_reply=print_reply, lag = lag)
         else:
             response = ollama.chat(
                 model=model,
@@ -769,12 +771,9 @@ class GPT:
                 messages=messages
             )
 
-        ## stream reply ##
-        if model in gpt_models:
-            self.reply = self.stream_reply(response, print_reply=print_reply, lag = lag)
-        else:
             self.reply = response['message']['content']
             print(self.reply)
+
         time.sleep(0.85)
 
         ### Add Reply to chat ###
@@ -806,7 +805,6 @@ class GPT:
 
         if play:
             self.text2speech_stream(self.reply, voice=voice, model=tts)
-
 
 
 
