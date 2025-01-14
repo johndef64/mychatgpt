@@ -605,7 +605,8 @@ class GPT:
             lag: float = 0.00,
             temperature: float = 1,
             print_user: bool = False,
-            print_reply: bool = True
+            print_reply: bool = True,
+            stream = True
             ):
 
         if isinstance(model, int): model = make_model(model)
@@ -614,7 +615,7 @@ class GPT:
             response = client.chat.completions.create(
                 # https://platform.openai.com/docs/models/gpt-4
                 model=model,
-                stream=True,
+                stream=stream,
                 messages=[
                     {"role": "system", "content": system},
                     {"role": "user", "content": prompt}
@@ -627,7 +628,7 @@ class GPT:
         else:
             response = ollama.chat(
                 model=model,
-                stream=True,
+                stream=False,
                 messages=[
                     {"role": "system", "content": system},
                     {"role": "user", "content": prompt}
