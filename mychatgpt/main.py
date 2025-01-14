@@ -609,7 +609,10 @@ class GPT:
             stream = True
             ):
 
-        if isinstance(model, int): model = make_model(model)
+        if not model:
+            model = self.model
+        if isinstance(model, int):
+            model = make_model(model)
 
         if self.server == "openai":
             response = client.chat.completions.create(
