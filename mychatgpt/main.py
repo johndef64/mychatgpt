@@ -1,4 +1,5 @@
 import io
+import subprocess
 import sys
 import ast
 import json
@@ -117,7 +118,12 @@ gpt_models_dict = {
     "gpt-3.5-turbo-1106": 16385,
     "gpt-3.5-turbo-instruct": 4096,
 
-    "dolphin-mistral": 16385
+    "dolphin-mistral": 16385,
+    "gemma:2b" : 8192,
+    "mistral" :  8192,
+    "llama2" :   4096,
+    "llama3" :   8192,
+    "vicuna" :   8192,
 }
 
 gpt_models = [i for i in gpt_models_dict.keys() if "gpt" in i or "o1" in i]
@@ -143,7 +149,22 @@ TTS	    $0.015 / 1K characters
 TTS HD	$0.030 / 1K characters
 '''
 
-#
+### Ollama ###
+def ollama_install_linux():
+    print("guide: https://github.com/RamiKrispin/ollama-poc/blob/main/ollama-poc.ipynb ")
+    command = "curl -fsSL https://ollama.com/install.sh | sh"
+    subprocess.run(command, shell=True)
+
+def ollama_start_server():
+    print("guide: https://github.com/RamiKrispin/ollama-poc/blob/main/ollama-poc.ipynb ")
+    command = "ollama serve"
+    subprocess.run(command, shell=True)
+
+def ollama_pull_model(model = "llama2"):
+    ollama.pull(model)
+    
+
+#########
 
 def tokenizer(string: str, encoding_name: str = "gpt-4") -> int:
     """Returns the number of tokens in a text string."""
