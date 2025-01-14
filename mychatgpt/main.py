@@ -639,16 +639,20 @@ class GPT:
             print_mess = prompt.replace('\r', '\n').replace('\n\n', '\n')
             print('user:',print_mess,'\n...')
 
-        collected_messages = []
-        for chunk in response:
-            chunk_message = chunk.choices[0].delta.content or ""  # extract the message
-            collected_messages.append(chunk_message)
-            if print_reply:
-                if chunk_message is not None:
-                    time.sleep(lag)
-                    print(chunk_message, end='')
+        if self.server == "openai":
+            collected_messages = []
+            for chunk in response:
+                chunk_message = chunk.choices[0].delta.content or ""  # extract the message
+                collected_messages.append(chunk_message)
+                if print_reply:
+                    if chunk_message is not None:
+                        time.sleep(lag)
+                        print(chunk_message, end='')
 
-            self.ask_reply = ''.join(collected_messages).strip()
+                self.ask_reply = ''.join(collected_messages).strip()
+        else:
+            self.ask_reply = response['message']['content']
+            print(self.ask_reply)
 
         time.sleep(0.85)
 
