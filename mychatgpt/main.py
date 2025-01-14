@@ -600,7 +600,7 @@ class GPT:
     def ask(self,
             prompt: str = '',
             system: str = 'you are an helpful assistant',
-            model: str = model,        # choose openai model (choose_model())
+            model: str = None,        # choose openai model (choose_model())
             maxtoken: int = 800,
             lag: float = 0.00,
             temperature: float = 1,
@@ -613,6 +613,7 @@ class GPT:
             model = self.model
         if isinstance(model, int):
             model = make_model(model)
+        #print(f"using {model}")
 
         if self.server == "openai":
             response = client.chat.completions.create(
@@ -704,7 +705,7 @@ class GPT:
         if isinstance(model, int):
             model = make_model(model)
         if print_debug: print('using model: ',model)
-        print(f"using {model}")
+        #print(f"using {model}")
 
         dalle = dalle if dalle != self.dalle else self.dalle
         image_size = image_size if image_size != self.image_size else self.image_size
