@@ -660,6 +660,7 @@ class GPT:
             self.ask_reply = response['message']['content']
             print(self.ask_reply)
 
+
         time.sleep(0.85)
 
         # Add the assistant's reply to the chat log
