@@ -442,7 +442,7 @@ class GPT:
         self.image_size = image_size
         self.dummy_img = "https://avatars.githubusercontent.com/u/116732521?v=4"
 
-        self.server = "openai" if self.model in gpt_models else "local"
+        #self.server = "openai" if self.model in gpt_models else "local"
 
         # init assistant
         who = self.assistant
@@ -616,7 +616,7 @@ class GPT:
             model = make_model(model)
         #print(f"using {model}")
 
-        if self.server == "openai" or model in gpt_models:
+        if model in gpt_models:
             response = client.chat.completions.create(
                 # https://platform.openai.com/docs/models/gpt-4
                 model=model,
@@ -769,7 +769,7 @@ class GPT:
             )
 
         ## stream reply ##
-        if self.server == "openai" or "gpt" in model:
+        if model in gpt_models:
             self.reply = self.stream_reply(response, print_reply=print_reply, lag = lag)
         else:
             self.reply = response['message']['content']
