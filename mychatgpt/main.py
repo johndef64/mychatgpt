@@ -74,23 +74,23 @@ else:
     api_key = open(current_dir + '/openai_api_key.txt', 'r').read()
 
 #### initialize client ####
-client = OpenAI(api_key=str(api_key))
+openai_client = OpenAI(api_key=str(api_key))
+#
+# try:
+#     client.embeddings.create(input='', model= "text-embedding-3-small")
+# except AuthenticationError as e:
+#     # If an error occurs (e.g., wrong API key)
+#     print(f"Error occurred: {e}")
 
-try:
-    client.embeddings.create(input='', model= "text-embedding-3-small")
-except AuthenticationError as e:
-    # If an error occurs (e.g., wrong API key)
-    print(f"Error occurred: {e}")
-
-def change_key():
-    global client
-    global api_key
-    if simple_bool('change API key?'):
-        api_key = ''
-        with open(current_dir + '/openai_api_key.txt', 'w') as file:
-            file.write(input('insert here your openai api key:'))
-        api_key = open(current_dir + '/openai_api_key.txt', 'r').read()
-        client = OpenAI(api_key=str(api_key))
+# def change_key():
+#     global openai_client
+#     global api_key
+#     if simple_bool('change API key?'):
+#         api_key = ''
+#         with open(current_dir + '/openai_api_key.txt', 'w') as file:
+#             file.write(input('insert here your openai api key:'))
+#         api_key = open(current_dir + '/openai_api_key.txt', 'r').read()
+#         openai_client = OpenAI(api_key=str(api_key))
 
 ### Models ###
 
@@ -413,6 +413,21 @@ models_info='''
     1000x1000 = hd: $0.003825 
     '''
 
+def set_ollama_client(host=None, #'http://localhost:11434',
+                      headers=None  #{'x-some-header': 'some-value'}
+                      ):
+    if host:
+        client = ollama.Client(
+            host=host,
+            headers=headers
+        )
+    else:
+        client = ollama.Client()
+
+    return client
+
+
+
 ### Main Class ###
 class GPT:
     def __init__(self,
@@ -429,8 +444,12 @@ class GPT:
                  dalle: str = "dall-e-2",                # set dall-e model
                  image_size: str = '512x512',            # set generated image size
                  user_name: str = None,
-                 bio: bool = False
+                 bio: bool = False,
+
+                 host: str = None,
+                 headers: dict = None
                  ):
+
         self.assistant = assistant
         self.persona = persona
         self.format = format
@@ -483,6 +502,14 @@ class GPT:
         if self.bio:
             self.add_bio()#add = "and you are his assistant. ***")
             # "and you are his best friend. ***")
+
+        ### Set CLIENT ###
+        if model in gpt_models:
+            #print("initializing openai client...")
+            self.client = openai_client
+
+        self.ollama_client = ollama #set_ollama_client(host=host, headers=headers)
+
 
     def add_system(self, system='', reinforcement=False):
         if system in assistants :
@@ -618,6 +645,7 @@ class GPT:
 
 
 
+
     ##################  REQUESTS #####################
 
     ###### Question-Answer-GPT ######
@@ -641,7 +669,7 @@ class GPT:
         #print(f"using {model}")
 
         if model in gpt_models:
-            response = client.chat.completions.create(
+            response = self.client.chat.completions.create(
                 # https://platform.openai.com/docs/models/gpt-4
                 model=model,
                 stream=stream,
@@ -657,7 +685,7 @@ class GPT:
 
 
         else:
-            response = ollama.chat(
+            response = self.ollama_client.chat(
                 model=model,
                 stream=stream,
                 messages=[
@@ -776,7 +804,7 @@ class GPT:
         messages = self.build_messages(self.chat_thread)
 
         if model in gpt_models:
-            response = client.chat.completions.create(
+            response = self.client.chat.completions.create(
                 model=model,
                 messages=messages,
                 temperature=temperature,
@@ -789,7 +817,7 @@ class GPT:
 
             self.reply = self.stream_reply(response, print_reply=print_reply, lag = lag)
         else:
-            response = ollama.chat(
+            response = self.ollama_client.chat(
                 model=model,
                 stream=False,
                 messages=messages
@@ -847,7 +875,7 @@ class GPT:
                      show_image=True):
 
         if model == "dall-e-2":
-            response = client.images.generate(
+            response = self.client.images.generate(
                 model=model,
                 prompt=prompt,
                 response_format=response_format,
@@ -858,7 +886,7 @@ class GPT:
             if size in ['256x256', '512x512']:
                 size = '1024x1024'
 
-            response = client.images.generate(
+            response = self.client.images.generate(
                 model=model,
                 prompt=prompt,
                 response_format=response_format,
@@ -913,9 +941,9 @@ class GPT:
 
         audio_file = open(filepath, "rb")
         if not translate:
-            transcript = client.audio.transcriptions.create( model="whisper-1", file=audio_file, response_format=response_format)
+            transcript = self.client.audio.transcriptions.create( model="whisper-1", file=audio_file, response_format=response_format)
         else:
-            transcript = client.audio.translations.create( model="whisper-1", file=audio_file, response_format=response_format)
+            transcript = self.client.audio.translations.create( model="whisper-1", file=audio_file, response_format=response_format)
         if print_transcription: print(transcript)
         audio_file.close()
         return transcript
@@ -936,7 +964,7 @@ class GPT:
                     play: bool = False):
         if os.path.exists(filename):
             os.remove(filename)
-        spoken_response = client.audio.speech.create(
+        spoken_response = self.client.audio.speech.create(
             model=model, # tts-1 or tts-1-hd
             voice=voice,
             input=text,
@@ -952,7 +980,7 @@ class GPT:
                            voice: str = "alloy",
                            model: str = "tts-1",
                            speed: int = 1):
-        spoken_response = client.audio.speech.create(
+        spoken_response = self.client.audio.speech.create(
             model=model,
             voice=voice,
             response_format="opus",
