@@ -422,7 +422,6 @@ def set_ollama_client(host=None,    #'http://localhost:11434',
         client = ollama.Client(host=host, headers=headers)
     else:
         client = ollama.Client()
-    #client = ollama.Client
     return client
 
 ollama_client = ollama.Client() #set_ollama_client()  #ollama
