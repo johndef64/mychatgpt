@@ -416,19 +416,16 @@ models_info='''
 
 ### set ollama client ###
 def set_ollama_client(host=None,    #'http://localhost:11434',
-                      headers=None  #{'x-some-header': 'some-value'}
+                      headers: dict = None  #{'x-some-header': 'some-value'}
                       ):
     if host:
-        client = ollama.Client(
-            host=host,
-            headers=headers
-        )
+        client = ollama.Client(host=host, headers=headers)
     else:
-        client = ollama.Client()
-
+        client = ollama.Client
+    #client = ollama.Client
     return client
 
-ollama_client = set_ollama_client() #ollama.Client() #ollama
+ollama_client = ollama.Client #set_ollama_client()  #ollama
 
 
 
@@ -512,7 +509,7 @@ class GPT:
             #print("initializing openai client...")
             self.client = openai_client
 
-        self.ollama_client = ollama_client #set_ollama_client(host=host, headers=headers)
+        self.ollama_client = ollama_client
 
 
     def add_system(self, system='', reinforcement=False):
@@ -663,7 +660,7 @@ class GPT:
             temperature: float = 1,
             print_user: bool = False,
             print_reply: bool = True,
-            stream = True
+            stream: bool = True
             ):
 
         if not model:
@@ -690,6 +687,7 @@ class GPT:
 
         else:
             response = self.ollama_client.chat(
+            #response = ollama.Client.chat(
                 model=model,
                 stream=stream,
                 messages=[
