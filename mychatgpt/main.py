@@ -567,10 +567,13 @@ class GPT:
 
     # Accessory  Functions ================================
     # https://til.simonwillison.net/gpt3/python-chatgpt-streaming-api
-    def stream_reply(self, response, print_reply=True, lag = 0.00):
+    def stream_reply(self, response, print_reply=True, lag = 0.00, model=None):
         collected_messages = []
         for chunk in response:
-            chunk_message = chunk.choices[0].delta.content or ""  # extract the message
+            if model in gpt_models:
+                chunk_message = chunk.choices[0].delta.content or ""  # extract the message
+            else:
+                chunk_message = chunk['message']['content'] or ""
             collected_messages.append(chunk_message)
 
             if print_reply:
@@ -580,7 +583,6 @@ class GPT:
 
         self.reply = ''.join(collected_messages).strip()
         return self.reply
-
 
 
     ###### Base Functions ######
@@ -653,23 +655,24 @@ class GPT:
                 frequency_penalty=0,
                 presence_penalty=0)
 
-            if print_user:
-                print_mess = prompt.replace('\r', '\n').replace('\n\n', '\n')
-                print('user:',print_mess,'\n...')
-            self.ask_reply = self.stream_reply(response, print_reply=print_reply, lag=lag)
+
         else:
             response = ollama.chat(
                 model=model,
-                stream=False,
+                stream=stream,
                 messages=[
                     {"role": "system", "content": system},
                     {"role": "user", "content": prompt}
                 ]
             )
+            # self.ask_reply = response['message']['content']
+            # print(self.ask_reply)
 
-            self.ask_reply = response['message']['content']
-            print(self.ask_reply)
+        if print_user:
+            print_mess = prompt.replace('\r', '\n').replace('\n\n', '\n')
+            print('user:',print_mess,'\n...')
 
+        self.ask_reply = self.stream_reply(response, print_reply=print_reply, lag=lag, model=model)
         time.sleep(0.85)
 
         # Add the assistant's reply to the chat log
