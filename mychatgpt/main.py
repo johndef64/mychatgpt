@@ -413,6 +413,8 @@ models_info='''
     1000x1000 = hd: $0.003825 
     '''
 
+
+### set ollama client ###
 def set_ollama_client(host=None, #'http://localhost:11434',
                       headers=None  #{'x-some-header': 'some-value'}
                       ):
@@ -425,6 +427,8 @@ def set_ollama_client(host=None, #'http://localhost:11434',
         client = ollama.Client()
 
     return client
+
+ollama_client = ollama.Client() #ollama
 
 
 
@@ -508,7 +512,7 @@ class GPT:
             #print("initializing openai client...")
             self.client = openai_client
 
-        self.ollama_client = ollama #set_ollama_client(host=host, headers=headers)
+        self.ollama_client = ollama_client #set_ollama_client(host=host, headers=headers)
 
 
     def add_system(self, system='', reinforcement=False):
@@ -815,17 +819,17 @@ class GPT:
                 presence_penalty=0
             )
 
-            self.reply = self.stream_reply(response, print_reply=print_reply, lag = lag)
         else:
             response = self.ollama_client.chat(
                 model=model,
-                stream=False,
+                stream=True,
                 messages=messages
             )
 
-            self.reply = response['message']['content']
-            print(self.reply)
+            # self.reply = response['message']['content']
+            # print(self.reply)
 
+        self.reply = self.stream_reply(response, print_reply=print_reply, lag=lag, model=model)
         time.sleep(0.85)
 
         ### Add Reply to chat ###
