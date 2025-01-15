@@ -415,7 +415,7 @@ models_info='''
 
 
 ### set ollama client ###
-def set_ollama_client(host=None, #'http://localhost:11434',
+def set_ollama_client(host=None,    #'http://localhost:11434',
                       headers=None  #{'x-some-header': 'some-value'}
                       ):
     if host:
@@ -428,7 +428,7 @@ def set_ollama_client(host=None, #'http://localhost:11434',
 
     return client
 
-ollama_client = ollama.Client() #ollama
+ollama_client = set_ollama_client() #ollama.Client() #ollama
 
 
 
