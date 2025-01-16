@@ -130,7 +130,7 @@ def get_chat():
     url = handle + file
     get_gitfile(url, dir=os.getcwd()+'/chats')
 
-### encrypters ###
+###### Encrypters ######
 
 def key_gen(input_value, random_key=False):
     input_string = str(input_value)
@@ -162,7 +162,7 @@ def simple_decrypter(password: str or int =  0, encrypted_text: str = "Hello Wor
         print(f"Wrong password.")
         return None
 
-### file manager ###
+###### file manager ######
 
 def load_file(file='', path=os.getcwd()):
     with open(os.path.join(path, file),'r', encoding='utf-8') as file:
@@ -192,6 +192,109 @@ def pdf_to_text(pdf_path):
             page = reader.pages[page_num]
             text += page.extract_text()
     return text
+
+####### text parsers #####
+
+# to get contents use
+#load_file()
+
+# extract sections from latex and markdown files
+def load_and_extract_sections(file_path, clean_text=True):
+    with open(file_path, 'r', encoding='utf-8') as file:
+        content = file.read()  # Read file content
+
+    # Determine file type based on extension
+    if file_path.endswith('.tex'):
+        section_pattern = r'\\section\{(.+?)\}(.*?)(?=\\section|\Z)'  # LaTeX section pattern
+    elif file_path.endswith('.md'):
+        section_pattern = r'^(#{1,6})\s(.+)$'  # Markdown header pattern
+    else:
+        raise ValueError("Unsupported file type. Only '.tex' and '.md' are supported.")
+
+
+    # Find sections in the content based on the determined pattern
+    sections = re.findall(section_pattern, content, re.DOTALL if file_path.endswith('.tex') else re.MULTILINE)
+    #content = clean_tex(content) if clean_text else content
+
+    sections_dict = {}
+    for match in sections:
+        if file_path.endswith('.tex'):
+            title, body = match  # Unpack LaTeX sections
+        else:
+            header, title = match  # Unpack Markdown headers
+            body = header  # Use header as body for Markdown
+
+        key = title.lower().replace(' ', '_')  # Convert title to lowercase and replace spaces with underscores
+        sections_dict[key] = clean_tex(body.strip()) if clean_text else body.strip() # Store section body
+
+    #df = pd.Series(sections_dict, index=sections_dict.keys())  # Create a series from the dictionary
+    #display(df)
+    return sections_dict#, content
+
+def clip_tex(tex_content):
+    # Keep content between \section{introduction} and \section{conclusion}
+    match = re.search(r'\\section{Introduction}(.*?)\\section{Conclusion}', tex_content, flags=re.DOTALL)
+    if match:
+        # Return only the text between introduction and conclusion
+        return match.group(1)
+    else:
+        # Return the original content if sections are not found
+        return tex_content
+
+def clean_tex(tex_content):
+    # Remove content in \begin{figure} ... \end{figure}
+    tex_content = re.sub(r'\\begin{figure.*?\\end{figure', '', tex_content, flags=re.DOTALL)
+    # Remove content in \begin{table} ... \end{table}
+    tex_content = re.sub(r'\\begin{table.*?\\end{table', '', tex_content, flags=re.DOTALL)
+    # Remove content in \begin{comment} ... \end{comment}
+    tex_content = re.sub(r'\\begin{comment}.*?\\end{comment}', '', tex_content, flags=re.DOTALL)
+
+    tex_content = re.sub(r'\\begin{tcolorbox}.*?\\end{tcolorbox}', '', tex_content, flags=re.DOTALL)
+
+    # Remove lines starting with '%'
+    #tex_content = '\n'.join([line for line in tex_content.split('\n') if not line.strip().startswith('%')])
+    #tex_content = re.sub(r'^%.*$', '', tex_content, flags=re.MULTILINE)
+    tex_content = re.sub(r'^\s*%.*$', '', tex_content, flags=re.MULTILINE)
+    return tex_content
+
+def clean_markdown(md_content):
+    # Remove images ![alt text](image_url)
+    md_content = re.sub(r'!\[.*?\]\(.*?\)', '', md_content)
+    # Remove tables | Header | Header |
+    md_content = re.sub(r'(\|.*?\|)+', '', md_content)
+    # Remove code blocks ```
+    md_content = re.sub(r'```.*?```', '', md_content, flags=re.DOTALL)
+    # Remove HTML comments <!-- comment -->
+    md_content = re.sub(r'<!\-\-.*?\-\->', '', md_content, flags=re.DOTALL)
+    return md_content
+
+
+def reload_paper(file_path):
+    global sections_dict, full_paper
+    sections_dict, full_paper = load_and_extract_sections(file_path)
+
+#expand_context_by_sections
+def expand_context_by_section(gpt,
+                              section_list: list=None,
+                              sections_dict: dict=None,
+                              clear:bool=True,
+                              property:str= "of my work",
+                              format='tex'):
+    if clear: gpt.clear_chat()
+
+    if section_list:
+        for section in section_list:
+            section_clean = clean_tex(sections_dict[section]) if format == 'tex' else clean_markdown(sections_dict[section])
+            gpt.expand_chat(f'\nThis is the {section} section {property}:\n{section_clean}', 'user')
+
+"""
+# Usage
+gpt = GPT()
+my_sections = load_and_extract_sections('my_text_file.tex')
+expand_context_by_section(gpt, ["introduction", "conclusion"], my_sections)
+gpt.chat("What are the drawbacks of my work?")
+"""
+
 
 ####### image functions #######
 

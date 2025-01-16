@@ -39,7 +39,10 @@ def count_words_in_string(text):
 #     #display(df)
 #     return sections_dict, content
 
-def extract_sections(file_path):
+def extract_sections(file_path, clean_text =True):
+    with open(file_path, 'r', encoding='utf-8') as file:
+        content = file.read()  # Read file content
+
     # Determine file type based on extension
     if file_path.endswith('.tex'):
         section_pattern = r'\\section\{(.+?)\}(.*?)(?=\\section|\Z)'  # LaTeX section pattern
@@ -48,12 +51,10 @@ def extract_sections(file_path):
     else:
         raise ValueError("Unsupported file type. Only '.tex' and '.md' are supported.")
 
-    with open(file_path, 'r', encoding='utf-8') as file:
-        content = file.read()  # Read file content
-    content = clean_tex(content)
 
     # Find sections in the content based on the determined pattern
     sections = re.findall(section_pattern, content, re.DOTALL if file_path.endswith('.tex') else re.MULTILINE)
+    content = clean_tex(content) if clean_text else content
 
     sections_dict = {}
     for match in sections:
@@ -64,7 +65,7 @@ def extract_sections(file_path):
             body = header  # Use header as body for Markdown
 
         key = title.lower().replace(' ', '_')  # Convert title to lowercase and replace spaces with underscores
-        sections_dict[key] = body.strip()  # Store section body
+        sections_dict[key] = clean_tex(body.strip()) if clean_text else body.strip() # Store section body
 
     df = pd.Series(sections_dict, index=sections_dict.keys())  # Create a series from the dictionary
     # display(df)
@@ -115,7 +116,7 @@ def reload_paper(file_path):
     sections_dict, full_paper = extract_sections(file_path)
 
 
-def add_info_set(gpt, sections = None, sections_dict = {}, clear = True):
+def add_info_set(gpt, sections=None, sections_dict=None, clear=True):
     if clear: gpt.clear_chat()
 
     if sections:
