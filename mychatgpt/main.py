@@ -120,6 +120,7 @@ gpt_models_dict = {
 
     "dolphin-mistral": 16385,
     "gemma:2b" : 8192,
+    "gemma2:2b" : 8192,
     "mistral" :  8192,
     "llama2" :   4096,
     "llama3" :   8192,
@@ -346,7 +347,7 @@ def set_token_limit(model='gpt-3.5-turbo', maxtoken=500):
     # Retrieve the context window for the specified model
     context_window = gpt_models_dict.get(model, 0)
     # Calculate the token limit, default to 0 if model isn't found
-    token_limit = context_window - (maxtoken * 1.3) if context_window else "Model not found or no limit"
+    token_limit = context_window - (maxtoken * 1.3) if context_window else 8192 #"Model not found or no limit"
     return token_limit
 
 
