@@ -1244,8 +1244,9 @@ class GPT:
 # An embedded assistant or a character of your choice
 copilot_gpt = 'gpt-4o-2024-08-06'
 chatgpt = GPT(assistant='base')
-creator = GPT(assistant='creator')
+creator = GPT(assistant='creator', model=copilot_gpt)
 fixer = GPT(assistant='fixer', model=copilot_gpt)
+novelist = GPT(assistant='novelist')
 delamain = GPT(assistant='delamain', model=copilot_gpt)
 oracle = GPT(assistant='oracle', model=copilot_gpt)
 R = GPT(assistant='roger', model=copilot_gpt)
