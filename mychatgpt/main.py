@@ -446,6 +446,7 @@ class GPT:
                  image_size: str = '512x512',            # set generated image size
                  user_name: str = None,
                  bio: bool = False,
+                 ollama_server: str = None,
 
                  host: str = None,
                  headers: dict = None
@@ -509,7 +510,10 @@ class GPT:
             #print("initializing openai client...")
             self.client = openai_client
 
-        self.ollama_client = ollama_client
+        if ollama_server:
+            self.ollama_client = ollama.Client(host=ollama_server)
+        else:
+            self.ollama_client = ollama_client
 
 
     def add_system(self, system='', reinforcement=False):
@@ -788,17 +792,28 @@ class GPT:
                 print('user:',print_mess)
         else:
             image_path, dummy = image_encoder(image)
-            self.chat_thread.append({"role": 'user',
-                                     "content": [
-                                         {"type": "text", "text": message},
-                                         {
-                                             "type": "image_url",
-                                             "image_url": {
-                                                 "url": image_path,
-                                             },
-                                         },
-                                     ]
-                                     })
+            if model in gpt_models:
+                extension = {"role": 'user',
+                             "content": [
+                                 {"type": "text", "text": message},
+                                 {
+                                     "type": "image_url",
+                                     "image_url": {
+                                         "url": image_path,
+                                     },
+                                 },
+                             ]
+                             }
+            else:
+                extension = {
+                        'role': 'user',
+                        'content': message,
+                        'images': [image_path]
+                    }
+
+
+            self.chat_thread.append(extension)
+
 
             print('<Looking Image...>')
 

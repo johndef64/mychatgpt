@@ -195,9 +195,22 @@ ollama serve
 from mychatgpt import GPT
 
 # simply pass to chat functions
-elon = GPT('Elon Musk',
-           model = "mistral")
-elon.chat("""What do you think about OpenAI?""")
+mylama = GPT(model = "mistral")
+mylama.chat("Hi, what LLM model are you?", gpt=model)
+```
+### Use Ollama with server client
+```python
+from mychatgpt import GPT
+
+# set your server. If localhost, leave empty
+mylama = GPT(ollama_server="http://0.0.0.0:7869")
+model = "gemma2:2b"
+
+# Pull your model
+mylama.ollama_client.pull(model)
+
+# Chat
+mylama.chat("Hi, what LLM model are you?", gpt=model)
 ```
 
 

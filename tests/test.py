@@ -1,5 +1,6 @@
 # Import module
 from mychatgpt import julia, yoko, watson, C, GPT
+
 #%%
 
 # Engage in a chat with Julia model
@@ -39,7 +40,6 @@ print('\nPrompt used: ', julia.ask_reply)
 GPT().create_image("Create a Sailor Mercury fan art in punk goth style", model='dall-e-3')
 #%%
 
-
 # Set the model version to 4 for Yoko
 yoko.model = 4
 # Engage in a chat with Yoko model
@@ -78,3 +78,17 @@ sailor_mercury = GPT(assistant='Sailor Mercury')
 sailor_mercury.chat('Hi! How are you today?')
 
 #%%
+
+### Use Ollama local or server client
+
+from mychatgpt import GPT
+
+# set your server. If localhost, leave empty
+mylama = GPT(ollama_server="http://0.0.0.0:7869")
+model = "gemma2:2b"
+
+# Pull your model
+#mylama.ollama_client.pull(model)
+
+# Chat
+mylama.chat("@Hi, what LLM model are you?", gpt=model)

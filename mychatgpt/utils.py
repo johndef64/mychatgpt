@@ -229,7 +229,7 @@ def load_and_extract_sections(file_path, clean_text=True):
 
     #df = pd.Series(sections_dict, index=sections_dict.keys())  # Create a series from the dictionary
     #display(df)
-    return sections_dict#, content
+    return sections_dict #, content
 
 def clip_tex(tex_content):
     # Keep content between \section{introduction} and \section{conclusion}
