@@ -447,9 +447,7 @@ class GPT:
                  user_name: str = None,
                  bio: bool = False,
                  ollama_server: str = None,
-
-                 host: str = None,
-                 headers: dict = None
+                 my_key: str = None,
                  ):
 
         self.assistant = assistant
@@ -508,7 +506,10 @@ class GPT:
         ### Set CLIENT ###
         if model in gpt_models:
             #print("initializing openai client...")
-            self.client = openai_client
+            if my_key:
+                self.client = OpenAI(api_key=str(my_key))
+            else:
+                self.client = openai_client
 
         if ollama_server:
             self.ollama_client = ollama.Client(host=ollama_server)
