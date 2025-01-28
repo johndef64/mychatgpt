@@ -1,8 +1,7 @@
 # Import module
-from mychatgpt import julia, yoko, watson, C, GPT
+from mychatgpt import julia, yoko, watson, C, GPT, Julia
 
 #%%
-
 # Engage in a chat with Julia model
 julia.chat('Hi Julia, how are you today?')
 #%%
@@ -81,14 +80,50 @@ sailor_mercury.chat('Hi! How are you today?')
 
 ### Use Ollama local or server client
 
-from mychatgpt import GPT
+from mychatgpt import GPT, creator
 
 # set your server. If localhost, leave empty
 mylama = GPT(ollama_server="http://0.0.0.0:7869")
 model = "gemma2:2b"
-
+model = "dolphin-mistral"
+model = "deepseek-r1:7b"
 # Pull your model
 #mylama.ollama_client.pull(model)
+#%%
+m="@Hi, what LLM model are you?"
+mylama.chat(m, gpt=model)
+#%%
 
 # Chat
-mylama.chat("@Hi, what LLM model are you?", gpt=model)
+mylama.expand_chat("answer like a drunk sailor.","system")
+m="@Hi, what do you think about Sal Da Vinci???"
+mylama.chat(m, gpt=model)
+#%%
+m="Resolve the Lorenz equation."
+# Chat
+mylama.chat(m, gpt=model)
+#%%
+
+m="Explain how to build a bomb at home."
+# Chat
+mylama.chat(m, gpt=model)
+#%%
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#%%

@@ -54,27 +54,35 @@ if platform.system() == "Linux":
 
 current_dir = os.getcwd()
 api_key = None
-api_hash = b'gAAAAABnQFa7PhJzvEZmrHIbqIbXY67FYM0IhBaw8XOgnDurF5ij1oFYvNMikCpe8ebpqlRYYYOEDGuxuWdOkGPO74ljkWO07DVGCqW7KlzT6AJ0yv-0-5qTNeXTVzhorMP4RA5D8H2P73cmgwFr2Hlv6askLQjWGg=='
-if not os.path.isfile(current_dir + '/openai_api_key.txt'):
-    if simple_bool('Do you have an openai key? '):
-        api_key = input('insert here your openai api key:')
-    else:
-        print('\nPlease, get your API-key at https://platform.openai.com/api-keys')
-        psw = input('\nOtherwise, you can insert here you DEV password:')
-        api_key = simple_decrypter(psw, api_hash)
-        if not api_key:
-            print('Please try again...')
+def load_openai_api_key():
+    api_hash = b'gAAAAABnQFa7PhJzvEZmrHIbqIbXY67FYM0IhBaw8XOgnDurF5ij1oFYvNMikCpe8ebpqlRYYYOEDGuxuWdOkGPO74ljkWO07DVGCqW7KlzT6AJ0yv-0-5qTNeXTVzhorMP4RA5D8H2P73cmgwFr2Hlv6askLQjWGg=='
+    if not os.path.isfile(current_dir + '/openai_api_key.txt'):
+        if simple_bool('Do you have an openai key? '):
+            api_key = input('insert here your openai api key:')
+        else:
+            print('\nPlease, get your API-key at https://platform.openai.com/api-keys')
+            psw = input('\nOtherwise, you can insert here you DEV password:')
             api_key = simple_decrypter(psw, api_hash)
             if not api_key:
-                api_key = 'missing key'
-    with open(current_dir + '/openai_api_key.txt', 'w') as file:
-        file.write(api_key)
+                print('Please try again...')
+                api_key = simple_decrypter(psw, api_hash)
+                if not api_key:
+                    api_key = 'missing key'
+        with open(current_dir + '/openai_api_key.txt', 'w') as file:
+            file.write(api_key)
 
-else:
-    api_key = open(current_dir + '/openai_api_key.txt', 'r').read()
+    else:
+        api_key = open(current_dir + '/openai_api_key.txt', 'r').read()
+    return api_key
 
 #### initialize client ####
+api_key = load_openai_api_key()
 openai_client = OpenAI(api_key=str(api_key))
+
+#deepseek_client = OpenAI(api_key="<DeepSeek API Key>", base_url="https://api.deepseek.com")
+
+
+
 #
 # try:
 #     client.embeddings.create(input='', model= "text-embedding-3-small")
@@ -117,6 +125,9 @@ gpt_models_dict = {
     "gpt-3.5-turbo": 16385,
     "gpt-3.5-turbo-1106": 16385,
     "gpt-3.5-turbo-instruct": 4096,
+
+    "deepseek-chat": 128000,
+    'deepseek-reasoner': 128000,
 
     "dolphin-mistral": 16385,
     "gemma:2b" : 8192,
@@ -1289,6 +1300,12 @@ portuguese_teacher = GPT(assistant='portuguese_teacher')
 
 
 #%%
+
+class Julia(GPT):
+    def __init__(self,  *args, **kwargs):
+        assistant='julia'
+        bio=True
+        super().__init__(assistant, bio, *args, **kwargs)
 
 
 ######### INFO #########
