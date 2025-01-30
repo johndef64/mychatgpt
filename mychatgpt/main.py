@@ -1,4 +1,4 @@
-import io
+import io, os
 import subprocess
 import sys
 import ast
@@ -477,7 +477,7 @@ class GPT:
         self.chat_thread = [] # iniziale chat thread
         self.keep_persona = True
         self.translate = translate
-        self.translate_jap = translate_jap
+        #self.translate_jap = translate_jap
 
 
         if not os.path.exists('chat_log.json'):
@@ -703,9 +703,8 @@ class GPT:
 
         else:
             response = self.ollama_client.chat(
-            #response = ollama.Client.chat(
                 model=model,
-                stream=stream,
+                stream=True,
                 messages=[
                     {"role": "system", "content": system},
                     {"role": "user", "content": prompt}
@@ -719,7 +718,7 @@ class GPT:
             print('user:',print_mess,'\n...')
 
         self.ask_reply = self.stream_reply(response, print_reply=print_reply, lag=lag, model=model)
-        time.sleep(0.85)
+        time.sleep(0.75)
 
         # Add the assistant's reply to the chat log
         #if save_chat:
@@ -1174,11 +1173,7 @@ class GPT:
                           create=create)
 
         if translate or self.translate:
-            translator = create_translator(rileva_lingua(m))
-            if self.translate_jap:
-                translator = create_jap_translator(rileva_lingua(m))
-            print('\n')
-            self.ask(self.reply, translator)
+            self.auto_translate()
 
 
     c = chat  # alias for quick access to chat function
@@ -1218,11 +1213,11 @@ class GPT:
 
 
     # Formatting
-    def schematize(self, m, language='english', max = 1000, image='', paste = False, clip=True):
+    def schematize(self, m, language='english', *args, **kwargs):
         if language != 'english':
             self.expand_chat('Reply only using '+language, 'system')
         self.add_system(assistants['schematizer'])
-        self.chat(m, max, image, paste, clip)
+        self.ask(m, *args, **kwargs)
 
     def make_prompt(self, m, max = 1000, image='', clip=True, sdxl=True):
         import stablediff_rag as sd
@@ -1234,9 +1229,32 @@ class GPT:
         self.chat(m, max, image, clip)
 
     # Translators
-    def translate(self, language='English'):
-        self.ask(self.reply, create_translator(language))
+    # def auto_translate(self, language='English'):
+    #     self.ask(self.reply, create_translator(language))
+    def auto_translate(self, language=None):
+        if not language:
+            language = rileva_lingua(self.reply)
 
+        if language == 'Japanese':
+            translator = create_jap_translator(language)
+        else:
+            translator = create_translator(language)
+        print('\n')
+        self.ask(self.reply, translator)
+
+
+    def fix(self, m, *args, **kwargs):
+        self.ask(m, assistants['fixer'], *args, **kwargs)
+    def create(self, m, *args, **kwargs):
+        self.ask(m, assistants['creator'], *args, **kwargs)
+
+    # def set(self, assistant='base', format='markdown', model='gpt-4o',
+    #         translate=True, bio=True):
+    #     self.assistant = assistant
+    #     self.model = model
+    #     self.format = format
+    #     self.translate = translate
+    #     self.bio = bio
 
     # def japanese_learner(self, m,voice='nova', times= 3, speed=1):
     #     self.japanese_teacher(m, 'gpt-4o')
@@ -1252,9 +1270,11 @@ class GPT:
     #     text2speech(phrase,voice=voice, speed = speed, play=True)
     #     audio_loop()
 
+#%%
 
 # An embedded assistant or a character of your choice
-copilot_gpt = 'gpt-4o-2024-08-06'
+copilot_gpt = 'gpt-4o'
+G = GPT()
 chatgpt = GPT(assistant='base')
 creator = GPT(assistant='creator', model=copilot_gpt)
 fixer = GPT(assistant='fixer', model=copilot_gpt)
@@ -1291,8 +1311,8 @@ michael = GPT(assistant='michael', translate=True, bio=True)
 miguel = GPT(assistant='miguel', translate=True, bio=True)
 francois = GPT(assistant='francois', translate=True, bio=True)
 luca = GPT(assistant='luca', translate=True, bio=True)
-hero = GPT(assistant='hero', translate=True, translate_jap=True, bio=True)
-yoko = GPT(assistant='yoko', translate=True, translate_jap=True, bio=True)
+hero = GPT(assistant='hero', translate=True, bio=True)#, translate_jap=True)
+yoko = GPT(assistant='yoko', translate=True, bio=True)#, translate_jap=True)
 
 # Languages
 japanese_teacher = GPT(assistant='japanese_teacher')
@@ -1300,12 +1320,6 @@ portuguese_teacher = GPT(assistant='portuguese_teacher')
 
 
 #%%
-
-class Julia(GPT):
-    def __init__(self,  *args, **kwargs):
-        assistant='julia'
-        bio=True
-        super().__init__(assistant, bio, *args, **kwargs)
 
 
 ######### INFO #########
