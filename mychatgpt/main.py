@@ -1231,11 +1231,10 @@ class GPT:
     # Translators
     # def auto_translate(self, language='English'):
     #     self.ask(self.reply, create_translator(language))
-    def auto_translate(self, language=None):
-        if not language:
-            language = rileva_lingua(self.reply)
+    def auto_translate(self, language="English"):
+        reply_language = rileva_lingua(self.reply)
 
-        if language == 'Japanese':
+        if reply_language == 'Japanese':
             translator = create_jap_translator(language)
         else:
             translator = create_translator(language)
