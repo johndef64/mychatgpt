@@ -6,7 +6,7 @@ setup(
     version='0.4.1',
     packages=find_packages(),  # Automatically find packages in your project
     install_requires=[         # Optional: specify dependencies
-        "openai", "tiktoken", "langdetect", "pandas", "pyperclip", "gdown","scipy", "nltk", "PyPDF2", 'cryptography', 'matplotlib', "pygame", "sounddevice", "soundfile", "keyboard", "pillow", "ollama"
+        "openai", "tiktoken", "langdetect", "pandas", "pyperclip", "gdown","scipy", "nltk", "PyPDF2", 'cryptography', 'matplotlib', "pygame", "sounddevice", "soundfile", "keyboard", "pillow", "ollama", "bs4"
     ],
     #entry_points={             # Optional: command-line scripts
     #    'console_scripts': [

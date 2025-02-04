@@ -15,6 +15,9 @@ import os
 import re
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame
+import markdown
+from bs4 import BeautifulSoup
+
 
 def is_package_installed(package_name):
     try:
@@ -268,6 +271,35 @@ def clean_markdown(md_content):
     md_content = re.sub(r'<!\-\-.*?\-\->', '', md_content, flags=re.DOTALL)
     return md_content
 
+def markdown_to_dict(file_path, html=None):
+
+    with open(file_path, 'r', encoding='utf-8') as file:
+        md_content = file.read()
+
+    if not html:
+        html = markdown.markdown(md_content)
+    soup = BeautifulSoup(html, "html.parser")
+
+    result_dict = {}
+    current_h1 = None
+    current_h2 = None
+
+    for element in soup.find_all(['h1', 'h2', 'p']):
+        if element.name == 'h1':
+            current_h1 = element.get_text().strip()
+            result_dict[current_h1] = {}
+        elif element.name == 'h2':
+            current_h2 = element.get_text().strip()
+            result_dict[current_h1][current_h2] = ''
+        elif element.name == 'p' and current_h1 and current_h2:
+            result_dict[current_h1][current_h2] += element.get_text() + '\n\n'
+
+    # Trim trailing newlines from text
+    for h1 in result_dict:
+        for h2 in result_dict[h1]:
+            result_dict[h1][h2] = result_dict[h1][h2].rstrip('\n')
+
+    return result_dict
 
 def reload_paper(file_path):
     global sections_dict, full_paper
