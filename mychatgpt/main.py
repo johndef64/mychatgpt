@@ -3,7 +3,7 @@ import subprocess
 import sys
 import ast
 import json
-
+import csv
 import ollama
 
 from .utils import *
@@ -398,13 +398,13 @@ copilot_intructions = compose_assistant(assistants[copilot_assistant])
 ###### global variables ######
 
 model = 'gpt-4o-mini'
-talk_model = 'gpt-4o-2024-08-06'
+talk_model = 'gpt-4o'#-2024-08-06'
 
 
 def make_model(version=3):
     model = 'gpt-'+str(version)
     if version == 3: model = model+'.5-turbo'
-    if version == 4: model = model + 'o-2024-08-06' #gpt-4o-2024-08-06
+    if version == 4: model = model + 'o'#-2024-08-06' #gpt-4o-2024-08-06
     return model
 
 models_info='''
@@ -456,7 +456,8 @@ class GPT:
                  dalle: str = "dall-e-2",                # set dall-e model
                  image_size: str = '512x512',            # set generated image size
                  user_name: str = None,
-                 bio: bool = False,
+                 #bio: bool = False,
+                 memory : bool = False,
                  ollama_server: str = None,
                  my_key: str = None,
                  ):
@@ -468,7 +469,8 @@ class GPT:
         self.save_log = save_log
         self.to_clip = to_clip
         self.print_token = print_token
-        self.bio = bio
+        #self.bio = bio
+        self.memory = memory
         self.reply = ''
         self.ask_reply = ''
 
@@ -510,8 +512,8 @@ class GPT:
         if persona and not who:
             self.add_persona(persona)
 
-        if self.bio:
-            self.add_bio()#add = "and you are his assistant. ***")
+        # if self.bio:
+        #     self.add_bio()#add = "and you are his assistant. ***")
             # "and you are his best friend. ***")
 
         ### Set CLIENT ###
@@ -534,6 +536,20 @@ class GPT:
         if not any(item == {"role": "system", "content": system} for item in self.chat_thread) or reinforcement:
             self.chat_thread.append({"role": "system", "content": system})
 
+    def update_system(self, system='', lenght=50):
+        # Slice the first 100 characters of the system parameter
+        system_prefix = system[:lenght]
+
+        # Iterate over the chat_thread to find matching items
+        for index, item in enumerate(self.chat_thread):
+            # Check if the first n characters of the content match the system prefix
+            if item["content"][:lenght] == system_prefix:
+                # Replace the item with the new system content
+                self.chat_thread[index] = {"role": "system", "content": system}
+
+        if not any(item == {"role": "system", "content": system} for item in self.chat_thread):
+           self.chat_thread.append({"role": "system", "content": system})
+
     def add_format(self, format_):
         reply_styles = features['reply_style']
         if any(item == {"role": "system", "content": reply_styles} for item in self.chat_thread):
@@ -551,12 +567,12 @@ class GPT:
         if language == 'ita':
             self.add_system(persona_dict['personaggio'])
 
-    def add_bio(self, add: str = " and you are his best friend. ***"):
-
-        if os.path.exists("my_bio.txt"):
-            self.expand_chat('''***'''+load_file("my_bio.txt")+'***', 'system')
-        elif self.user_name:
-            self.expand_chat('''*** Your interlocutor is called '''+ self.user_name + add+'***', 'system')
+    # def add_bio(self, add: str = " and you are his best friend. ***"):
+    #
+    #     if os.path.exists("my_bio.txt"):
+    #         self.expand_chat('''***'''+load_file("my_bio.txt")+'***', 'system')
+    #     elif self.user_name:
+    #         self.expand_chat('''*** Your interlocutor is called '''+ self.user_name + add+'***', 'system')
 
 
     def expand_chat(self, message, role="user"):
@@ -949,7 +965,10 @@ class GPT:
         image = Image.open(filename)
         metadata = PngInfo()
         metadata.add_text("key", prompt)
-        image.save(filename, pnginfo=metadata)
+
+        if not os.path.exists('images'):
+            os.makedirs('images')
+        image.save(f'images/{filename}', pnginfo=metadata)
 
         if show_image:
             display_image(filename)
@@ -1155,15 +1174,19 @@ class GPT:
              image: str = None,
              paste: bool = False,
              translate: bool = False,
+             memory: bool = False,
              create: bool = False,
              token: bool = False):
 
         gpt = gpt or self.model
 
+        if memory or self.memory:
+            self.load_memories()
+
         p = pc.paste() if paste else ''
 
-        if self.bio:
-            self.add_bio()
+        # if self.bio:
+        #     self.add_bio()
 
         self.send_message(m + p,
                           maxtoken=max,
@@ -1174,6 +1197,10 @@ class GPT:
 
         if translate or self.translate:
             self.auto_translate()
+
+        if memory or self.memory:
+            self.memorizer(m)
+
 
 
     c = chat  # alias for quick access to chat function
@@ -1241,6 +1268,52 @@ class GPT:
         print('\n')
         self.ask(self.reply, translator)
 
+    def memorizer(self, message):
+        frasi_caricate = []
+        if os.path.isfile('memories.csv'):
+            with open('memories.csv', 'r') as file:
+                reader = csv.reader(file)
+                for row in reader:
+                    frase = row[0].rsplit(',', 1)[0]
+                    frasi_caricate.append(frase)
+        previous_memories = "\n".join(frasi_caricate)
+        memorizer = f"""Your task is to memorize new meaningful informations as short memories related to the user world from his input message. Informations like realtionships, personality, history, events and so on.
+        
+        If you don't find any new of relevant information to memorize do no reply anything.        
+        This are your previous memories:
+        {previous_memories}
+        
+        
+        Reply just with simple sentences like this example:
+            The user name is John
+            John's dog is called Jimmy
+            John is an introverted type
+            """
+
+        print('\n')
+        self.ask(message, system=memorizer, print_reply=False, model="gpt-4o-mini")
+        print(self.ask_reply)
+
+        frasi = self.ask_reply.split("\n")
+        with open('memories.csv', 'a', newline='') as file:
+            writer = csv.writer(file)
+            for frase in frasi:
+                if len(frase) > 10:
+                    writer.writerow([frase, datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
+
+    def load_memories(self):
+        frasi_caricate = []
+        if os.path.isfile('memories.csv'):
+            with open('memories.csv', 'r') as file:
+                reader = csv.reader(file)
+                for row in reader:
+                    frasi_caricate.append(row[0])
+
+            memories = "This are your memories about the user world:\n\n"+"\n".join(frasi_caricate)
+            self.update_system(memories)
+
+
+
 
     def fix(self, m, *args, **kwargs):
         self.ask(m, assistants['fixer'], *args, **kwargs)
@@ -1304,14 +1377,14 @@ springer = GPT(assistant='collins', format='markdown')
 
 
 # Characters
-julia = GPT(assistant='julia', bio=True)
-mike = GPT(assistant='mike', bio=True)
-michael = GPT(assistant='michael', translate=True, bio=True)
-miguel = GPT(assistant='miguel', translate=True, bio=True)
-francois = GPT(assistant='francois', translate=True, bio=True)
-luca = GPT(assistant='luca', translate=True, bio=True)
-hero = GPT(assistant='hero', translate=True, bio=True)#, translate_jap=True)
-yoko = GPT(assistant='yoko', translate=True, bio=True)#, translate_jap=True)
+julia = GPT(assistant='julia', memory=True)
+mike = GPT(assistant='mike', memory=True)
+michael = GPT(assistant='michael', translate=True, memory=True)
+miguel = GPT(assistant='miguel', translate=True, memory=True)
+francois = GPT(assistant='francois', translate=True, memory=True)
+luca = GPT(assistant='luca', translate=True, memory=True)
+hero = GPT(assistant='hero', translate=True, memory=True)#, translate_jap=True)
+yoko = GPT(assistant='yoko', translate=True, memory=True)#, translate_jap=True)
 
 # Languages
 japanese_teacher = GPT(assistant='japanese_teacher')
