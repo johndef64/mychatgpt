@@ -447,7 +447,7 @@ class GPT:
                  persona: str = None,                      # any known character
                  format: str = None,                     # output format (latex,python,markdown)
                  translate: bool = False,                # translate outputs
-                 translate_jap: bool = False,            # translate in jap outputs
+                 #translate_jap: bool = False,            # translate in jap outputs
                  save_log: bool = True,                  # save log file
                  to_clip: bool = True,                   # send reply t clipboard
                  print_token: bool = True,               # print token count
@@ -456,7 +456,6 @@ class GPT:
                  dalle: str = "dall-e-2",                # set dall-e model
                  image_size: str = '512x512',            # set generated image size
                  user_name: str = None,
-                 #bio: bool = False,
                  memory : bool = False,
                  ollama_server: str = None,
                  my_key: str = None,
@@ -469,7 +468,6 @@ class GPT:
         self.save_log = save_log
         self.to_clip = to_clip
         self.print_token = print_token
-        #self.bio = bio
         self.memory = memory
         self.reply = ''
         self.ask_reply = ''
@@ -512,9 +510,6 @@ class GPT:
         if persona and not who:
             self.add_persona(persona)
 
-        # if self.bio:
-        #     self.add_bio()#add = "and you are his assistant. ***")
-            # "and you are his best friend. ***")
 
         ### Set CLIENT ###
         if model in gpt_models:
@@ -567,12 +562,6 @@ class GPT:
         if language == 'ita':
             self.add_system(persona_dict['personaggio'])
 
-    # def add_bio(self, add: str = " and you are his best friend. ***"):
-    #
-    #     if os.path.exists("my_bio.txt"):
-    #         self.expand_chat('''***'''+load_file("my_bio.txt")+'***', 'system')
-    #     elif self.user_name:
-    #         self.expand_chat('''*** Your interlocutor is called '''+ self.user_name + add+'***', 'system')
 
 
     def expand_chat(self, message, role="user"):
@@ -1185,9 +1174,6 @@ class GPT:
 
         p = pc.paste() if paste else ''
 
-        # if self.bio:
-        #     self.add_bio()
-
         self.send_message(m + p,
                           maxtoken=max,
                           model=gpt,
@@ -1246,14 +1232,14 @@ class GPT:
         self.add_system(assistants['schematizer'])
         self.ask(m, *args, **kwargs)
 
-    def make_prompt(self, m, max = 1000, image='', clip=True, sdxl=True):
+    def make_prompt(self, m, max = 1000, image='', sdxl=True):
         import stablediff_rag as sd
         if sdxl:
             assistant = sd.rag_sdxl
         else:
             assistant = sd.rag_sd
         self.add_system(assistant)
-        self.chat(m, max, image, clip)
+        self.chat(m, max=max, image=image)
 
     # Translators
     # def auto_translate(self, language='English'):
@@ -1277,7 +1263,7 @@ class GPT:
                     frase = row[0].rsplit(',', 1)[0]
                     frasi_caricate.append(frase)
         previous_memories = "\n".join(frasi_caricate)
-        memorizer = f"""Your task is to memorize new meaningful informations as short memories related to the user world from his input message. Informations like realtionships, personality, history, events and so on.
+        memorizer = f"""Your task is to memorize new, meaningful information as short memories related to the user's world from their input message. Information such as relationships, personality, history, events, and so on.
         
         If you don't find any new of relevant information to memorize do no reply anything.        
         This are your previous memories:
@@ -1312,21 +1298,17 @@ class GPT:
             memories = "This are your memories about the user world:\n\n"+"\n".join(frasi_caricate)
             self.update_system(memories)
 
-
-
-
     def fix(self, m, *args, **kwargs):
         self.ask(m, assistants['fixer'], *args, **kwargs)
     def create(self, m, *args, **kwargs):
         self.ask(m, assistants['creator'], *args, **kwargs)
 
     # def set(self, assistant='base', format='markdown', model='gpt-4o',
-    #         translate=True, bio=True):
+    #         translate=True):
     #     self.assistant = assistant
     #     self.model = model
     #     self.format = format
     #     self.translate = translate
-    #     self.bio = bio
 
     # def japanese_learner(self, m,voice='nova', times= 3, speed=1):
     #     self.japanese_teacher(m, 'gpt-4o')
