@@ -291,8 +291,15 @@ def markdown_to_dict(file_path, html=None):
         elif element.name == 'h2':
             current_h2 = element.get_text().strip()
             result_dict[current_h1][current_h2] = ''
-        elif element.name == 'p' and current_h1 and current_h2:
-            result_dict[current_h1][current_h2] += element.get_text() + '\n\n'
+        # elif element.name == 'p' and current_h1 and current_h2:
+        #     result_dict[current_h1][current_h2] += element.get_text() + '\n\n'
+        elif element.name == 'p':
+            if current_h2:  # Appendi al corrente h2 se esiste
+                result_dict[current_h1][current_h2] += element.get_text() + '\n\n'
+            elif current_h1:  # Fall-back su current_h1 se current_h2 non esiste
+                if '' not in result_dict[current_h1]:
+                    result_dict[current_h1][''] = ''
+                result_dict[current_h1][''] += element.get_text() + '\n\n'
 
     # Trim trailing newlines from text
     for h1 in result_dict:
@@ -353,18 +360,15 @@ def image_encoder(image_path: str = None):
 
     if image_path.startswith('http'):
         print('Image path:',image_path)
-        dummy = image_path
         pass
     elif is_base64_image(image_path):
         base64_image = image_path
         image_path = f"data:image/jpeg;base64,{base64_image}"
-        dummy = "image_path"
     else:
         base64_image = encode_image(image_path)
         print('<Enconding Image...>', type(base64_image))
         image_path = f"data:image/jpeg;base64,{base64_image}"
-        dummy = "image_path"
-    return image_path, dummy
+    return image_path
 
 
 

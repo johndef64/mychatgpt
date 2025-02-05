@@ -296,7 +296,7 @@ from nltk.stem import PorterStemmer
 from nltk.tokenize import word_tokenize
 
 def get_embeddings(input="Your text string goes here", model="text-embedding-3-small"):
-    response = client.embeddings.create(
+    response = openai_client.embeddings.create(
         input=input,
         model=model
     )
@@ -363,7 +363,7 @@ def set_token_limit(model='gpt-3.5-turbo', maxtoken=500):
 
 
 def moderation(text="Sample text goes here.", plot=True):
-    response = client.moderations.create(input=text)
+    response = openai_client.moderations.create(input=text)
     output = response.results[0]
     my_dict= dict(dict(output)['categories'])
     my_dict_score= dict(dict(output)['category_scores'])
@@ -447,7 +447,6 @@ class GPT:
                  persona: str = None,                      # any known character
                  format: str = None,                     # output format (latex,python,markdown)
                  translate: bool = False,                # translate outputs
-                 #translate_jap: bool = False,            # translate in jap outputs
                  save_log: bool = True,                  # save log file
                  to_clip: bool = True,                   # send reply t clipboard
                  print_token: bool = True,               # print token count
@@ -524,6 +523,14 @@ class GPT:
         else:
             self.ollama_client = ollama_client
 
+    ########## Definitions ############
+    def reload_client(self, my_key=None, ollama_server=None):
+        if not my_key:
+            my_key = load_openai_api_key()
+        self.client = OpenAI(api_key=str(my_key))
+        if ollama_server:
+            self.ollama_client = ollama.Client(host=ollama_server)
+
 
     def add_system(self, system='', reinforcement=False):
         if system in assistants :
@@ -584,7 +591,6 @@ class GPT:
         if not os.path.exists('chats'):
             os.mkdir('chats')
         salva_in_json(self.chat_thread, path+chat_name+'.json')
-
 
     def load_chat(self, contains='', path='chats/', log=True):
         files_df = display_files_as_pd(path, ext='json',contains=contains)
@@ -670,7 +676,7 @@ class GPT:
 
     ##################  REQUESTS #####################
 
-    ###### Question-Answer-GPT ######
+    ##### Question-Answer-GPT #####
 
     def ask(self,
             prompt: str = '',
@@ -807,7 +813,7 @@ class GPT:
                 print_mess = message.replace('\r', '\n').replace('\n\n', '\n')
                 print('user:',print_mess)
         else:
-            image_path, dummy = image_encoder(image)
+            image_path = image_encoder(image)
             if model in gpt_models:
                 extension = {"role": 'user',
                              "content": [
@@ -864,7 +870,7 @@ class GPT:
         ### Add Reply to chat ###
         self.chat_thread.append({"role": "assistant", "content":self.reply})
         if image:
-                self.chat_thread[-2] = {"role": "user", "content": message+":\nImage:"+dummy}
+            self.chat_thread[-2] = {"role": "user", "content": message+":\nImage:"+"http://domain.com//image.jpg"}
 
         if create:
             self.ask(self.reply, "Convert the input text into prompt instruction for Dall-e image generation model 'Create an image of ...' ")
@@ -1077,7 +1083,7 @@ class GPT:
               max: int = 1000,
               printall: bool = False):
 
-        gpt = self.talk_model
+        model = self.talk_model
 
         who = self.assistant
         if who in assistants:
@@ -1086,7 +1092,7 @@ class GPT:
             self.add_persona(who, language)
         else:
             system = system
-        self.send_message(message,system=system, model=gpt, maxtoken=max, print_reply=printall, print_token=False)
+        self.send_message(message,system=system, model=model, maxtoken=max, print_reply=printall, print_token=False)
         self.text2speech_stream(self.reply, voice=voice, model=tts)
 
 
