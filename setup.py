@@ -3,10 +3,10 @@ from setuptools import setup, find_packages
 
 setup(
     name='mychatgpt',
-    version='0.4.2',
+    version='0.4.3',
     packages=find_packages(),  # Automatically find packages in your project
     install_requires=[         # Optional: specify dependencies
-        "openai", "tiktoken", "langdetect", "pandas", "pyperclip", "gdown","scipy", "nltk", "PyPDF2", 'cryptography', 'matplotlib', "pygame", "sounddevice", "soundfile", "keyboard", "pillow", "ollama", "beautifulsoup4"
+        "openai", "tiktoken", "langdetect", "pandas", "pyperclip", "gdown","scipy", "nltk", "PyPDF2", 'cryptography', 'matplotlib', "pygame", "sounddevice", "soundfile", "keyboard", "pillow", "ollama", "beautifulsoup4", "google-generativeai"
     ],
     #entry_points={             # Optional: command-line scripts
     #    'console_scripts': [

@@ -52,36 +52,96 @@ if platform.system() == "Linux":
 
 ################ set API-key #################
 
+def save_json_in_lib(dati, nome_file):
+    # Usa __file__ per ottenere il percorso della directory del file corrente
+    percorso_file = os.path.join(os.path.dirname(__file__), nome_file)
+    with open(percorso_file, 'w') as file:
+        json.dump(dati, file, indent=4)
+
+def load_json_from_lib(nome_file):
+    # Usa __file__ per ottenere il percorso della directory del file corrente
+    percorso_file = os.path.join(os.path.dirname(__file__), nome_file)
+    with open(percorso_file, 'r') as file:
+        return json.load(file)
+
+# # Esempio di dati JSON
+# api_keys = {
+#     "openai": "",
+#     "gemini": "",
+# }
+#
+# # Salva i dati in un file chiamato "dati.json" nella directory del pacchetto
+# save_json_in_lib(api_keys, "gaga.json")
+#
+# # Carica i dati dal file "dati.json" nella directory del pacchetto
+# api_keys = load_json_from_lib("gaga.json")
+# print(api_keys)
+
+# # Verifica se il file api_keys.json esiste
+# percorso_file = os.path.join(os.path.dirname(__file__), "api_keys.json")
+#
+# # Usa os.path.exists per controllare l'esistenza di un file
+# if not os.path.exists(percorso_file):
+#     print("Il file non esiste.")
+# else:
+#     print("Il file esiste.")
+
+
+################ set API-key #################
 current_dir = os.getcwd()
 api_key = None
-def load_openai_api_key():
-    api_hash = b'gAAAAABnQFa7PhJzvEZmrHIbqIbXY67FYM0IhBaw8XOgnDurF5ij1oFYvNMikCpe8ebpqlRYYYOEDGuxuWdOkGPO74ljkWO07DVGCqW7KlzT6AJ0yv-0-5qTNeXTVzhorMP4RA5D8H2P73cmgwFr2Hlv6askLQjWGg=='
-    if not os.path.isfile(current_dir + '/openai_api_key.txt'):
-        if simple_bool('Do you have an openai key? '):
-            api_key = input('insert here your openai api key:')
-        else:
+openai_api_hash = b'gAAAAABnQFa7PhJzvEZmrHIbqIbXY67FYM0IhBaw8XOgnDurF5ij1oFYvNMikCpe8ebpqlRYYYOEDGuxuWdOkGPO74ljkWO07DVGCqW7KlzT6AJ0yv-0-5qTNeXTVzhorMP4RA5D8H2P73cmgwFr2Hlv6askLQjWGg=='
+def load_api_keys(overwrite=False):
+    percorso_file = os.path.join(os.path.dirname(__file__), "api_keys.json")
+    #if not os.path.isfile(current_dir + '/openai_api_key.txt'):
+    #if not os.path.join(os.path.dirname(__file__), "api_keys.json"):
+    if not os.path.exists(percorso_file) or overwrite:
+        print("NOT")
+        #if simple_bool('Do you have an openai key? '):
+        openai_api_key = input('Provide here your OpenAI api key, if not leave blank:')
+        if openai_api_key == "":
             print('\nPlease, get your API-key at https://platform.openai.com/api-keys')
-            psw = input('\nOtherwise, you can insert here you DEV password:')
-            api_key = simple_decrypter(psw, api_hash)
-            if not api_key:
-                print('Please try again...')
-                api_key = simple_decrypter(psw, api_hash)
-                if not api_key:
-                    api_key = 'missing key'
-        with open(current_dir + '/openai_api_key.txt', 'w') as file:
-            file.write(api_key)
+            openai_api_key = "missing"
+            # psw = input('\nOtherwise, you can insert here you DEV password:')
+            # api_key = simple_decrypter(psw, openai_api_hash)
+            # if not api_key:
+            #     print('Please try again...')
+            #     api_key = simple_decrypter(psw, openai_api_hash)
+            #     if not api_key:
+            #         api_key = 'missing key'
+        # with open(current_dir + '/openai_api_key.txt', 'w') as file:
+        #     file.write(api_key)
 
+        #if simple_bool('Do you have an openai key? '):
+        gemini_api_key = input('Provide here your Gemini api key, if not leave blank:')
+        if gemini_api_key == "":
+            print('\nPlease, get your Gemini API-key')
+            gemini_api_key = "missing"
+
+        api_keys = {
+            "openai": openai_api_key,
+            "gemini": gemini_api_key,
+        }
+        save_json_in_lib(api_keys, "api_keys.json")
     else:
-        api_key = open(current_dir + '/openai_api_key.txt', 'r').read()
-    return api_key
+        print("YES")
+        #api_key = open(current_dir + '/openai_api_key.txt', 'r').read()
+        api_keys = load_json_from_lib("api_keys.json")
+    return api_keys
+
 
 #### initialize client ####
-api_key = load_openai_api_key()
-openai_client = OpenAI(api_key=str(api_key))
+api_keys = load_api_keys()
+openai_api_key = api_keys["openai"]
+gemini_api_key = api_keys["gemini"]
+openai_client = OpenAI(api_key=str(openai_api_key))
+
+
+if gemini_api_key != "missing":
+    from google import genai
+    gemini_client = genai.Client(api_key=gemini_api_key)
 
 #deepseek_client = OpenAI(api_key="<DeepSeek API Key>", base_url="https://api.deepseek.com")
-
-
 
 #
 # try:
@@ -136,6 +196,12 @@ gpt_models_dict = {
     "llama2" :   4096,
     "llama3" :   8192,
     "vicuna" :   8192,
+
+    "gemini-2.0-flash-exp": 16385,
+    "gemini-1.5-flash-8b": 16385,
+    "gemini-1.5-flash-002": 16385,
+    "gemini-1.5-pro-002": 16385,
+    "gemini-2.0-flash-exp": 16385,
 }
 
 gpt_models = [i for i in gpt_models_dict.keys() if "gpt" in i or "o1" in i]
@@ -526,7 +592,7 @@ class GPT:
     ########## Definitions ############
     def reload_client(self, my_key=None, ollama_server=None):
         if not my_key:
-            my_key = load_openai_api_key()
+            my_key = load_api_keys()["openai"]
         self.client = OpenAI(api_key=str(my_key))
         if ollama_server:
             self.ollama_client = ollama.Client(host=ollama_server)
