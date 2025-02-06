@@ -96,7 +96,6 @@ def load_api_keys(overwrite=False):
     #if not os.path.isfile(current_dir + '/openai_api_key.txt'):
     #if not os.path.join(os.path.dirname(__file__), "api_keys.json"):
     if not os.path.exists(percorso_file) or overwrite:
-        #print("NOT")
         #if simple_bool('Do you have an openai key? '):
         openai_api_key = input('Provide here your OpenAI api key, if not leave blank:')
         if openai_api_key == "":
@@ -124,7 +123,6 @@ def load_api_keys(overwrite=False):
         }
         save_json_in_lib(api_keys, "api_keys.json")
     else:
-        #print("YES")
         #api_key = open(current_dir + '/openai_api_key.txt', 'r').read()
         api_keys = load_json_from_lib("api_keys.json")
     return api_keys
@@ -132,13 +130,16 @@ def load_api_keys(overwrite=False):
 
 #### initialize client ####
 api_keys = load_api_keys()
+
 openai_api_key = api_keys["openai"]
 gemini_api_key = api_keys["gemini"]
 openai_client = OpenAI(api_key=str(openai_api_key))
 
 
 if gemini_api_key != "missing":
+    #print("Initializing Gemini Client...")
     from google import genai
+    from google.genai import types
     gemini_client = genai.Client(api_key=gemini_api_key)
 
 #deepseek_client = OpenAI(api_key="<DeepSeek API Key>", base_url="https://api.deepseek.com")
@@ -534,7 +535,7 @@ class GPT:
         self.to_clip = to_clip
         self.print_token = print_token
         self.memory = memory
-        self.reply = ''
+        self.chat_reply  = ''
         self.ask_reply = ''
 
         self.total_tokens = 0  # iniziale token count
@@ -702,8 +703,8 @@ class GPT:
                     time.sleep(lag)
                     print(chunk_message, end='')
 
-        self.reply = ''.join(collected_messages).strip()
-        return self.reply
+        self.chat_reply  = ''.join(collected_messages).strip()
+        return self.chat_reply 
 
 
     ###### Base Functions ######
@@ -927,19 +928,19 @@ class GPT:
                 messages=messages
             )
 
-            # self.reply = response['message']['content']
-            # print(self.reply)
+            # self.chat_reply  = response['message']['content']
+            # print(self.chat_reply )
 
-        self.reply = self.stream_reply(response, print_reply=print_reply, lag=lag, model=model)
+        self.chat_reply  = self.stream_reply(response, print_reply=print_reply, lag=lag, model=model)
         time.sleep(0.85)
 
         ### Add Reply to chat ###
-        self.chat_thread.append({"role": "assistant", "content":self.reply})
+        self.chat_thread.append({"role": "assistant", "content":self.chat_reply })
         if image:
             self.chat_thread[-2] = {"role": "user", "content": message+":\nImage:"+"http://domain.com//image.jpg"}
 
         if create:
-            self.ask(self.reply, "Convert the input text into prompt instruction for Dall-e image generation model 'Create an image of ...' ")
+            self.ask(self.chat_reply , "Convert the input text into prompt instruction for Dall-e image generation model 'Create an image of ...' ")
             self.create_image(self.ask_reply,
                               model=dalle,
                               size=image_size,
@@ -957,11 +958,11 @@ class GPT:
             update_log(self.chat_thread[-1])
 
         if self.to_clip and has_copy_paste:
-            clip_reply = self.reply.replace('```', '###')
+            clip_reply = self.chat_reply .replace('```', '###')
             pc.copy(clip_reply)
 
         if play:
-            self.text2speech_stream(self.reply, voice=voice, model=tts)
+            self.text2speech_stream(self.chat_reply , voice=voice, model=tts)
 
 
 
@@ -1037,7 +1038,7 @@ class GPT:
 
     def replicate(self, image, styler='', model ='dall-e-2'):
         self.send_image(image)
-        self.create_image(prompt=self.reply, response_format='b64_json', model=model, show_image=True)
+        self.create_image(prompt=self.chat_reply , response_format='b64_json', model=model, show_image=True)
 
 
     ####### Speech to Text #######
@@ -1159,7 +1160,7 @@ class GPT:
         else:
             system = system
         self.send_message(message,system=system, model=model, maxtoken=max, print_reply=printall, print_token=False)
-        self.text2speech_stream(self.reply, voice=voice, model=tts)
+        self.text2speech_stream(self.chat_reply , voice=voice, model=tts)
 
 
     def speak_loop(self,
@@ -1227,7 +1228,7 @@ class GPT:
                 break
 
 
-    ####### Assistants #######
+    ####### Chat Functions #######
     def chat(self,
              m: str = '',
              gpt: str = None,
@@ -1260,7 +1261,6 @@ class GPT:
             self.memorizer(m)
 
 
-
     c = chat  # alias for quick access to chat function
 
     def cp(self, *args, **kwargs):
@@ -1272,8 +1272,7 @@ class GPT:
         kwargs['image'] = pc.paste()
         self.chat(*args, **kwargs)
 
-    # def cp(self, m, max=1000, image='', clip=True, token=False, translate= False, create=False):
-    #     self.chat(m=m, max=max, image=image, paste=True, clip=clip, token=token, translate=translate, create=create)
+
 
     def chat_loop(self,
                   system=None,
@@ -1315,16 +1314,16 @@ class GPT:
 
     # Translators
     # def auto_translate(self, language='English'):
-    #     self.ask(self.reply, create_translator(language))
+    #     self.ask(self.chat_reply , create_translator(language))
     def auto_translate(self, language="English"):
-        reply_language = rileva_lingua(self.reply)
+        reply_language = rileva_lingua(self.chat_reply )
 
         if reply_language == 'Japanese':
             translator = create_jap_translator(language)
         else:
             translator = create_translator(language)
         print('\n')
-        self.ask(self.reply, translator)
+        self.ask(self.chat_reply , translator)
 
     def memorizer(self, message):
         frasi_caricate = []
@@ -1375,40 +1374,56 @@ class GPT:
     def create(self, m, *args, **kwargs):
         self.ask(m, assistants['creator'], *args, **kwargs)
 
-    # def set(self, assistant='base', format='markdown', model='gpt-4o',
-    #         translate=True):
-    #     self.assistant = assistant
-    #     self.model = model
-    #     self.format = format
-    #     self.translate = translate
+######## Gemini API ########
+if gemini_api_key != "missing":
+    class Gemini:
 
-    # def japanese_learner(self, m,voice='nova', times= 3, speed=1):
-    #     self.japanese_teacher(m, 'gpt-4o')
-    #     print('')
-    #     phrase = self.reply.split('\n')[0].split(':')[1].strip()
-    #     text2speech(phrase,voice=voice, speed = speed, play=True)
-    #     audio_loop()
-    #
-    # def portuguese_learner(self, m,voice='nova', times= 3, speed=1):
-    #     self.portuguese_teacher(m, 'gpt-4o')
-    #     print('')
-    #     phrase = self.reply.split('\n')[0].split(':')[1].strip()
-    #     text2speech(phrase,voice=voice, speed = speed, play=True)
-    #     audio_loop()
+        def __init__(self,
+                     client = gemini_client,
+                     system="you are a helpful assistant",
+                     GEMINI_MODEL = "gemini-2.0-flash-exp"):
+            # Inizializza la classe con un'istruzione di sistema
+            self.system = system
+            self.client = client
+            self.GEMINI_MODEL = GEMINI_MODEL
 
+            #def instruct(self, client, types):
+            # Crea una chat usando il client e le configurazioni specificate
+            self.chat = self.client.chats.create(
+                model=self.GEMINI_MODEL,
+                config=types.GenerateContentConfig(
+                    system_instruction=self.system,  # Usa l'istruzione della classe
+                    temperature=0.5,
+                ),
+            )
+
+        def send(self, message):
+            response = self.chat.send_message(message)
+            print(response.text)
+
+        # usage Gemini.chat.send_message
+        # Gemini().send("Hi how are you")
+
+    Gpilot = Gemini(system=assistants['delamain'])
+    Rpilot = Gemini(system=assistants['roger'])
+    Gleonardo = Gemini(system=assistants['leonardo'])
+    Gpenrose = Gemini(system=assistants['penrose'])
+    Gjulia = Gemini(system=assistants['julia'])
+
+######## ######## ########
 #%%
 
 # An embedded assistant or a character of your choice
 copilot_gpt = 'gpt-4o'
-G = GPT()
+#G = GPT()
 chatgpt = GPT(assistant='base')
+novelist = GPT(assistant='novelist')
 creator = GPT(assistant='creator', model=copilot_gpt)
 fixer = GPT(assistant='fixer', model=copilot_gpt)
-novelist = GPT(assistant='novelist')
 delamain = GPT(assistant='delamain', model=copilot_gpt)
 oracle = GPT(assistant='oracle', model=copilot_gpt)
 R = GPT(assistant='roger', model=copilot_gpt)
-Rt = GPT(assistant='robert', model=copilot_gpt)
+# Rt = GPT(assistant='robert', model=copilot_gpt)
 C = GPT(assistant='delamain', format='python', model=copilot_gpt)
 
 
