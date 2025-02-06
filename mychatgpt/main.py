@@ -96,7 +96,7 @@ def load_api_keys(overwrite=False):
     #if not os.path.isfile(current_dir + '/openai_api_key.txt'):
     #if not os.path.join(os.path.dirname(__file__), "api_keys.json"):
     if not os.path.exists(percorso_file) or overwrite:
-        print("NOT")
+        #print("NOT")
         #if simple_bool('Do you have an openai key? '):
         openai_api_key = input('Provide here your OpenAI api key, if not leave blank:')
         if openai_api_key == "":
@@ -124,7 +124,7 @@ def load_api_keys(overwrite=False):
         }
         save_json_in_lib(api_keys, "api_keys.json")
     else:
-        print("YES")
+        #print("YES")
         #api_key = open(current_dir + '/openai_api_key.txt', 'r').read()
         api_keys = load_json_from_lib("api_keys.json")
     return api_keys
