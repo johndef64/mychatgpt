@@ -1414,6 +1414,7 @@ if gemini_api_key != "missing":
         # usage Gemini.chat.send_message
         # Gemini().send("Hi how are you")
 
+    gemini = Gemini(system=assistants['base'])
     Gpilot = Gemini(system=assistants['delamain'])
     Rpilot = Gemini(system=assistants['roger'])
     Gleonardo = Gemini(system=assistants['leonardo'])
