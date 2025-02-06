@@ -58,9 +58,12 @@ def save_json_in_lib(dati, nome_file):
     with open(percorso_file, 'w') as file:
         json.dump(dati, file, indent=4)
 
-def load_json_from_lib(nome_file):
+def load_json_from_lib(nome_file, local = False):
     # Usa __file__ per ottenere il percorso della directory del file corrente
-    percorso_file = os.path.join(os.path.dirname(__file__), nome_file)
+    if not local:
+        percorso_file = os.path.join(os.path.dirname(__file__), nome_file)
+    else:
+        percorso_file = nome_file
     with open(percorso_file, 'r') as file:
         return json.load(file)
 
@@ -92,39 +95,46 @@ current_dir = os.getcwd()
 api_key = None
 openai_api_hash = b'gAAAAABnQFa7PhJzvEZmrHIbqIbXY67FYM0IhBaw8XOgnDurF5ij1oFYvNMikCpe8ebpqlRYYYOEDGuxuWdOkGPO74ljkWO07DVGCqW7KlzT6AJ0yv-0-5qTNeXTVzhorMP4RA5D8H2P73cmgwFr2Hlv6askLQjWGg=='
 def load_api_keys(overwrite=False):
-    percorso_file = os.path.join(os.path.dirname(__file__), "api_keys.json")
-    #if not os.path.isfile(current_dir + '/openai_api_key.txt'):
-    #if not os.path.join(os.path.dirname(__file__), "api_keys.json"):
-    if not os.path.exists(percorso_file) or overwrite:
-        #if simple_bool('Do you have an openai key? '):
-        openai_api_key = input('Provide here your OpenAI api key, if not leave blank:')
-        if openai_api_key == "":
-            print('\nPlease, get your API-key at https://platform.openai.com/api-keys')
-            openai_api_key = "missing"
-            # psw = input('\nOtherwise, you can insert here you DEV password:')
-            # api_key = simple_decrypter(psw, openai_api_hash)
-            # if not api_key:
-            #     print('Please try again...')
-            #     api_key = simple_decrypter(psw, openai_api_hash)
-            #     if not api_key:
-            #         api_key = 'missing key'
-        # with open(current_dir + '/openai_api_key.txt', 'w') as file:
-        #     file.write(api_key)
+    # if not api_keys.json in cwd, save it in pkg dir
+    if not os.path.exists("api_keys.json"):
+        percorso_file = os.path.join(os.path.dirname(__file__), "api_keys.json")
+        #if not os.path.isfile(current_dir + '/openai_api_key.txt'):
+        #if not os.path.join(os.path.dirname(__file__), "api_keys.json"):
+        if not os.path.exists(percorso_file) or overwrite:
+            #if simple_bool('Do you have an openai key? '):
+            openai_api_key = input('Provide here your OpenAI api key, if not leave blank:')
+            if openai_api_key == "":
+                print('\nPlease, get your API-key at https://platform.openai.com/api-keys')
+                openai_api_key = "missing"
+                # psw = input('\nOtherwise, you can insert here you DEV password:')
+                # api_key = simple_decrypter(psw, openai_api_hash)
+                # if not api_key:
+                #     print('Please try again...')
+                #     api_key = simple_decrypter(psw, openai_api_hash)
+                #     if not api_key:
+                #         api_key = 'missing key'
+            # with open(current_dir + '/openai_api_key.txt', 'w') as file:
+            #     file.write(api_key)
 
-        #if simple_bool('Do you have an openai key? '):
-        gemini_api_key = input('Provide here your Gemini api key, if not leave blank:')
-        if gemini_api_key == "":
-            print('\nPlease, get your Gemini API-key')
-            gemini_api_key = "missing"
+            #if simple_bool('Do you have an openai key? '):
+            gemini_api_key = input('Provide here your Gemini api key, if not leave blank:')
+            if gemini_api_key == "":
+                print('\nPlease, get your Gemini API-key')
+                gemini_api_key = "missing"
 
-        api_keys = {
-            "openai": openai_api_key,
-            "gemini": gemini_api_key,
-        }
-        save_json_in_lib(api_keys, "api_keys.json")
+            api_keys = {
+                "openai": openai_api_key,
+                "gemini": gemini_api_key,
+            }
+            save_json_in_lib(api_keys, "api_keys.json")
+        else:
+            #api_key = open(current_dir + '/openai_api_key.txt', 'r').read()
+            api_keys = load_json_from_lib("api_keys.json")
+
     else:
-        #api_key = open(current_dir + '/openai_api_key.txt', 'r').read()
-        api_keys = load_json_from_lib("api_keys.json")
+        # if api_keys.json in cwd, take them from here
+        api_keys = load_json_from_lib("api_keys.json", local=True)
+
     return api_keys
 
 
