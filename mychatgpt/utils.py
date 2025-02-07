@@ -271,10 +271,7 @@ def clean_markdown(md_content):
     md_content = re.sub(r'<!\-\-.*?\-\->', '', md_content, flags=re.DOTALL)
     return md_content
 
-def markdown_to_dict(file_path, html=None):
-
-    with open(file_path, 'r', encoding='utf-8') as file:
-        md_content = file.read()
+def markdown_to_dict(md_content, html=None):
 
     if not html:
         html = markdown.markdown(md_content)
@@ -288,9 +285,11 @@ def markdown_to_dict(file_path, html=None):
         if element.name == 'h1':
             current_h1 = element.get_text().strip()
             result_dict[current_h1] = {}
+
         elif element.name == 'h2':
             current_h2 = element.get_text().strip()
             result_dict[current_h1][current_h2] = ''
+
         # elif element.name == 'p' and current_h1 and current_h2:
         #     result_dict[current_h1][current_h2] += element.get_text() + '\n\n'
         elif element.name == 'p':
@@ -298,8 +297,8 @@ def markdown_to_dict(file_path, html=None):
                 result_dict[current_h1][current_h2] += element.get_text() + '\n\n'
             elif current_h1:  # Fall-back su current_h1 se current_h2 non esiste
                 if '' not in result_dict[current_h1]:
-                    result_dict[current_h1][''] = ''
-                result_dict[current_h1][''] += element.get_text() + '\n\n'
+                    result_dict[current_h1]['p'] = ''
+                result_dict[current_h1]['p'] += element.get_text() + '\n\n'
 
     # Trim trailing newlines from text
     for h1 in result_dict:
@@ -307,6 +306,23 @@ def markdown_to_dict(file_path, html=None):
             result_dict[h1][h2] = result_dict[h1][h2].rstrip('\n')
 
     return result_dict
+
+
+def get_md(file_path=None, indent=0):
+    def print_dict_structure(d, indent=0):
+        # iterating through dictionary keys
+        for key in d:
+            # printing the key with indent
+            print('    ' * indent + '- ' + str(key))
+            # if the value is a dictionary, recursively print its structure
+            if isinstance(d[key], dict):
+                print_dict_structure(d[key], indent+1)
+
+    with open(file_path, 'r', encoding='utf-8') as file:
+        md_content = file.read()
+    d = markdown_to_dict(md_content)
+    print_dict_structure(d, indent=indent)
+    return d
 
 def reload_paper(file_path):
     global sections_dict, full_paper

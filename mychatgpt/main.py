@@ -1383,6 +1383,7 @@ class GPT:
     def create(self, m, *args, **kwargs):
         self.ask(m, assistants['creator'], *args, **kwargs)
 
+
 ######## Gemini API ########
 if gemini_api_key != "missing":
     class Gemini:
@@ -1440,7 +1441,6 @@ if gemini_api_key != "missing":
 
 # An embedded assistant or a character of your choice
 copilot_gpt = 'gpt-4o'
-#G = GPT()
 chatgpt = GPT(assistant='base')
 novelist = GPT(assistant='novelist')
 creator = GPT(assistant='creator', model=copilot_gpt)
