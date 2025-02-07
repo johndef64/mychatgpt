@@ -145,11 +145,10 @@ openai_api_key = api_keys["openai"]
 gemini_api_key = api_keys["gemini"]
 openai_client = OpenAI(api_key=str(openai_api_key))
 
-
+from google import genai
+from google.genai import types
 if gemini_api_key != "missing":
     #print("Initializing Gemini Client...")
-    from google import genai
-    from google.genai import types
     gemini_client = genai.Client(api_key=gemini_api_key)
 
 #deepseek_client = OpenAI(api_key="<DeepSeek API Key>", base_url="https://api.deepseek.com")
