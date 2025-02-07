@@ -1395,6 +1395,7 @@ if gemini_api_key != "missing":
             self.system = system
             self.client = client
             self.GEMINI_MODEL = GEMINI_MODEL
+            self.chat_reply = None
 
             #def instruct(self, client, types):
             # Crea una chat usando il client e le configurazioni specificate
@@ -1406,9 +1407,23 @@ if gemini_api_key != "missing":
                 ),
             )
 
-        def send(self, message):
-            response = self.chat.send_message(message)
-            print(response.text)
+        def send(self, message, paste=False, to_clip=True):
+
+            p = pc.paste() if paste else ''
+
+            response = self.chat.send_message(message+p)
+            self.chat_reply = response.text
+            print(self.chat_reply)
+
+            if to_clip and has_copy_paste:
+                clip_reply = self.chat_reply.replace('```', '###')
+                pc.copy(clip_reply)
+
+        c = send
+
+        def cp(self, *args, **kwargs):
+            kwargs['paste'] = True  # Ensure paste is always set to True
+            self.send(*args, **kwargs)
 
         # usage Gemini.chat.send_message
         # Gemini().send("Hi how are you")
