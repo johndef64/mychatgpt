@@ -1409,6 +1409,9 @@ if gemini_api_key != "missing":
             )
 
         def send(self, message, paste=False, to_clip=True):
+            if message.startswith("@"):
+                self.clear_chat()
+                message = message.lstrip("@")
 
             p = pc.paste() if paste else ''
 
@@ -1425,6 +1428,11 @@ if gemini_api_key != "missing":
         def cp(self, *args, **kwargs):
             kwargs['paste'] = True  # Ensure paste is always set to True
             self.send(*args, **kwargs)
+
+
+        def clear_chat(self, _print=True):
+            if _print: print("<chat cleared>")
+            self.chat._curated_history = []
 
         # usage Gemini.chat.send_message
         # Gemini().send("Hi how are you")
