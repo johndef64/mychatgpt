@@ -201,39 +201,6 @@ def pdf_to_text(pdf_path):
 # to get contents use
 #load_file()
 
-# extract sections from latex and markdown files
-def load_and_extract_sections(file_path, clean_text=True):
-    with open(file_path, 'r', encoding='utf-8') as file:
-        content = file.read()  # Read file content
-
-    # Determine file type based on extension
-    if file_path.endswith('.tex'):
-        section_pattern = r'\\section\{(.+?)\}(.*?)(?=\\section|\Z)'  # LaTeX section pattern
-    elif file_path.endswith('.md'):
-        section_pattern = r'^(#{1,6})\s(.+)$'  # Markdown header pattern
-    else:
-        raise ValueError("Unsupported file type. Only '.tex' and '.md' are supported.")
-
-
-    # Find sections in the content based on the determined pattern
-    sections = re.findall(section_pattern, content, re.DOTALL if file_path.endswith('.tex') else re.MULTILINE)
-    #content = clean_tex(content) if clean_text else content
-
-    sections_dict = {}
-    for match in sections:
-        if file_path.endswith('.tex'):
-            title, body = match  # Unpack LaTeX sections
-        else:
-            header, title = match  # Unpack Markdown headers
-            body = header  # Use header as body for Markdown
-
-        key = title.lower().replace(' ', '_')  # Convert title to lowercase and replace spaces with underscores
-        sections_dict[key] = clean_tex(body.strip()) if clean_text else body.strip() # Store section body
-
-    #df = pd.Series(sections_dict, index=sections_dict.keys())  # Create a series from the dictionary
-    #display(df)
-    return sections_dict #, content
-
 def clip_tex(tex_content):
     # Keep content between \section{introduction} and \section{conclusion}
     match = re.search(r'\\section{Introduction}(.*?)\\section{Conclusion}', tex_content, flags=re.DOTALL)
@@ -271,11 +238,29 @@ def clean_markdown(md_content):
     md_content = re.sub(r'<!\-\-.*?\-\->', '', md_content, flags=re.DOTALL)
     return md_content
 
-def markdown_to_dict(md_content, html=None):
 
+def concat_paragraphs(soup):
+    # Trova tutti i tag <p> nel documento
+    paragraphs = soup.find_all('p')
+
+    for i in range(len(paragraphs) - 1):
+        # Controlla se il prossimo elemento è anch'esso un paragrafo
+        if paragraphs[i].find_next_sibling() == paragraphs[i + 1]:
+            # Concatena il testo del paragrafo successivo a quello attuale
+            paragraphs[i].string = paragraphs[i].text + '\n' + paragraphs[i + 1].text
+            # Rimuove il paragrafo successivo
+            paragraphs[i + 1].decompose()
+    return soup
+
+
+def markdown_to_dict(md_content, html=None):
+    """
+    Based on HTML BS4
+    """
     if not html:
         html = markdown.markdown(md_content)
     soup = BeautifulSoup(html, "html.parser")
+    soup = concat_paragraphs(soup)
 
     result_dict = {}
     current_h1 = None
@@ -295,6 +280,7 @@ def markdown_to_dict(md_content, html=None):
         elif element.name == 'p':
             if current_h2:  # Appendi al corrente h2 se esiste
                 result_dict[current_h1][current_h2] += element.get_text() + '\n\n'
+                current_h2 = None
             elif current_h1:  # Fall-back su current_h1 se current_h2 non esiste
                 if '' not in result_dict[current_h1]:
                     result_dict[current_h1]['p'] = ''
@@ -317,6 +303,7 @@ def get_md(file_path=None, indent=0):
             # if the value is a dictionary, recursively print its structure
             if isinstance(d[key], dict):
                 print_dict_structure(d[key], indent+1)
+        # print("\n")
 
     with open(file_path, 'r', encoding='utf-8') as file:
         md_content = file.read()
@@ -324,9 +311,50 @@ def get_md(file_path=None, indent=0):
     print_dict_structure(d, indent=indent)
     return d
 
+
+# extract sections from latex and markdown files
+def get_dict_from_text(file_path, clean_text=True):
+    """
+    Regex Based
+    """
+    with open(file_path, 'r', encoding='utf-8') as file:
+        content = file.read()  # Read file content
+
+    # Determine file type based on extension
+    if file_path.endswith('.tex'):
+        section_pattern = r'\\section\{(.+?)\}(.*?)(?=\\section|\Z)'  # LaTeX section pattern
+    elif file_path.endswith('.md'):
+        section_pattern = r'^(#{1,6})\s(.+)$'  # Markdown header pattern
+    else:
+        raise ValueError("Unsupported file type. Only '.tex' and '.md' are supported.")
+
+
+    # Find sections in the content based on the determined pattern
+    sections = re.findall(section_pattern, content, re.DOTALL if file_path.endswith('.tex') else re.MULTILINE)
+    #content = clean_tex(content) if clean_text else content
+
+    sections_dict = {}
+    for match in sections:
+        if file_path.endswith('.tex'):
+            title, body = match  # Unpack LaTeX sections
+        else:
+            header, title = match  # Unpack Markdown headers
+            body = header  # Use header as body for Markdown
+
+        key = title.lower().replace(' ', '_')  # Convert title to lowercase and replace spaces with underscores
+        sections_dict[key] = clean_tex(body.strip()) if clean_text else body.strip() # Store section body
+
+    #df = pd.Series(sections_dict, index=sections_dict.keys())  # Create a series from the dictionary
+    #display(df)
+    return sections_dict #, content
+
+
+
+
 def reload_paper(file_path):
     global sections_dict, full_paper
     sections_dict, full_paper = load_and_extract_sections(file_path)
+
 
 #expand_context_by_sections
 def expand_context_by_section(gpt,
