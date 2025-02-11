@@ -647,13 +647,14 @@ class GPT:
 
 
 
-    def expand_chat(self, message, role="user"):
-        if message.startswith("@"):
-            self.clear_chat()
-            message = message.lstrip("@")
-            self.chat_thread.append({"role": role, "content": message})
-        else:
-            self.chat_thread.append({"role": role, "content": message})
+    def expand_chat(self, message, role="user", threshold:int=0):
+        if len(message) > threshold:
+            if message.startswith("@"):
+                self.clear_chat()
+                message = message.lstrip("@")
+                self.chat_thread.append({"role": role, "content": message})
+            else:
+                self.chat_thread.append({"role": role, "content": message})
 
     def build_messages(self, chat):
         messages = []
