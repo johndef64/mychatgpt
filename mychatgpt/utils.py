@@ -239,7 +239,7 @@ def clean_markdown(md_content):
     return md_content
 
 
-def concat_paragraphs(soup):
+def concat_paragraphs(soup, separator= "\n\n"):
     # Trova tutti i tag <p> nel documento
     paragraphs = soup.find_all('p')
 
@@ -247,7 +247,7 @@ def concat_paragraphs(soup):
         # Controlla se il prossimo elemento è anch'esso un paragrafo
         if paragraphs[i].find_next_sibling() == paragraphs[i + 1]:
             # Concatena il testo del paragrafo successivo a quello attuale
-            paragraphs[i].string = paragraphs[i].text + '\n' + paragraphs[i + 1].text
+            paragraphs[i].string = paragraphs[i].text + separator + paragraphs[i + 1].text
             # Rimuove il paragrafo successivo
             paragraphs[i + 1].decompose()
     return soup
