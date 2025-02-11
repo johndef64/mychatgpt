@@ -294,7 +294,7 @@ def markdown_to_dict(md_content, html=None):
     return result_dict
 
 
-def get_md(file_path=None, indent=0):
+def get_md(file_path=None, print_=True, indent=0):
     def print_dict_structure(d, indent=0):
         # iterating through dictionary keys
         for key in d:
@@ -307,8 +307,11 @@ def get_md(file_path=None, indent=0):
 
     with open(file_path, 'r', encoding='utf-8') as file:
         md_content = file.read()
+        md_content = '\n'.join(line for line in md_content.splitlines() if not line.startswith('[//]'))
+
     d = markdown_to_dict(md_content)
-    print_dict_structure(d, indent=indent)
+    if print_:
+        print_dict_structure(d, indent=indent)
     return d
 
 
