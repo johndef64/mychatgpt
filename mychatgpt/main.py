@@ -1343,7 +1343,7 @@ class GPT:
         memorizer = f"""Your task is to memorize new, meaningful information as short memories related to the user's world from their input message. Information such as relationships, personality, history, events, and so on.
         
         If you don't find any new of relevant information to memorize do no reply anything.        
-        This are your previous memories:
+        These are your previous memories:
         {previous_memories}
         
         
@@ -1354,7 +1354,7 @@ class GPT:
             """
 
         print('\n')
-        self.ask(message, system=memorizer, print_reply=False, model="gpt-4o-mini")
+        self.ask("User: "+message, system=memorizer, print_reply=False, model="gpt-4o-mini")
         print(self.ask_reply)
 
         frasi = self.ask_reply.split("\n")

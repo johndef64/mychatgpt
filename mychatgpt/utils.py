@@ -84,6 +84,20 @@ def display_files_as_pd(path=os.getcwd(), ext='',  contains=''):
     file = files_df[files_df.str.contains(contains)]
     return file
 
+def find_files(filename):
+    # Ottieni il percorso della directory corrente
+    root_dir = os.getcwd()
+
+    found_files = []
+    # Cammina ricorsivamente nella directory corrente
+    for root, dirs, files in os.walk(root_dir):
+        if filename in files:
+            # Se il file è trovato, aggiungi il percorso completo alla lista
+            found_files.append(os.path.join(root, filename))
+
+    if len(found_files) > 1:
+        print("<WARNING: Multiple files>")
+    return found_files
 
 ############## Install Requirements ###################
 
@@ -238,18 +252,65 @@ def clean_markdown(md_content):
     md_content = re.sub(r'<!\-\-.*?\-\->', '', md_content, flags=re.DOTALL)
     return md_content
 
+# def concat_paragraphs_(soup, separator= "\n\n"):
+#     # Trova tutti i tag <p> nel documento
+#     paragraphs = soup.find_all('p')
+#
+#     for i in range(len(paragraphs) - 1):
+#         # Controlla se il prossimo elemento è anch'esso un paragrafo
+#         if paragraphs[i].find_next_sibling() == paragraphs[i + 1]:
+#             # Concatena il testo del paragrafo successivo a quello attuale
+#             paragraphs[i].string = paragraphs[i].text + separator + paragraphs[i + 1].text
+#             # Rimuove il paragrafo successivo
+#             paragraphs[i + 1].decompose()
+#     return soup
 
-def concat_paragraphs(soup, separator= "\n\n"):
-    # Trova tutti i tag <p> nel documento
-    paragraphs = soup.find_all('p')
+def concat_paragraphs(soup, SEP ="\n\n"):
+    # Find all headers and paragraphs
+    headers = soup.find_all(['h1', 'h2', 'h3', 'h4', 'h5', 'h6'])
+    all_paragraphs = soup.find_all('p')
 
-    for i in range(len(paragraphs) - 1):
-        # Controlla se il prossimo elemento è anch'esso un paragrafo
-        if paragraphs[i].find_next_sibling() == paragraphs[i + 1]:
-            # Concatena il testo del paragrafo successivo a quello attuale
-            paragraphs[i].string = paragraphs[i].text + separator + paragraphs[i + 1].text
-            # Rimuove il paragrafo successivo
-            paragraphs[i + 1].decompose()
+    # Container for concatenated content
+    concatenated_paragraphs = []
+
+    # Track the current header and paragraphs to be concatenated
+    current_header = None
+    current_paragraph_group = []
+
+    for element in soup.descendants:
+        if element in headers:
+            # If there is an existing header and paragraphs
+            if current_header and current_paragraph_group:
+                # Concatenate all current paragraphs with line breaks
+                concatenated_text = SEP.join(p.get_text() for p in current_paragraph_group)
+                new_paragraph = soup.new_tag('p')
+                new_paragraph.string = concatenated_text
+
+                # Replace the first paragraph with the concatenated one
+                current_paragraph_group[0].replace_with(new_paragraph)
+
+                # Remove the other paragraphs
+                for p in current_paragraph_group[1:]:
+                    p.extract()
+
+            # Reset for next group
+            current_header = element
+            current_paragraph_group = []
+
+        elif element in all_paragraphs and current_header:
+            # Collect paragraphs between headers
+            current_paragraph_group.append(element)
+
+    # Handle the last set of paragraphs
+    if current_header and current_paragraph_group:
+        concatenated_text = SEP.join(p.get_text() for p in current_paragraph_group)
+        new_paragraph = soup.new_tag('p')
+        new_paragraph.string = concatenated_text
+
+        current_paragraph_group[0].replace_with(new_paragraph)
+        for p in current_paragraph_group[1:]:
+            p.extract()
+
     return soup
 
 
