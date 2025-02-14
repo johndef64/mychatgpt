@@ -109,11 +109,13 @@ op.whisper(filepath, # audio.mp3, audio.wav
            print_transcriprion = True)
 
 op.text2speech(text,
-               voice="alloy",
-               filename="speech.mp3",
-               model="tts-1",
-               speed=1,
-               play=False)
+               voice: str = "alloy",
+               model: str = "tts-1",
+               stream:bool = True,
+               save_audio: bool = False,
+               response_format: str = "mp3",
+               filename: str = "speech",
+               speed: int = 1)
 
 voices = ['alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer']
 response_formats = ["mp3", "flac", "aac", "opus"]

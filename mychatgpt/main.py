@@ -709,8 +709,8 @@ class GPT:
                     time.sleep(lag)
                     print(chunk_message, end='')
 
-        self.chat_reply  = ''.join(collected_messages).strip()
-        return self.chat_reply 
+        chat_reply  = ''.join(collected_messages).strip()
+        return chat_reply
 
 
     ###### Base Functions ######
@@ -968,7 +968,7 @@ class GPT:
             pc.copy(clip_reply)
 
         if play:
-            self.text2speech_stream(self.chat_reply , voice=voice, model=tts)
+            self.text2speech(self.chat_reply , voice=voice, model=tts)
 
 
 
@@ -1073,50 +1073,50 @@ class GPT:
     def text2speech(self,
                     text: str = '',
                     voice: str = "alloy",
-                    filename: str = "speech.mp3",
                     model: str = "tts-1",
+                    stream:bool = True,
+                    save_audio: bool = False,
+                    response_format: str = "mp3",
+                    filename: str = "speech",
                     speed: int = 1,
-                    play: bool = False):
-        if os.path.exists(filename):
-            os.remove(filename)
+                    #play: bool = False
+                    ):
+
+        filename = f"{filename}.{response_format}"
+
         spoken_response = self.client.audio.speech.create(
             model=model, # tts-1 or tts-1-hd
             voice=voice,
-            input=text,
-            speed=speed
-        )
-        spoken_response.stream_to_file(filename)
-        if play:
-            play_audio(filename)
-
-
-    def text2speech_stream(self,
-                           text: str = '',
-                           voice: str = "alloy",
-                           model: str = "tts-1",
-                           speed: int = 1):
-        spoken_response = self.client.audio.speech.create(
-            model=model,
-            voice=voice,
-            response_format="opus",
+            response_format=response_format,
             input=text,
             speed=speed
         )
 
-        # Create a buffer using BytesIO to store the data
-        buffer = io.BytesIO()
+        if stream:
+            # Create a buffer using BytesIO to store the data
+            buffer = io.BytesIO()
 
-        # Iterate through the 'spoken_response' data in chunks of 4096 bytes and write each chunk to the buffer
-        for chunk in spoken_response.iter_bytes(chunk_size=4096):
-            buffer.write(chunk)
+            # Iterate through the 'spoken_response' data in chunks of 4096 bytes and write each chunk to the buffer
+            for chunk in spoken_response.iter_bytes(chunk_size=4096):
+                buffer.write(chunk)
 
-        # Set the position in the buffer to the beginning (0) to be able to read from the start
-        buffer.seek(0)
+            # Set the position in the buffer to the beginning (0) to be able to read from the start
+            buffer.seek(0)
 
-        with sf.SoundFile(buffer, 'r') as sound_file:
-            data = sound_file.read(dtype='int16')
-            sd.play(data, sound_file.samplerate)
-            sd.wait()
+            with sf.SoundFile(buffer, 'r') as sound_file:
+                data = sound_file.read(dtype='int16')
+                sd.play(data, sound_file.samplerate)
+                sd.wait()
+
+        if save_audio:
+            if os.path.exists(filename):
+                os.remove(filename)
+
+            spoken_response.stream_to_file(filename)
+
+            # if play:
+            #     play_audio(filename)
+
 
 
     #if "silence.mp3" not in os.listdir():
@@ -1128,7 +1128,7 @@ class GPT:
         #record_audio(duration=duration, filename="audio.mp3")
         loop_audio(start='alt', stop='ctrl', filename='temp.wav', printinfo=info)
         transcript = self.whisper('temp.wav', translate=translate)
-        self.text2speech(transcript, voice=voice, model= tts, filename=filename, play=play)
+        self.text2speech(transcript, voice=voice, model= tts, filename=filename, stream=play)
 
     def speech2speech_loop(self, voice: str ='nova', tts: str = 'tts-1',
                            filename="speech2speech.mp3",
@@ -1136,6 +1136,7 @@ class GPT:
                            play=True,
                            chat='alt' ,
                            exit='shift'):
+
         print('Press '+chat+' to record, '+exit+' to exit.')
         while True:
             if kb.is_pressed(chat):
@@ -1165,8 +1166,9 @@ class GPT:
             self.add_persona(who, language)
         else:
             system = system
-        self.send_message(message,system=system, model=model, maxtoken=max, print_reply=printall, print_token=False)
-        self.text2speech_stream(self.chat_reply , voice=voice, model=tts)
+        self.send_message(message,system=system,
+                          model=model, maxtoken=max, print_reply=printall, print_token=False)
+        self.text2speech(self.chat_reply , voice=voice, model=tts)
 
 
     def speak_loop(self,
@@ -1244,6 +1246,9 @@ class GPT:
              translate: bool = False,
              memory: bool = False,
              create: bool = False,
+             speak: bool = False,
+             voice="nova",
+             tts='tts-1',
              token: bool = False):
 
         gpt = gpt or self.model
@@ -1262,6 +1267,9 @@ class GPT:
 
         if translate or self.translate:
             self.auto_translate()
+
+        if speak:
+            self.text2speech(self.chat_reply, voice=voice, model=tts)
 
         if memory or self.memory:
             self.memorizer(m)
@@ -1326,6 +1334,8 @@ class GPT:
 
         if reply_language == 'Japanese':
             translator = create_jap_translator(language)
+        elif 'Chinese' in reply_language.split(" "):
+            translator = create_chinese_translator(language)
         else:
             translator = create_translator(language)
         print('\n')
@@ -1400,18 +1410,18 @@ C = GPT(assistant='delamain', format='python', model=copilot_gpt)
 
 # Scientific Assistants
 leonardo = GPT(assistant='leonardo')
-newton = GPT(assistant='leonardo', format='python')
-galileo = GPT(assistant='leonardo', format='markdown')
-mendel = GPT(assistant='mendel')
-watson = GPT(assistant='mendel', format='latex')
-venter = GPT(assistant='mendel', format='python')
-crick = GPT(assistant='mendel', format='markdown')
-darwin = GPT(assistant='darwin')
-dawkins = GPT(assistant='darwin', format='markdown')
-penrose = GPT(assistant='penrose')
-turing = GPT(assistant='penrose', format='python')
-marker = GPT(assistant='penrose', format='markdown')
-collins = GPT(assistant='collins')
+newton =   GPT(assistant='leonardo', format='python')
+galileo =  GPT(assistant='leonardo', format='markdown')
+mendel =   GPT(assistant='mendel')
+watson =   GPT(assistant='mendel', format='latex')
+venter =   GPT(assistant='mendel', format='python')
+crick =    GPT(assistant='mendel', format='markdown')
+darwin =   GPT(assistant='darwin')
+dawkins =  GPT(assistant='darwin', format='markdown')
+penrose =  GPT(assistant='penrose')
+turing =   GPT(assistant='penrose', format='python')
+marker =   GPT(assistant='penrose', format='markdown')
+collins =  GPT(assistant='collins')
 elsevier = GPT(assistant='collins', format='latex')
 springer = GPT(assistant='collins', format='markdown')
 
@@ -1427,6 +1437,9 @@ hero = GPT(assistant='hero', translate=True, memory=True)#, translate_jap=True)
 yoko = GPT(assistant='yoko', translate=True, memory=True)#, translate_jap=True)
 
 # Languages
+
+chinese = GPT(assistant="chinese", translate=True)
+japanese = GPT(assistant="japanese", translate=True)
 japanese_teacher = GPT(assistant='japanese_teacher')
 portuguese_teacher = GPT(assistant='portuguese_teacher')
 
