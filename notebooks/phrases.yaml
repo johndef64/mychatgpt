@@ -1,0 +1,75 @@
+
+progetto:
+  nome: "Sistema di Gestione delle Attività"
+  versione: "1.0.0"
+  autori:
+    - nome: "Alice Rossi"
+      ruolo: "Sviluppatore"
+      contatto:
+        email: "alice.rossi@email.com"
+        telefono: "+39 123 456 7890"
+    - nome: "Luca Bianchi"
+      ruolo: "Project Manager"
+      contatto:
+        email: "luca.bianchi@email.com"
+        telefono: "+39 098 765 4321"
+
+  funzionalità:
+    - nome: "Creazione Attività"
+      descrizione: "Consente agli utenti di creare nuove attività."
+      priorità: alta
+      requisiti:
+        - "Interfaccia utente responsive"
+        - "Accesso al database"
+    - nome: "Gestione Attività"
+      descrizione: "Permette la modifica e l'eliminazione delle attività esistenti."
+      priorità: media
+      requisiti:
+        - "Filtri di ricerca"
+        - "Visualizzazione della lista"
+
+  configurazione:
+    ambiente:
+      sviluppo:
+        database: "sqlite://:memory:"
+        debug: true
+      produzione:
+        database: "mysql://user:password@host/dbname"
+        debug: false
+
+    variabili:
+      port: 8080
+      timeout: 30
+
+  test:
+    casi:
+      - nome: "Test Creazione Attività"
+        descrizione: "Verifica che le attività vengano create correttamente."
+        precondizioni:
+          - "Utente autenticato"
+          - "Campo nome non vuoto"
+        script:
+          - passo: "Accedere alla pagina di creazione."
+          - passo: "Compilare il modulo."
+          - passo: "Cliccare sul pulsante 'Crea'."
+        risultati:
+          - atteso: "La nuova attività appare nella lista."
+            effettivo: null
+
+      - nome: "Test Gestione Attività"
+        descrizione: "Controlla che le modifiche vengano salvate."
+        precondizioni:
+          - "Attività esistente."
+        script:
+          - passo: "Selezionare l'attività."
+          - passo: "Modificare i dettagli."
+          - passo: "Cliccare sul pulsante 'Salva'."
+        risultati:
+          - atteso: "L'attività mostra i nuovi dettagli."
+            effettivo: null
+
+  note:
+    - "Assicurarsi che tutti i requisiti siano soddisfatti prima del rilascio."
+    - "Aggiornare la documentazione con le ultime funzionalità."
+###
+

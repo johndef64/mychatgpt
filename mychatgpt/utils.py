@@ -13,6 +13,7 @@ import PyPDF2
 import base64
 import time
 import glob
+import yaml
 import ast
 import os
 import re
@@ -376,6 +377,19 @@ def get_md(file_path=None, print_=True, indent=0):
     if print_:
         print_dict_structure(d, indent=indent)
     return d
+
+
+def yaml2dict(yaml_string):
+    dati = yaml.safe_load(yaml_string)
+    return dati
+
+# Funzione per importare dati YAML in un dizionario Python
+def get_yaml(file_yaml, encoding='utf-8'):
+    # Apre il file YAML
+    with open(file_yaml, 'r', encoding=encoding) as file:
+        # Carica e restituisce il contenuto del file come dizionario
+        dati = yaml.safe_load(file)
+    return dati
 
 
 # extract sections from latex and markdown files
