@@ -1,5 +1,7 @@
 from cryptography.fernet import Fernet
 import matplotlib.pyplot as plt
+from googlesearch import search
+from bs4 import BeautifulSoup
 import pyperclip as pc
 import keyboard as kb
 import pandas as pd
@@ -17,7 +19,6 @@ import re
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame
 import markdown
-from bs4 import BeautifulSoup
 
 
 def is_package_installed(package_name):
@@ -558,9 +559,7 @@ def while_kb_press(start='alt',stop='ctrl'):
 #%%
 ###  Web Scraper ###
 
-from googlesearch import search
-import requests
-from bs4 import BeautifulSoup
+
 
 def google_search(search_string="cute kittens",
                   num_results=100,
@@ -633,8 +632,8 @@ def extract_and_convert_to(text, enclosure = "[]"):
 
     # Convert the substring into a dictionary
     try:
-        result_dict = ast.literal_eval(substr)
+        result_value = ast.literal_eval(substr)
     except (SyntaxError, ValueError):
-        result_dict = ast.literal_eval(enclosure)
+        result_value = ast.literal_eval(enclosure)
 
-    return result_dict
+    return result_value
