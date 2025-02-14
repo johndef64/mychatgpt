@@ -11,6 +11,7 @@ import PyPDF2
 import base64
 import time
 import glob
+import ast
 import os
 import re
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
@@ -551,3 +552,89 @@ def while_kb_press(start='alt',stop='ctrl'):
                     print('while...')
                     time.sleep(2)
             print("Finished loop.")
+
+
+
+#%%
+###  Web Scraper ###
+
+from googlesearch import search
+import requests
+from bs4 import BeautifulSoup
+
+def google_search(search_string="cute kittens",
+                  num_results=100,
+                  lang='en',
+                  region="us",
+                  sleep_interval = 0,
+                  advanced=False,
+                  safe=False):
+
+    # country codes : https://developers.google.com/custom-search/docs/json_api_reference?hl=it#countryCodes
+    if num_results > 100:
+        sleep_interval=5
+    results = search(search_string, num_results, lang=lang, region=region, safe=safe, sleep_interval=sleep_interval,  advanced=advanced)
+    links = []
+    for link in results:
+        links.append(link)
+
+    print(f"Got {len(links)} results")
+
+    # Advanced
+    # Returns a list of SearchResult
+    # Properties:
+    # - title
+    # - url
+    # - description
+
+    return links
+
+
+
+def simple_text_scraper(url ,sep ='\n'):
+    """
+    Scrapes all text from a webpage.
+
+    Args:
+        url (str): The URL of the webpage to scrape.
+
+    Returns:
+        str: A string containing all the text from the webpage.
+             Returns None if an error occurs.
+    """
+    try:
+        # Send a GET request to the URL
+        response = requests.get(url)
+        response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx)
+
+        # Parse the HTML content using BeautifulSoup
+        soup = BeautifulSoup(response.content, 'html.parser')
+
+        # Extract all text from the parsed HTML
+        text = soup.get_text(separator=sep, strip=True)
+
+        return text
+
+    except requests.exceptions.RequestException as e:
+        print(f"Error during request: {e}")
+        return None
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return None
+
+
+def extract_and_convert_to(text, enclosure = "[]"):
+    # Find the first occurrence of '{' and the last occurrence of '}'
+    start = text.find(enclosure.split()[0][0])
+    end = text.rfind(enclosure.split()[0][1])
+
+    # Extract the substring between the braces
+    substr = text[start:end+1]
+
+    # Convert the substring into a dictionary
+    try:
+        result_dict = ast.literal_eval(substr)
+    except (SyntaxError, ValueError):
+        result_dict = ast.literal_eval(enclosure)
+
+    return result_dict
