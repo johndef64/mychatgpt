@@ -123,15 +123,10 @@ response_formats = ["mp3", "flac", "aac", "opus"]
 
 6. Speak With...
 ```python
-op.speak(message='',
-         system=None,
-         voice='nova', 
-         language='eng', 
-         tts= 'tts-1', max=1000, printall=False)
 
 # Use an in-build assistant or any character of your choice, example:
 socrates = GPT('Socrates')
-socrates.speak('Tell me about the Truth.', 'onyx')
+socrates.chat('Tell me about the Truth.', speak=True, voice='onyx')
 ```
 ```python
 # Endless chat, keyboard controlled
