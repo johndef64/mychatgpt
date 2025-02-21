@@ -218,6 +218,17 @@ def pdf_to_text(pdf_path):
 # to get contents use
 #load_file()
 
+def get_raw(file_path, separator="\n", print_=True):
+    with open(file_path, 'r', encoding='utf-8') as file:
+        content = file.read()
+        content.replace("\n\n","\n")
+
+    my_data = [line.strip() for line in content.split(separator)]
+    if print_:
+        df = pd.Series(my_data)
+        display(df)
+    return my_data
+
 def clip_tex(tex_content):
     # Keep content between \section{introduction} and \section{conclusion}
     match = re.search(r'\\section{Introduction}(.*?)\\section{Conclusion}', tex_content, flags=re.DOTALL)
@@ -427,7 +438,6 @@ def get_dict_from_text(file_path, clean_text=True):
     #df = pd.Series(sections_dict, index=sections_dict.keys())  # Create a series from the dictionary
     #display(df)
     return sections_dict #, content
-
 
 
 

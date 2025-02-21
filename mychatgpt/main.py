@@ -963,14 +963,18 @@ class GPT:
             update_log(self.chat_thread[-2])
             update_log(self.chat_thread[-1])
 
-        if self.to_clip and has_copy_paste:
-            clip_reply = self.chat_reply .replace('```', '###')
-            pc.copy(clip_reply)
+        # if self.to_clip and has_copy_paste:
+        #     clip_reply = self.chat_reply .replace('```', '###')
+        #     pc.copy(clip_reply)
 
         if play:
             self.text2speech(self.chat_reply , voice=voice, model=tts)
 
-
+    def send2clip(self, text, fix=True):
+        if has_copy_paste:
+            if fix:
+                text = text.replace('```', '###')
+            pc.copy(text)
 
     ### Image Models ###
 
@@ -1247,6 +1251,8 @@ class GPT:
              memory: bool = False,
              create: bool = False,
              speak: bool = False,
+             clip:bool = True,
+             fix:bool = True,
              voice="nova",
              tts='tts-1',
              token: bool = False):
@@ -1264,6 +1270,8 @@ class GPT:
                           image=image,
                           print_token=token,
                           create=create)
+        if clip:
+            self.send2clip(self.chat_reply, fix)
 
         if translate or self.translate:
             self.auto_translate()
