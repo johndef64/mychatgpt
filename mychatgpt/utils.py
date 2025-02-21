@@ -54,10 +54,8 @@ def simple_bool(message, y='y', n ='n'):
 # Function to check whether pyperclip works in the system
 def check_copy_paste():
     try:
-        pc.copy("test")
-        test_text = pc.paste()
-        if test_text == "test":
-            return True
+        pc.paste()
+        return True
     except pc.PyperclipException:
         return False
 
