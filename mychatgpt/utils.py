@@ -392,13 +392,37 @@ def yaml2dict(yaml_string):
     dati = yaml.safe_load(yaml_string)
     return dati
 
-# Funzione per importare dati YAML in un dizionario Python
+# Function for importing YAML data into a Python dictionary
 def get_yaml(file_yaml, encoding='utf-8'):
-    # Apre il file YAML
+    # Open the YAML file
     with open(file_yaml, 'r', encoding=encoding) as file:
-        # Carica e restituisce il contenuto del file come dizionario
-        dati = yaml.safe_load(file)
-    return dati
+        # Read file content
+        raw_content = file.read()
+        # Clean the YAML content
+        cleaned_content = re.sub(r'/', r'_slash_', raw_content)
+        cleaned_content = re.sub(r'\\', r'_slash2_', cleaned_content)
+        # Load and return the file content as dictionary
+        data = yaml.safe_load(cleaned_content)
+
+    # Convert '_slash_' back to '/' in each element
+    def replace_slash(element):
+        # If the element is a string, replace '_slash_' with '/'
+        if isinstance(element, str):
+            return element.replace('_slash_', '/').replace('_slash2_', '\\')
+        # If the element is a dictionary, apply the function to each key-value pair
+        elif isinstance(element, dict):
+            return {k: replace_slash(v) for k, v in element.items()}
+        # If the element is a list, apply the function to each item
+        elif isinstance(element, list):
+            return [replace_slash(item) for item in element]
+        # Return the element directly if it doesn't match any case above
+        else:
+            return element
+
+    # Apply replacement function to the entire data structure
+    data = replace_slash(data)
+
+    return data
 
 
 # extract sections from latex and markdown files

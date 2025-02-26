@@ -116,6 +116,11 @@ def load_api_keys(overwrite=False):
             # with open(current_dir + '/openai_api_key.txt', 'w') as file:
             #     file.write(api_key)
 
+            deepseek_api_key = input('Provide here your DeepSeek api key, if not leave blank:')
+            if deepseek_api_key == "":
+                print('\nPlease, get your DeepSeek API-key')
+                gemini_api_key = "missing"
+
             #if simple_bool('Do you have an openai key? '):
             gemini_api_key = input('Provide here your Gemini api key, if not leave blank:')
             if gemini_api_key == "":
@@ -124,6 +129,7 @@ def load_api_keys(overwrite=False):
 
             api_keys = {
                 "openai": openai_api_key,
+                "deepseek": deepseek_api_key,
                 "gemini": gemini_api_key,
             }
             save_json_in_lib(api_keys, "api_keys.json")
@@ -143,7 +149,9 @@ api_keys = load_api_keys()
 
 openai_api_key = api_keys["openai"]
 gemini_api_key = api_keys["gemini"]
+deepseek_api_key = api_keys["deepseek"]
 openai_client = OpenAI(api_key=str(openai_api_key))
+deepseek_client = OpenAI(api_key=str(deepseek_api_key), base_url="https://api.deepseek.com")
 
 
 
@@ -211,7 +219,7 @@ gpt_models_dict = {
 }
 
 gpt_models = [i for i in gpt_models_dict.keys() if "gpt" in i or "o1" in i]
-
+deepseek_models = ["deepseek-chat", 'deepseek-reasoner']
 
 ####### Image Models #######
 '''
@@ -477,6 +485,8 @@ def make_model(version=3):
     model = 'gpt-'+str(version)
     if version == 3: model = model+'.5-turbo'
     if version == 4: model = model + 'o'#-2024-08-06' #gpt-4o-2024-08-06
+    if version == "dsc": model = "deepseek-chat"
+    if version == "dsr": model = "deepseek-reasoner"
     return model
 
 models_info='''
@@ -583,23 +593,41 @@ class GPT:
 
 
         ### Set CLIENT ###
-        if model in gpt_models:
-            #print("initializing openai client...")
-            if my_key:
-                self.client = OpenAI(api_key=str(my_key))
-            else:
-                self.client = openai_client
+        self.reload_client(my_key=my_key, ollama_server=ollama_server)
+        # if model in gpt_models:
+        #     #print("initializing openai client...")
+        #     if my_key:
+        #         self.client = OpenAI(api_key=str(my_key))
+        #     elif model in deepseek_models:
+        #         self.client = OpenAI(api_key=str(my_key), base_url="https://api.deepseek.com")
+        #     else:
+        #         if model in gpt_models:
+        #             self.client = openai_client
+        #         elif model in deepseek_models:
+        #             self.client = deepseek_client
+        #
+        # if ollama_server:
+        #     self.ollama_client = ollama.Client(host=ollama_server)
+        # else:
+        #     self.ollama_client = ollama_client
 
-        if ollama_server:
-            self.ollama_client = ollama.Client(host=ollama_server)
-        else:
-            self.ollama_client = ollama_client
 
     ########## Definitions ############
     def reload_client(self, my_key=None, ollama_server=None):
-        if not my_key:
-            my_key = load_api_keys()["openai"]
-        self.client = OpenAI(api_key=str(my_key))
+        if my_key:
+            if self.model in gpt_models:
+                self.client = OpenAI(api_key=str(my_key))
+            elif self.model in deepseek_models:
+                self.client = OpenAI(api_key=str(my_key), base_url="https://api.deepseek.com")
+
+        else:
+            if self.model in gpt_models:
+                self.client = OpenAI(api_key=load_api_keys()["openai"])
+            elif self.model in deepseek_models:
+                self.client = OpenAI(api_key=load_api_keys()["deepseek"], base_url="https://api.deepseek.com")
+            else:
+                self.client = openai_client
+
         if ollama_server:
             self.ollama_client = ollama.Client(host=ollama_server)
 
@@ -698,10 +726,11 @@ class GPT:
     def stream_reply(self, response, print_reply=True, lag = 0.00, model=None):
         collected_messages = []
         for chunk in response:
-            if model in gpt_models:
+            if model in gpt_models + deepseek_models:
                 chunk_message = chunk.choices[0].delta.content or ""  # extract the message
             else:
                 chunk_message = chunk['message']['content'] or ""
+
             collected_messages.append(chunk_message)
 
             if print_reply:
@@ -769,7 +798,7 @@ class GPT:
             model = make_model(model)
         #print(f"using {model}")
 
-        if model in gpt_models:
+        if model in gpt_models + deepseek_models:
             response = self.client.chat.completions.create(
                 # https://platform.openai.com/docs/models/gpt-4
                 model=model,
@@ -783,7 +812,6 @@ class GPT:
                 top_p=1,
                 frequency_penalty=0,
                 presence_penalty=0)
-
 
         else:
             response = self.ollama_client.chat(
@@ -887,7 +915,7 @@ class GPT:
                 print('user:',print_mess)
         else:
             image_path = image_encoder(image)
-            if model in gpt_models:
+            if model in gpt_models + deepseek_models:
                 extension = {"role": 'user',
                              "content": [
                                  {"type": "text", "text": message},
@@ -915,7 +943,7 @@ class GPT:
         ### Send message ###
         messages = self.build_messages(self.chat_thread)
 
-        if model in gpt_models:
+        if model in gpt_models + deepseek_models:
             response = self.client.chat.completions.create(
                 model=model,
                 messages=messages,
@@ -937,6 +965,7 @@ class GPT:
             # self.chat_reply  = response['message']['content']
             # print(self.chat_reply )
 
+        ### Get reply and stream ###
         self.chat_reply  = self.stream_reply(response, print_reply=print_reply, lag=lag, model=model)
         time.sleep(0.85)
 
