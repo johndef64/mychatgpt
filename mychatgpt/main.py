@@ -496,6 +496,7 @@ def make_model(short: (int, str) = 3):
         model = short
     return model
 
+
 models_info='''
     Model	                point_at                   Context    Input (1K tokens) Output (1K tokens)   
     gpt-3.5-turbo           gpt-3.5-turbo-0125         16K        $0.0005 	        $0.0015 
@@ -557,8 +558,7 @@ class GPT:
         self.to_clip = to_clip
         self.print_token = print_token
         self.memory = memory
-        self.chat_reply  = ''
-        self.ask_reply = ''
+
 
         self.total_tokens = 0  # iniziale token count
         self.token_limit = 0  # iniziale token limit
@@ -597,6 +597,11 @@ class GPT:
 
         if persona and not who:
             self.add_persona(persona)
+
+        self.response = ''
+        self.chat_reply  = ''
+        self.reasoning_content = ''
+        self.ask_reply = ''
 
 
         ### Set CLIENT ###
@@ -732,7 +737,8 @@ class GPT:
 
     # Accessory  Functions ================================
     # https://til.simonwillison.net/gpt3/python-chatgpt-streaming-api
-    def stream_reply(self, response, print_reply=True, lag = 0.00, model=None):
+
+    def stream_reply_basic(self, response, print_reply=True, lag = 0.00, model=None):
         collected_messages = []
         for chunk in response:
             if model in gpt_models + deepseek_models:
@@ -749,6 +755,50 @@ class GPT:
 
         chat_reply  = ''.join(collected_messages).strip()
         return chat_reply
+
+    def stream_reply(self, response, print_reply=True, lag = 0.00, model=None):
+        collected_messages = []
+        collected_reasoning = []
+        separator= True
+
+        for chunk in response:
+            if model in gpt_models + deepseek_models:
+                try:
+                    chunk_reasoning = chunk.choices[0].delta.reasoning_content or ""  # extract the message
+                    collected_reasoning.append(chunk_reasoning)
+                except AttributeError:
+                    separator = False
+                    pass
+
+                chunk_message = chunk.choices[0].delta.content or ""  # extract the message
+            else:
+                chunk_message = chunk['message']['content'] or ""
+
+            # Gather Chunks
+            collected_messages.append(chunk_message)
+
+            # Print reply
+            if print_reply:
+                try:
+                    time.sleep(lag)
+                    chunk.choices[0].delta.reasoning_content
+                    print(chunk_reasoning, end='')
+                except AttributeError:
+                    pass
+
+                if chunk_message != '':
+                    if separator:
+                        separator = False
+                        print("\n")
+                    time.sleep(lag)
+                    print(chunk_message, end='')
+
+
+        # Build up reply
+        chat_reasoning = ''.join(collected_reasoning).strip()
+        chat_reply  = ''.join(collected_messages).strip()
+        return chat_reply, chat_reasoning
+
 
 
     ###### Base Functions ######
@@ -838,7 +888,7 @@ class GPT:
             print_mess = prompt.replace('\r', '\n').replace('\n\n', '\n')
             print('user:',print_mess,'\n...')
 
-        self.ask_reply = self.stream_reply(response, print_reply=print_reply, lag=lag, model=model)
+        self.ask_reply, self.reasoning_content = self.stream_reply(response, print_reply=print_reply, lag=lag, model=model)
         time.sleep(0.75)
 
         # Add the assistant's reply to the chat log
@@ -881,7 +931,7 @@ class GPT:
                      ):
         if not model:
             model = self.model
-        if isinstance(model, int):
+        else:
             model = make_model(model)
         if print_debug: print('using model: ',model)
         #print(f"using {model}")
@@ -975,7 +1025,12 @@ class GPT:
             # print(self.chat_reply )
 
         ### Get reply and stream ###
-        self.chat_reply  = self.stream_reply(response, print_reply=print_reply, lag=lag, model=model)
+        self.response = response
+        self.ask_reply, self.reasoning_content = self.stream_reply(response, print_reply=print_reply, lag=lag, model=model)
+
+        # if response.choices[0].message.reasoning_content:
+        #     self.reasoning_content = response.choices[0].message.reasoning_content
+
         time.sleep(0.85)
 
         ### Add Reply to chat ###
@@ -1295,7 +1350,7 @@ class GPT:
              tts='tts-1',
              token: bool = False):
 
-        gpt = gpt or self.model
+        gpt = make_model(gpt) or self.model
 
         if memory or self.memory:
             self.load_memories()
