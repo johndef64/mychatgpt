@@ -481,12 +481,19 @@ model = 'gpt-4o-mini'
 talk_model = 'gpt-4o'#-2024-08-06'
 
 
-def make_model(version=3):
-    model = 'gpt-'+str(version)
-    if version == 3: model = model+'.5-turbo'
-    if version == 4: model = model + 'o'#-2024-08-06' #gpt-4o-2024-08-06
-    if version == "dsc": model = "deepseek-chat"
-    if version == "dsr": model = "deepseek-reasoner"
+def make_model(short: (int, str) = 3):
+    if short == 3:
+        model = f'gpt-{short}.5-turbo'
+    elif short == 4:
+        model = f'gpt-{short}o'#-2024-08-06' #gpt-4o-2024-08-06
+    elif short=='mini':
+        model = f'gpt-4o-mini'
+    elif short == "dpc":
+        model = "deepseek-chat"
+    elif short == "dpr":
+        model = "deepseek-reasoner"
+    else:
+        model = short
     return model
 
 models_info='''
@@ -613,7 +620,9 @@ class GPT:
 
 
     ########## Definitions ############
-    def reload_client(self, my_key=None, ollama_server=None):
+    def reload_client(self, my_key=None, ollama_server=None, model=None):
+        if model:
+            self.model = make_model(model)
         if my_key:
             if self.model in gpt_models:
                 self.client = OpenAI(api_key=str(my_key))
@@ -794,7 +803,7 @@ class GPT:
 
         if not model:
             model = self.model
-        if isinstance(model, int):
+        else:
             model = make_model(model)
         #print(f"using {model}")
 
@@ -1401,7 +1410,12 @@ class GPT:
             """
 
         print('\n')
-        self.ask("User: "+message, system=memorizer, print_reply=False, model="gpt-4o-mini")
+        if self.model in gpt_models:
+            model="gpt-4o-mini"
+        else:
+            model="deepseek-chat"
+
+        self.ask("User: "+message, system=memorizer, print_reply=False, model=model)
         print(self.ask_reply)
 
         frasi = self.ask_reply.split("\n")
