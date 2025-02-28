@@ -106,20 +106,17 @@ def load_api_keys(overwrite=False):
             if openai_api_key == "":
                 print('\nPlease, get your API-key at https://platform.openai.com/api-keys')
                 openai_api_key = "missing"
-                # psw = input('\nOtherwise, you can insert here you DEV password:')
-                # api_key = simple_decrypter(psw, openai_api_hash)
-                # if not api_key:
-                #     print('Please try again...')
-                #     api_key = simple_decrypter(psw, openai_api_hash)
-                #     if not api_key:
-                #         api_key = 'missing key'
-            # with open(current_dir + '/openai_api_key.txt', 'w') as file:
-            #     file.write(api_key)
 
             deepseek_api_key = input('Provide here your DeepSeek api key, if not leave blank:')
             if deepseek_api_key == "":
                 print('\nPlease, get your DeepSeek API-key')
-                gemini_api_key = "missing"
+                deepseek_api_key = "missing"
+
+
+            x_api_key = input('Provide here your Grok api key, if not leave blank:')
+            if x_api_key == "":
+                print('\nPlease, get your DeepSeek API-key')
+                x_api_key = "missing"
 
             #if simple_bool('Do you have an openai key? '):
             gemini_api_key = input('Provide here your Gemini api key, if not leave blank:')
@@ -127,9 +124,12 @@ def load_api_keys(overwrite=False):
                 print('\nPlease, get your Gemini API-key')
                 gemini_api_key = "missing"
 
+
+
             api_keys = {
                 "openai": openai_api_key,
                 "deepseek": deepseek_api_key,
+                "grok": x_api_key,
                 "gemini": gemini_api_key,
             }
             save_json_in_lib(api_keys, "api_keys.json")
@@ -150,12 +150,11 @@ api_keys = load_api_keys()
 openai_api_key = api_keys["openai"]
 gemini_api_key = api_keys["gemini"]
 deepseek_api_key = api_keys["deepseek"]
+x_api_key = api_keys["grok"]
 openai_client = OpenAI(api_key=str(openai_api_key))
 deepseek_client = OpenAI(api_key=str(deepseek_api_key), base_url="https://api.deepseek.com")
+x_client = OpenAI(api_key=str(x_api_key), base_url="https://api.x.ai/v1")
 
-
-
-#deepseek_client = OpenAI(api_key="<DeepSeek API Key>", base_url="https://api.deepseek.com")
 
 #
 # try:
@@ -218,8 +217,12 @@ gpt_models_dict = {
     "gemini-2.0-flash-exp": 16385,
 }
 
-gpt_models = [i for i in gpt_models_dict.keys() if "gpt" in i or "o1" in i]
+gpt_models = [i for i in gpt_models_dict.keys() if "gpt" in i or "o1" in i]+["dall-e-2", "dall-e-3", "whisper-1"]
 deepseek_models = ["deepseek-chat", 'deepseek-reasoner']
+x_models = ["grok-2-1212", 'grok-2-vision-1212', "grok-2-latest"]
+
+openai_compliant = gpt_models + deepseek_models + x_models
+
 
 ####### Image Models #######
 '''
@@ -492,6 +495,8 @@ def make_model(short: (int, str) = 3):
         model = "deepseek-chat"
     elif short == "dpr":
         model = "deepseek-reasoner"
+    elif short == "x":
+        model = "grok-2-latest"
     else:
         model = short
     return model
@@ -547,7 +552,7 @@ class GPT:
                  user_name: str = None,
                  memory : bool = False,
                  ollama_server: str = None,
-                 my_key: str = None,
+                 my_key: str = None
                  ):
 
         self.assistant = assistant
@@ -635,15 +640,19 @@ class GPT:
                 self.client = OpenAI(api_key=str(my_key), base_url="https://api.deepseek.com")
 
         else:
-            if self.model in gpt_models:
-                self.client = OpenAI(api_key=load_api_keys()["openai"])
-            elif self.model in deepseek_models:
-                self.client = OpenAI(api_key=load_api_keys()["deepseek"], base_url="https://api.deepseek.com")
-            else:
-                self.client = openai_client
+            self.select_client(self.model)
 
         if ollama_server:
             self.ollama_client = ollama.Client(host=ollama_server)
+
+    def select_client(self, model):
+        if model in gpt_models:
+            self.client = OpenAI(api_key=load_api_keys()["openai"])
+        elif model in deepseek_models:
+            self.client = OpenAI(api_key=load_api_keys()["deepseek"], base_url="https://api.deepseek.com")
+        elif model in x_models:
+            self.client = OpenAI(api_key=load_api_keys()["grok"], base_url="https://api.x.ai/v1")
+
 
 
     def add_system(self, system='', reinforcement=False):
@@ -762,7 +771,7 @@ class GPT:
         separator= True
 
         for chunk in response:
-            if model in gpt_models + deepseek_models:
+            if model in openai_compliant:
                 try:
                     chunk_reasoning = chunk.choices[0].delta.reasoning_content or ""  # extract the message
                     collected_reasoning.append(chunk_reasoning)
@@ -855,9 +864,11 @@ class GPT:
             model = self.model
         else:
             model = make_model(model)
-        #print(f"using {model}")
 
-        if model in gpt_models + deepseek_models:
+        # Select the right client for model
+        self.select_client(model)
+
+        if model in openai_compliant:
             response = self.client.chat.completions.create(
                 # https://platform.openai.com/docs/models/gpt-4
                 model=model,
@@ -934,7 +945,9 @@ class GPT:
         else:
             model = make_model(model)
         if print_debug: print('using model: ',model)
-        #print(f"using {model}")
+
+        # Select the client
+        self.select_client(model)
 
         dalle = dalle if dalle != self.dalle else self.dalle
         image_size = image_size if image_size != self.image_size else self.image_size
@@ -974,7 +987,7 @@ class GPT:
                 print('user:',print_mess)
         else:
             image_path = image_encoder(image)
-            if model in gpt_models + deepseek_models:
+            if model in openai_compliant:
                 extension = {"role": 'user',
                              "content": [
                                  {"type": "text", "text": message},
@@ -1002,7 +1015,7 @@ class GPT:
         ### Send message ###
         messages = self.build_messages(self.chat_thread)
 
-        if model in gpt_models + deepseek_models:
+        if model in openai_compliant:
             response = self.client.chat.completions.create(
                 model=model,
                 messages=messages,
@@ -1026,12 +1039,12 @@ class GPT:
 
         ### Get reply and stream ###
         self.response = response
-        self.ask_reply, self.reasoning_content = self.stream_reply(response, print_reply=print_reply, lag=lag, model=model)
+        self.chat_reply, self.reasoning_content = self.stream_reply(response, print_reply=print_reply, lag=lag, model=model)
 
         # if response.choices[0].message.reasoning_content:
         #     self.reasoning_content = response.choices[0].message.reasoning_content
 
-        time.sleep(0.85)
+        time.sleep(0.75)
 
         ### Add Reply to chat ###
         self.chat_thread.append({"role": "assistant", "content":self.chat_reply })
@@ -1082,6 +1095,9 @@ class GPT:
                      quality="standard",
                      time_flag=True,
                      show_image=True):
+
+        # Select the client
+        self.select_client(model)
 
         if model == "dall-e-2":
             response = self.client.images.generate(
@@ -1150,6 +1166,7 @@ class GPT:
                 translate: bool = False,
                 response_format: str = "text",
                 print_transcription: bool = True):
+        self.client = openai_client
 
         audio_file = open(filepath, "rb")
         if not translate:
@@ -1178,6 +1195,7 @@ class GPT:
                     speed: int = 1,
                     #play: bool = False
                     ):
+        self.client = openai_client
 
         filename = f"{filename}.{response_format}"
 
