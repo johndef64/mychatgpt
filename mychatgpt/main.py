@@ -5,6 +5,7 @@ import ast
 import json
 import csv
 import ollama
+import time
 
 from .utils import *
 from .assistants import *
@@ -47,8 +48,8 @@ if platform.system() == "Linux":
     subprocess.check_call(["sudo","apt", "install", "xsel"])
     subprocess.check_call(["sudo","apt", "install", "xclip"])
     ''')
-
-#print('START')
+debug =True
+if debug: print(f'check:{datetime.now()}')
 
 ################ set API-key #################
 
@@ -534,6 +535,7 @@ def set_ollama_client(host=None,    #'http://localhost:11434',
 ollama_client = ollama.Client() #set_ollama_client()  #ollama
 
 
+if debug: print(f'check:{datetime.now()}')
 
 ### Main Class ###
 class GPT:
@@ -1519,53 +1521,131 @@ class GPT:
 ######## ######## ########
 #%%
 
-# An embedded assistant or a character of your choice
-copilot_gpt = 'gpt-4o'
-chatgpt = GPT(assistant='base')
-novelist = GPT(assistant='novelist')
-creator = GPT(assistant='creator', model=copilot_gpt)
-fixer = GPT(assistant='fixer', model=copilot_gpt)
-delamain = GPT(assistant='delamain', model=copilot_gpt)
-oracle = GPT(assistant='oracle', model=copilot_gpt)
-R = GPT(assistant='roger', model=copilot_gpt)
-# Rt = GPT(assistant='robert', model=copilot_gpt)
-C = GPT(assistant='delamain', format='python', model=copilot_gpt)
+# Dizionario dei parametri
+assistant_params = {
+    ### COPILOTS ###
+    'copilot_gpt': 'gpt-4o',
+    'base': {'assistant': 'base'},
+    'novelist': {'assistant': 'novelist'},
+    'creator': {'assistant': 'creator', 'model': 'gpt-4o'},
+    'fixer': {'assistant': 'fixer', 'model': 'gpt-4o'},
+    'delamain': {'assistant': 'delamain', 'model': 'gpt-4o'},
+    'oracle': {'assistant': 'oracle', 'model': 'gpt-4o'},
+    'roger': {'assistant': 'roger', 'model': 'gpt-4o'},
+    # 'robert': {'assistant': 'robert', 'model': 'gpt-4o'},  # Commentato secondo il codice fornito
+    'C': {'assistant': 'delamain', 'format': 'python', 'model': 'gpt-4o'},
 
+    ### Scientific Assistants ###
+    'leonardo': {'assistant': 'leonardo'},
+    'newton': {'assistant': 'leonardo', 'format': 'python'},
+    'galileo': {'assistant': 'leonardo', 'format': 'markdown'},
+    'mendel': {'assistant': 'mendel'},
+    'watson': {'assistant': 'mendel', 'format': 'latex'},
+    'venter': {'assistant': 'mendel', 'format': 'python'},
+    'crick': {'assistant': 'mendel', 'format': 'markdown'},
+    'darwin': {'assistant': 'darwin'},
+    'dawkins': {'assistant': 'darwin', 'format': 'markdown'},
+    'penrose': {'assistant': 'penrose'},
+    'turing': {'assistant': 'penrose', 'format': 'python'},
+    'marker': {'assistant': 'penrose', 'format': 'markdown'},
+    'collins': {'assistant': 'collins'},
+    'elsevier': {'assistant': 'collins', 'format': 'latex'},
+    'springer': {'assistant': 'collins', 'format': 'markdown'},
+
+    ### Characters ###
+    'julia': {'assistant': 'julia', 'memory': True},
+    'mike': {'assistant': 'mike', 'memory': True},
+    'michael': {'assistant': 'michael', 'translate': True, 'memory': True},
+    'miguel': {'assistant': 'miguel', 'translate': True, 'memory': True},
+    'francois': {'assistant': 'francois', 'translate': True, 'memory': True},
+    'luca': {'assistant': 'luca', 'translate': True, 'memory': True},
+    'hero': {'assistant': 'hero', 'translate': True, 'memory': True},
+    'yoko': {'assistant': 'yoko', 'translate': True, 'memory': True},
+
+
+    ### Languages ###
+    'chinese': {'assistant': 'chinese', 'translate': True},
+    'japanese': {'assistant': 'japanese', 'translate': True},
+    'japanese_teacher': {'assistant': 'japanese_teacher'},
+    'portuguese_teacher': {'assistant': 'portuguese_teacher'}
+}
+
+# Funzione per creare nuovi oggetti GPT con i parametri dal dizionario
+def agent(assistant_key):
+    params = assistant_params.get(assistant_key, {})
+    return GPT(**params)
+
+
+if debug: print(f'Copilots:{datetime.now()}')
+# Esempio di utilizzo
+chatgpt = agent('base')
+# novelist = agent('novelist')
+# creator = agent('creator')
+fixer = agent('fixer')
+# delamain = agent('delamain')
+# oracle = agent('oracle')
+R = agent('roger')
+C = agent('C')
+
+
+# An embedded assistant or a character of your choice
+# copilot_gpt = 'gpt-4o'
+# chatgpt = GPT(assistant='base')
+# novelist = GPT(assistant='novelist')
+# creator = GPT(assistant='creator', model=copilot_gpt)
+# fixer = GPT(assistant='fixer', model=copilot_gpt)
+# delamain = GPT(assistant='delamain', model=copilot_gpt)
+# oracle = GPT(assistant='oracle', model=copilot_gpt)
+# R = GPT(assistant='roger', model=copilot_gpt)
+# # Rt = GPT(assistant='robert', model=copilot_gpt)
+# C = GPT(assistant='delamain', format='python', model=copilot_gpt)
+
+if debug: print(f'Scientific:{datetime.now()}')
 
 # Scientific Assistants
-leonardo = GPT(assistant='leonardo')
-newton =   GPT(assistant='leonardo', format='python')
-galileo =  GPT(assistant='leonardo', format='markdown')
-mendel =   GPT(assistant='mendel')
-watson =   GPT(assistant='mendel', format='latex')
-venter =   GPT(assistant='mendel', format='python')
-crick =    GPT(assistant='mendel', format='markdown')
-darwin =   GPT(assistant='darwin')
-dawkins =  GPT(assistant='darwin', format='markdown')
-penrose =  GPT(assistant='penrose')
-turing =   GPT(assistant='penrose', format='python')
-marker =   GPT(assistant='penrose', format='markdown')
-collins =  GPT(assistant='collins')
-elsevier = GPT(assistant='collins', format='latex')
-springer = GPT(assistant='collins', format='markdown')
+leonardo = agent("leonardo")
+mendel = agent("mendel")
+watson = agent("watson")
+penrose = agent("penrose")
+# leonardo = GPT(assistant='leonardo')
+# newton =   GPT(assistant='leonardo', format='python')
+# galileo =  GPT(assistant='leonardo', format='markdown')
+# mendel =   GPT(assistant='mendel')
+# watson =   GPT(assistant='mendel', format='latex')
+# venter =   GPT(assistant='mendel', format='python')
+# crick =    GPT(assistant='mendel', format='markdown')
+# darwin =   GPT(assistant='darwin')
+# dawkins =  GPT(assistant='darwin', format='markdown')
+# penrose =  GPT(assistant='penrose')
+# turing =   GPT(assistant='penrose', format='python')
+# marker =   GPT(assistant='penrose', format='markdown')
+# collins =  GPT(assistant='collins')
+# elsevier = GPT(assistant='collins', format='latex')
+# springer = GPT(assistant='collins', format='markdown')
 
+if debug: print(f'Characters:{datetime.now()}')
 
 # Characters
-julia = GPT(assistant='julia', memory=True)
-mike = GPT(assistant='mike', memory=True)
-michael = GPT(assistant='michael', translate=True, memory=True)
-miguel = GPT(assistant='miguel', translate=True, memory=True)
-francois = GPT(assistant='francois', translate=True, memory=True)
-luca = GPT(assistant='luca', translate=True, memory=True)
-hero = GPT(assistant='hero', translate=True, memory=True)#, translate_jap=True)
-yoko = GPT(assistant='yoko', translate=True, memory=True)#, translate_jap=True)
+julia = agent("julia")
+yoko = agent("yoko")
+# julia = GPT(assistant='julia', memory=True)
+# mike = GPT(assistant='mike', memory=True)
+# michael = GPT(assistant='michael', translate=True, memory=True)
+# miguel = GPT(assistant='miguel', translate=True, memory=True)
+# francois = GPT(assistant='francois', translate=True, memory=True)
+# luca = GPT(assistant='luca', translate=True, memory=True)
+# hero = GPT(assistant='hero', translate=True, memory=True)
+# yoko = GPT(assistant='yoko', translate=True, memory=True)
+
+
+if debug: print(f'Languages:{datetime.now()}')
 
 # Languages
 
-chinese = GPT(assistant="chinese", translate=True)
-japanese = GPT(assistant="japanese", translate=True)
-japanese_teacher = GPT(assistant='japanese_teacher')
-portuguese_teacher = GPT(assistant='portuguese_teacher')
+# chinese = GPT(assistant="chinese", translate=True)
+# japanese = GPT(assistant="japanese", translate=True)
+# japanese_teacher = GPT(assistant='japanese_teacher')
+# portuguese_teacher = GPT(assistant='portuguese_teacher')
 
 
 #%%
