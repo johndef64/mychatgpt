@@ -1411,7 +1411,7 @@ class GPT:
         print('\n')
         self.ask(self.chat_reply , translator)
 
-    def memorizer(self, message):
+    def memorizer(self, message, print_=True):
         frasi_caricate = []
         if os.path.isfile('memories.csv'):
             with open('memories.csv', 'r') as file:
@@ -1420,9 +1420,11 @@ class GPT:
                     frase = row[0].rsplit(',', 1)[0]
                     frasi_caricate.append(frase)
         previous_memories = "\n".join(frasi_caricate)
-        memorizer = f"""Your task is to memorize new, meaningful information as short memories related to the user's world from their input message. Information such as relationships, personality, history, events, and so on.
+        memorizer = f"""Your task is to memorize new, meaningful informations as short memories related to the user's world from his input messages. Information such as relationships, personality, history, events, and so on.
         
-        If you don't find any new of relevant information to memorize do no reply anything.        
+        If you don't find any new of relevant information to memorize do no reply anything. 
+        Do not memorize trivial informations!
+               
         These are your previous memories:
         {previous_memories}
         
@@ -1440,7 +1442,8 @@ class GPT:
             model="deepseek-chat"
 
         self.ask("User: "+message, system=memorizer, print_reply=False, model=model)
-        print(self.ask_reply)
+        if print_:
+            print(f"<{self.ask_reply}>")
 
         frasi = self.ask_reply.split("\n")
         with open('memories.csv', 'a', newline='') as file:
@@ -1457,7 +1460,7 @@ class GPT:
                 for row in reader:
                     frasi_caricate.append(row[0])
 
-            memories = "This are your memories about the user world:\n\n"+"\n".join(frasi_caricate)
+            memories = "Below are your memories about the user world. Use them only if the context requires:\n\n"+"\n".join(frasi_caricate)
             self.update_system(memories)
 
     def fix(self, m, *args, **kwargs):

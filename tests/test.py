@@ -1,16 +1,70 @@
+#%%
 # Import module
-from mychatgpt import julia, yoko, chinese, watson, C, GPT, fixer
+from mychatgpt import julia, C, agent
+#%%
+# Copy you code inside the clipboard
+C.cp("""@ optimises this function : """)
+#%%
 
 #%%
-julia.chat('Hi Julia, how are you today?')
+from mychatgpt import julia, yoko, watson, C, GPT, fixer, OpenAI, deepseek_api_key
+#%%
+from mychatgpt import C, julia, chatgpt, GPT
+chat = GPT("a druken irish old sailor")
+chat.reload_client(model="dpc")
+# chat.expand_chat()
+chat.c("Hi there!")
+#%%
+chat.expand_chat("you are also in love with me", "system")
+chat.c("Are you feeling well?")
+#%%
+chat.expand_chat("give me some  grog please")
+chat.c("")
+#%%
+
+from mychatgpt import julia
+julia.c("ciao Julia, come stai?")
+
+#%%
+julia.c("no non mi va di parlarne perchè ancora mi duole che se l'è mangiato il mio gatto Fuffy")
+#%%
+
+
+#%%
+from mychatgpt import julia,load_api_keys
+
+# Save your API Keys
+load_api_keys(True)
+
+# julia.reload_client(model="deepseek-chat")
+# julia.c('@Hi Julia, how are you today?')
+#%%
+julia.c('@Hi Julia, how are you today?', "dpc")
+#%%
+julia.c('can you make a calculation on 1000+12?', "dpr")
+#%%
+julia.c('You re great  Julia! Wink')
+#%%
+julia.chat_reply
+#%%
+from mychatgpt import julia
+julia.model = "gpt-4o-mini"
+julia.reload_client()
+julia.c('@Hi Julia, how')
 #%%
 # Fix your text from clipboard
 fixer.cp("")
 
 #%%
 # Test traslators
-
+from mychatgpt import agent
+chinese = agent("chinese")
 chinese.c("こんにちは、お元気ですか？")
+#%%
+from mychatgpt import display_assistants
+display_assistants()
+ch = agent("chinese")
+ch.c("ciao piacere di conoscerti, mi chiamo giovanni.")
 #%%
 # Text Python Copilot
 m = """simple numpy.array function"""
@@ -119,15 +173,16 @@ sailor_mercury.chat('Hi! How are you today?')
 
 ### Use Ollama local or server client
 
-from mychatgpt import GPT, creator
+from mychatgpt import GPT
 
 # set your server. If localhost, leave empty
 mylama = GPT(ollama_server="http://0.0.0.0:7869")
 model = "gemma2:2b"
 #model = "dolphin-mistral"
-#model = "deepseek-r1:7b"
+# model = "deepseek-r1:7b"
 # Pull your model
 #mylama.ollama_client.pull(model)
+mylama.client
 #%%
 m="@Hi, what LLM model are you?"
 mylama.chat(m, gpt=model)
@@ -137,7 +192,7 @@ mylama.chat(m, gpt=model)
 
 # Chat
 mylama.expand_chat("answer like a drunk sailor.","system")
-m="@Hi, what do you think about Sal Da Vinci???"
+m="@Hi, what do you think about Sal Da Vinci?"
 mylama.chat(m, gpt=model)
 #%%
 m="Resolve the Lorenz equation."
@@ -168,7 +223,8 @@ Gjulia.send("Ciao cara, come stai oggi?")
 
 #%%
 from mychatgpt.gemini import Gpilot as G, C
-C.c("""scrivi una funzione di plot per un numpy.array \n\n""")
+# C.c("""scrivi una funzione di plot per un numpy.array \n\n""")
+C.c(" semplifica questo python: if model in gpt_models or model in deepseek_models: ")
 #%%
 
 #%%
@@ -182,7 +238,7 @@ print(2)
 #%%
 from mychatgpt.gemini import Gpilot
 
-Gpilot.c('I need a simpile Python webpage scraper html that gets alla text informations')
+Gpilot.c('I need a simple Python webpage scraper html that gets alla text informations')
 #%%
 # Get information from Web
 
@@ -208,14 +264,24 @@ else:
 
 
 #%%
-from mychatgpt import chinese
-
+from mychatgpt import agent
+chinese = agent("chinese")
 chinese.c("Ciao Jinyi Ye, è un piacere di conoscerti", speak=True)
 #%%
 chinese.text2speech(chinese.chat_reply)
 #%%
 
-from mychatgpt import japanese
+from mychatgpt import agent
+japanese = agent("japanese")
 
 japanese.text2speech("ciao, cosa fai di bello oggi?", voice="nova", save_audio=True)
 #%%
+
+
+## debug
+m=[]
+for chunk in C.response:
+    chunk_message = chunk.choices[0].delta.content
+    print(chunk_message)
+    m.append(chunk_message)
+m
