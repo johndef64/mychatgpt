@@ -47,7 +47,6 @@ op = GPT(assistant='',                   # in-build assistant name
          persona='',                     # any known character
          format=None,                    # output format (latex,python,markdown)
          translate=False,                # translate outputs
-         translate_jap=False,            # translate in jap outputs
          save_log=True,                  # save log file
          to_clip=True,                   # send reply t clipboard
          print_token=True,               # print token count
@@ -55,6 +54,9 @@ op = GPT(assistant='',                   # in-build assistant name
          talk_model='gpt-4o-2024-08-06', # set openai speak model
          dalle="dall-e-2",               # set dall-e model
          image_size='512x512',           # set generated image size
+         memory=False,                   # enable memory function   
+         ollama_server=None,             # pass an ollama server address         
+         my_key=None                     # default api key
          )
 
 op.chat('Your message goes here', 
@@ -160,10 +162,15 @@ To set-up multiple conversations or change the API-key, follow the example propo
 
 ## In-Build Assistants
 ```python
-op.display_assistants()
+from mychatgpt import display_assistants
+display_assistants()
 ```
 ```python
-from mychatgpt import delamain
+from mychatgpt import agent
+
+# select assistant from the list above
+delamain = agent("delamain")
+
 # Call an assistant simply by name
 delamain.chat('your message',
               gpt='gpt-4o', 
@@ -172,7 +179,56 @@ delamain.chat('your message',
 
 #n.b. assistants sends reply to clipboard by default
 ```
+```python
+from mychatgpt import agent
 
+# select assistant from the list above
+julia = agent("julia")
+
+# Call an assistant simply by name
+julia.chat('Hi Julia. Are you ready for another day of work?',
+            gpt='gpt-4o', 
+            max = 1000, 
+            clip=True)  
+
+#n.b. assistants sends reply to clipboard by default
+```
+
+## Other models
+
+Remember to set up your api keys before
+```python
+from mychatgpt import load_api_keys
+load_api_keys(True)
+```
+**DeepSeek**
+```python
+from mychatgpt import agent
+julia = agent("julia")
+
+julia.c('@Hi Julia, how are you today?', "deepseek-chat")
+```
+
+```python
+from mychatgpt import chatgpt
+
+chatgpt.c('Reason about human existence as if you were an alien', "deepseek-reasoner")
+```
+
+**Grok**
+```python
+from mychatgpt import chatgpt
+
+chatgpt.c('Reason about human existence as if you were an alien', "grok-2-latest")
+```
+
+**Gemini**
+```python
+from mychatgpt.gemini import Gemini
+
+Ge = Gemini(system="you are fixed with candies, you can't talk about anything else")
+Ge.send("Hi how are you?")
+```
 
 ## Setup Ollama (linux)
 guide: https://github.com/RamiKrispin/ollama-poc/blob/main/ollama-poc.ipynb

@@ -48,7 +48,8 @@ if platform.system() == "Linux":
     subprocess.check_call(["sudo","apt", "install", "xsel"])
     subprocess.check_call(["sudo","apt", "install", "xclip"])
     ''')
-debug =True
+debug =False
+if debug: print(f'Loading package...')
 if debug: print(f'check:{datetime.now()}')
 
 ################ set API-key #################
@@ -485,41 +486,18 @@ model = 'gpt-4o-mini'
 talk_model = 'gpt-4o'#-2024-08-06'
 
 
-def make_model(short: (int, str) = 3):
-    if short == 3:
-        model = f'gpt-{short}.5-turbo'
-    elif short == 4:
-        model = f'gpt-{short}o'#-2024-08-06' #gpt-4o-2024-08-06
-    elif short=='mini':
-        model = f'gpt-4o-mini'
-    elif short == "dpc":
-        model = "deepseek-chat"
-    elif short == "dpr":
-        model = "deepseek-reasoner"
-    elif short == "x":
-        model = "grok-2-latest"
-    else:
-        model = short
-    return model
-
-
-models_info='''
-    Model	                point_at                   Context    Input (1K tokens) Output (1K tokens)   
-    gpt-3.5-turbo           gpt-3.5-turbo-0125         16K        $0.0005 	        $0.0015 
-    gpt-3.5-turbo-instruct  nan                        4K         $0.0015 	        $0.0020 
-    gpt-4	                gpt-4-0613                 8K         $0.03   	        $0.06   
-    gpt-4o	                gpt-4o-2024-05-13          128K       $0.01   	        $0.02   
-    gpt-4-turbo             gpt-4-turbo-2024-04-09     128K       $0.01   	        $0.03   
-    gpt-4-32k	            gpt-4-32k-0613             32K        $0.06   	        $0.12   
-    gpt-4-1106-preview	    nan                        128K       $0.01   	        $0.03   
-    gpt-4-vision-preview    gpt-4-1106-vision-preview  128K       $0.01   	        $0.03   
-    
-    Vision pricing 
-    500x500   = ld: $0.000425
-    500x500   = hd: $0.001275
-    1000x1000 = ld: $0.000425 
-    1000x1000 = hd: $0.003825 
-    '''
+def make_model(label: (int, str) = 3):
+    # Use a dictionary for efficient lookup of model values
+    models = {
+        3: f'gpt-{label}.5-turbo',
+        4: f'gpt-{label}o',
+        'mini': 'gpt-4o-mini',
+        'dpc': 'deepseek-chat',
+        'dpr': 'deepseek-reasoner',
+        'x': 'grok-2-latest'
+    }
+    # Return the corresponding model or default to label
+    return models.get(label,label)
 
 
 ### set ollama client ###
@@ -551,7 +529,6 @@ class GPT:
                  talk_model: str = 'gpt-4o-2024-08-06',  # set openai speak model
                  dalle: str = "dall-e-2",                # set dall-e model
                  image_size: str = '512x512',            # set generated image size
-                 user_name: str = None,
                  memory : bool = False,
                  ollama_server: str = None,
                  my_key: str = None
@@ -560,7 +537,6 @@ class GPT:
         self.assistant = assistant
         self.persona = persona
         self.format = format
-        self.user_name = user_name
         self.save_log = save_log
         self.to_clip = to_clip
         self.print_token = print_token
@@ -580,16 +556,12 @@ class GPT:
                 json.dump([], json_file)  # Save empty list as JSON
 
         # init model
-        if isinstance(model, int):
-            self.model = make_model(model)
-        else:
-            self.model = model
+        self.model = make_model(model)
+
         self.talk_model = talk_model
         self.dalle = dalle
         self.image_size = image_size
         self.dummy_img = "https://avatars.githubusercontent.com/u/116732521?v=4"
-
-        #self.server = "openai" if self.model in gpt_models else "local"
 
         # init assistant
         who = self.assistant
@@ -613,22 +585,6 @@ class GPT:
 
         ### Set CLIENT ###
         self.reload_client(my_key=my_key, ollama_server=ollama_server)
-        # if model in gpt_models:
-        #     #print("initializing openai client...")
-        #     if my_key:
-        #         self.client = OpenAI(api_key=str(my_key))
-        #     elif model in deepseek_models:
-        #         self.client = OpenAI(api_key=str(my_key), base_url="https://api.deepseek.com")
-        #     else:
-        #         if model in gpt_models:
-        #             self.client = openai_client
-        #         elif model in deepseek_models:
-        #             self.client = deepseek_client
-        #
-        # if ollama_server:
-        #     self.ollama_client = ollama.Client(host=ollama_server)
-        # else:
-        #     self.ollama_client = ollama_client
 
 
     ########## Definitions ############
@@ -838,13 +794,6 @@ class GPT:
         if warning: print('*chat cleared*\n')
 
 
-    def display_assistants(self):
-        print('Available Assistants:')
-        display(assistants_df)
-
-
-
-
 
     ##################  REQUESTS #####################
 
@@ -919,7 +868,7 @@ class GPT:
     ############ Chat GPT ############
 
     def send_message(self, message,
-                     model: str = None,          # choose openai model (choose_model())
+                     model: str = None,          # choose model
                      system: str = None,         # 'system' instruction
                      image: str = None,            # insert an image path (local of http)
 
@@ -1520,6 +1469,10 @@ class GPT:
 
 ######## ######## ########
 #%%
+
+def display_assistants():
+    print('Available Assistants:')
+    display(assistants_df)
 
 # Dizionario dei parametri
 assistant_params = {
