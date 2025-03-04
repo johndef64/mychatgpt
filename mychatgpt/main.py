@@ -1478,19 +1478,21 @@ def display_assistants():
     print('Available Assistants:')
     display(assistants_df)
 
+copilot_gpt = 'gpt-4o'
+
 # Dizionario dei parametri
 assistant_params = {
     ### COPILOTS ###
     'copilot_gpt': 'gpt-4o',
     'base': {'assistant': 'base'},
     'novelist': {'assistant': 'novelist'},
-    'creator': {'assistant': 'creator', 'model': 'gpt-4o'},
-    'fixer': {'assistant': 'fixer', 'model': 'gpt-4o'},
-    'delamain': {'assistant': 'delamain', 'model': 'gpt-4o'},
-    'oracle': {'assistant': 'oracle', 'model': 'gpt-4o'},
-    'roger': {'assistant': 'roger', 'model': 'gpt-4o'},
+    'creator': {'assistant': 'creator', 'model': copilot_gpt},
+    'fixer': {'assistant': 'fixer', 'model': copilot_gpt},
+    'delamain': {'assistant': 'delamain', 'model': copilot_gpt},
+    'oracle': {'assistant': 'oracle', 'model': copilot_gpt},
+    'roger': {'assistant': 'roger', 'model': copilot_gpt},
     # 'robert': {'assistant': 'robert', 'model': 'gpt-4o'},  # Commentato secondo il codice fornito
-    'C': {'assistant': 'delamain', 'format': 'python', 'model': 'gpt-4o'},
+    'C': {'assistant': 'delamain', 'format': 'python', 'model': copilot_gpt},
 
     ### Scientific Assistants ###
     'leonardo': {'assistant': 'leonardo'},
@@ -1534,7 +1536,9 @@ def agent(assistant_key):
 
 
 if debug: print(f'Copilots:{datetime.now()}')
-# Esempio di utilizzo
+
+# An embedded assistant or a character of your choice
+
 chatgpt = agent('base')
 # novelist = agent('novelist')
 # creator = agent('creator')
@@ -1543,67 +1547,49 @@ fixer = agent('fixer')
 # oracle = agent('oracle')
 R = agent('roger')
 C = agent('C')
-
-
-# An embedded assistant or a character of your choice
-# copilot_gpt = 'gpt-4o'
-# chatgpt = GPT(assistant='base')
-# novelist = GPT(assistant='novelist')
-# creator = GPT(assistant='creator', model=copilot_gpt)
-# fixer = GPT(assistant='fixer', model=copilot_gpt)
-# delamain = GPT(assistant='delamain', model=copilot_gpt)
-# oracle = GPT(assistant='oracle', model=copilot_gpt)
-# R = GPT(assistant='roger', model=copilot_gpt)
-# # Rt = GPT(assistant='robert', model=copilot_gpt)
-# C = GPT(assistant='delamain', format='python', model=copilot_gpt)
+# Rt = agent("robert")
 
 if debug: print(f'Scientific:{datetime.now()}')
 
 # Scientific Assistants
-# leonardo = agent("leonardo")
-mendel = agent("mendel")
-penrose = agent("penrose")
-# watson = agent("watson")
 
-# leonardo = GPT(assistant='leonardo')
-# newton =   GPT(assistant='leonardo', format='python')
-# galileo =  GPT(assistant='leonardo', format='markdown')
-# mendel =   GPT(assistant='mendel')
-# watson =   GPT(assistant='mendel', format='latex')
-# venter =   GPT(assistant='mendel', format='python')
-# crick =    GPT(assistant='mendel', format='markdown')
-# darwin =   GPT(assistant='darwin')
-# dawkins =  GPT(assistant='darwin', format='markdown')
-# penrose =  GPT(assistant='penrose')
-# turing =   GPT(assistant='penrose', format='python')
-# marker =   GPT(assistant='penrose', format='markdown')
-# collins =  GPT(assistant='collins')
-# elsevier = GPT(assistant='collins', format='latex')
-# springer = GPT(assistant='collins', format='markdown')
+# leonardo = agent('leonardo')
+# newton =   agent('leonardo')
+# galileo =  agent('leonardo')
+mendel =   agent('mendel')
+# watson =   agent('mendel')
+# venter =   agent('mendel')
+# crick =    agent('mendel')
+# darwin =   agent('darwin')
+# dawkins =  agent('darwin')
+penrose =  agent('penrose')
+# turing =   agent('penrose')
+# marker =   agent('penrose')
+# collins =  agent('collins')
+# elsevier = agent('collins')
+# springer = agent('collins')
 
 if debug: print(f'Characters:{datetime.now()}')
 
 # Characters
-julia = agent("julia")
-yoko = agent("yoko")
-# julia = GPT(assistant='julia', memory=True)
-# mike = GPT(assistant='mike', memory=True)
-# michael = GPT(assistant='michael', translate=True, memory=True)
-# miguel = GPT(assistant='miguel', translate=True, memory=True)
-# francois = GPT(assistant='francois', translate=True, memory=True)
-# luca = GPT(assistant='luca', translate=True, memory=True)
-# hero = GPT(assistant='hero', translate=True, memory=True)
-# yoko = GPT(assistant='yoko', translate=True, memory=True)
+julia    = agent('julia')
+# mike     = agent('mike')
+# michael  = agent('michael')
+# miguel   = agent('miguel')
+# francois = agent('francois')
+# luca     = agent('luca')
+# hero     = agent('hero')
+yoko     = agent('yoko')
 
 
 if debug: print(f'Languages:{datetime.now()}')
 
 # Languages
 
-# chinese = GPT(assistant="chinese", translate=True)
-# japanese = GPT(assistant="japanese", translate=True)
-# japanese_teacher = GPT(assistant='japanese_teacher')
-# portuguese_teacher = GPT(assistant='portuguese_teacher')
+# chinese =  agent("chinese")
+# japanese = agent("japanese")
+# japanese_teacher =  agent("japanese_teacher")
+# portuguese_teacher = agent("agent("japanese_teacher") 
 
 
 #%%
