@@ -1,5 +1,10 @@
 from mychatgpt import *
 
+def BooleanAgent(gpt, question):
+    prompt="You are a Boolean agent. You can answer any question with a True or False."
+    gpt.ask(question, system=prompt, print_reply=False)
+    boolean = True if "True" in gpt.ask_reply else False
+    return boolean
 
 #### Web Data Extractors ###
 def gsearch_assig_tags(query,

@@ -56,17 +56,18 @@ if debug: print(f'check:{datetime.now()}')
 
 def save_json_in_lib(dati, nome_file):
     # Usa __file__ per ottenere il percorso della directory del file corrente
-    percorso_file = os.path.join(os.path.dirname(__file__), nome_file)
-    with open(percorso_file, 'w') as file:
+    file_path = os.path.join(os.path.dirname(__file__), nome_file)
+    with open(file_path, 'w') as file:
         json.dump(dati, file, indent=4)
+
 
 def load_json_from_lib(nome_file, local = False):
     # Usa __file__ per ottenere il percorso della directory del file corrente
     if not local:
-        percorso_file = os.path.join(os.path.dirname(__file__), nome_file)
+        file_path = os.path.join(os.path.dirname(__file__), nome_file)
     else:
-        percorso_file = nome_file
-    with open(percorso_file, 'r') as file:
+        file_path = nome_file
+    with open(file_path, 'r') as file:
         return json.load(file)
 
 # # Esempio di dati JSON
@@ -83,26 +84,28 @@ def load_json_from_lib(nome_file, local = False):
 # print(api_keys)
 
 # # Verifica se il file api_keys.json esiste
-# percorso_file = os.path.join(os.path.dirname(__file__), "api_keys.json")
+# file_path = os.path.join(os.path.dirname(__file__), "api_keys.json")
 #
 # # Usa os.path.exists per controllare l'esistenza di un file
-# if not os.path.exists(percorso_file):
+# if not os.path.exists(file_path):
 #     print("Il file non esiste.")
 # else:
 #     print("Il file esiste.")
 
 
 ################ set API-key #################
+
 current_dir = os.getcwd()
 api_key = None
 openai_api_hash = b'gAAAAABnQFa7PhJzvEZmrHIbqIbXY67FYM0IhBaw8XOgnDurF5ij1oFYvNMikCpe8ebpqlRYYYOEDGuxuWdOkGPO74ljkWO07DVGCqW7KlzT6AJ0yv-0-5qTNeXTVzhorMP4RA5D8H2P73cmgwFr2Hlv6askLQjWGg=='
 def load_api_keys(overwrite=False):
     # if not api_keys.json in cwd, save it in pkg dir
     if not os.path.exists("api_keys.json"):
-        percorso_file = os.path.join(os.path.dirname(__file__), "api_keys.json")
+        file_path = os.path.join(os.path.dirname(__file__), "api_keys.json")
         #if not os.path.isfile(current_dir + '/openai_api_key.txt'):
         #if not os.path.join(os.path.dirname(__file__), "api_keys.json"):
-        if not os.path.exists(percorso_file) or overwrite:
+        if not os.path.exists(file_path) or overwrite:
+            
             #if simple_bool('Do you have an openai key? '):
             openai_api_key = input('Provide here your OpenAI api key, if not leave blank:')
             if openai_api_key == "":
@@ -126,8 +129,6 @@ def load_api_keys(overwrite=False):
                 print('\nPlease, get your Gemini API-key')
                 gemini_api_key = "missing"
 
-
-
             api_keys = {
                 "openai": openai_api_key,
                 "deepseek": deepseek_api_key,
@@ -149,10 +150,10 @@ def load_api_keys(overwrite=False):
 #### initialize client ####
 api_keys = load_api_keys()
 
-openai_api_key = api_keys["openai"]
-gemini_api_key = api_keys["gemini"]
-deepseek_api_key = api_keys["deepseek"]
-x_api_key = api_keys["grok"]
+openai_api_key = api_keys.get("openai", "missing")
+gemini_api_key = api_keys.get("gemini", "missing")
+deepseek_api_key = api_keys.get("deepseek", "missing")
+x_api_key = api_keys.get("grok", "missing")           
 openai_client = OpenAI(api_key=str(openai_api_key))
 deepseek_client = OpenAI(api_key=str(deepseek_api_key), base_url="https://api.deepseek.com")
 x_client = OpenAI(api_key=str(x_api_key), base_url="https://api.x.ai/v1")
@@ -492,8 +493,8 @@ def make_model(label: (int, str) = 3):
         3: f'gpt-{label}.5-turbo',
         4: f'gpt-{label}o',
         'mini': 'gpt-4o-mini',
-        'dpc': 'deepseek-chat',
-        'dpr': 'deepseek-reasoner',
+        'dc': 'deepseek-chat',
+        'dr': 'deepseek-reasoner',
         'x': 'grok-2-latest'
     }
     # Return the corresponding model or default to label
@@ -1559,10 +1560,11 @@ C = agent('C')
 if debug: print(f'Scientific:{datetime.now()}')
 
 # Scientific Assistants
-leonardo = agent("leonardo")
+# leonardo = agent("leonardo")
 mendel = agent("mendel")
-watson = agent("watson")
 penrose = agent("penrose")
+# watson = agent("watson")
+
 # leonardo = GPT(assistant='leonardo')
 # newton =   GPT(assistant='leonardo', format='python')
 # galileo =  GPT(assistant='leonardo', format='markdown')
