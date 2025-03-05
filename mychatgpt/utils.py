@@ -173,24 +173,24 @@ def pass_api_keys():
     #if simple_bool('Do you have an openai key? '):
     openai_api_key = input('Provide here your OpenAI api key, if not leave blank:')
     if openai_api_key == "":
-        print('\nPlease, get your API-key at https://platform.openai.com/api-keys')
+        print('Please, get your API-key at https://platform.openai.com/api-keys')
         openai_api_key = "missing"
 
     deepseek_api_key = input('Provide here your DeepSeek api key, if not leave blank:')
     if deepseek_api_key == "":
-        print('\nPlease, get your DeepSeek API-key')
+        print('Please, get your DeepSeek API-key')
         deepseek_api_key = "missing"
 
 
     x_api_key = input('Provide here your Grok api key, if not leave blank:')
     if x_api_key == "":
-        print('\nPlease, get your DeepSeek API-key')
+        print('Please, get your DeepSeek API-key')
         x_api_key = "missing"
 
     #if simple_bool('Do you have an openai key? '):
     gemini_api_key = input('Provide here your Gemini api key, if not leave blank:')
     if gemini_api_key == "":
-        print('\nPlease, get your Gemini API-key')
+        print('Please, get your Gemini API-key')
         gemini_api_key = "missing"
 
     api_keys = {
