@@ -216,9 +216,14 @@ def load_api_keys():
             from mychatgpt import save_api_keys
             save_api_keys()
             
-            (api keys are saved locally in your environment)
+            [api keys are saved locally in your environment]
             """
-            api_keys = {}
+            api_keys = {
+                "openai":   "miss",
+                "deepseek": "miss",
+                "grok":     "miss",
+                "gemini":   "miss",
+            }
     else:
         # if api_keys.json in cwd, take them from here
         api_keys = load_json_from_lib("api_keys.json", local=True)
