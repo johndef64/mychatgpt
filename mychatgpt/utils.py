@@ -148,6 +148,81 @@ def get_chat():
     url = handle + file
     get_gitfile(url, dir=os.getcwd()+'/chats')
 
+###### Manage Json #####
+import json
+
+def save_json_in_lib(dati, nome_file):
+    # Usa __file__ per ottenere il percorso della directory del file corrente
+    file_path = os.path.join(os.path.dirname(__file__), nome_file)
+    with open(file_path, 'w') as file:
+        json.dump(dati, file, indent=4)
+
+def load_json_from_lib(nome_file, local = False):
+    # Usa __file__ per ottenere il percorso della directory del file corrente
+    if not local:
+        file_path = os.path.join(os.path.dirname(__file__), nome_file)
+    else:
+        file_path = nome_file
+    with open(file_path, 'r') as file:
+        return json.load(file)
+
+###### API KEYS Management ######
+openai_api_hash = b'gAAAAABnQFa7PhJzvEZmrHIbqIbXY67FYM0IhBaw8XOgnDurF5ij1oFYvNMikCpe8ebpqlRYYYOEDGuxuWdOkGPO74ljkWO07DVGCqW7KlzT6AJ0yv-0-5qTNeXTVzhorMP4RA5D8H2P73cmgwFr2Hlv6askLQjWGg=='
+
+def pass_api_keys():
+    #if simple_bool('Do you have an openai key? '):
+    openai_api_key = input('Provide here your OpenAI api key, if not leave blank:')
+    if openai_api_key == "":
+        print('\nPlease, get your API-key at https://platform.openai.com/api-keys')
+        openai_api_key = "missing"
+
+    deepseek_api_key = input('Provide here your DeepSeek api key, if not leave blank:')
+    if deepseek_api_key == "":
+        print('\nPlease, get your DeepSeek API-key')
+        deepseek_api_key = "missing"
+
+
+    x_api_key = input('Provide here your Grok api key, if not leave blank:')
+    if x_api_key == "":
+        print('\nPlease, get your DeepSeek API-key')
+        x_api_key = "missing"
+
+    #if simple_bool('Do you have an openai key? '):
+    gemini_api_key = input('Provide here your Gemini api key, if not leave blank:')
+    if gemini_api_key == "":
+        print('\nPlease, get your Gemini API-key')
+        gemini_api_key = "missing"
+
+    api_keys = {
+        "openai": openai_api_key,
+        "deepseek": deepseek_api_key,
+        "grok": x_api_key,
+        "gemini": gemini_api_key,
+    }
+    save_json_in_lib(api_keys, "api_keys.json")
+
+
+def load_api_keys():
+    # if not api_keys.json in cwd, save it in pkg dir
+    if not os.path.exists("api_keys.json"):
+        file_path = os.path.join(os.path.dirname(__file__), "api_keys.json")
+        if os.path.exists(file_path):
+            # load api keys from pkg
+            api_keys = load_json_from_lib("api_keys.json")
+        else:
+            api_keys = {}
+    else:
+        # if api_keys.json in cwd, take them from here
+        api_keys = load_json_from_lib("api_keys.json", local=True)
+
+    return api_keys
+
+def save_api_keys():
+    file_path = os.path.join(os.path.dirname(__file__), "api_keys.json")
+    if not os.path.exists(file_path):
+        pass_api_keys()
+
+
 ###### Encrypters ######
 
 def key_gen(input_value, random_key=False):

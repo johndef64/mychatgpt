@@ -54,127 +54,28 @@ if debug: print(f'check:{datetime.now()}')
 
 ################ set API-key #################
 
-def save_json_in_lib(dati, nome_file):
-    # Usa __file__ per ottenere il percorso della directory del file corrente
-    file_path = os.path.join(os.path.dirname(__file__), nome_file)
-    with open(file_path, 'w') as file:
-        json.dump(dati, file, indent=4)
-
-
-def load_json_from_lib(nome_file, local = False):
-    # Usa __file__ per ottenere il percorso della directory del file corrente
-    if not local:
-        file_path = os.path.join(os.path.dirname(__file__), nome_file)
-    else:
-        file_path = nome_file
-    with open(file_path, 'r') as file:
-        return json.load(file)
-
-# # Esempio di dati JSON
-# api_keys = {
-#     "openai": "",
-#     "gemini": "",
-# }
+# def LoadClients():
+#     global openai_client, deepseek_client, x_client
+#     api_keys = load_api_keys()
+#     openai_api_key   = api_keys.get("openai", "missing")
+#     gemini_api_key   = api_keys.get("gemini", "missing")
+#     deepseek_api_key = api_keys.get("deepseek", "missing")
+#     x_api_key        = api_keys.get("grok", "missing")
 #
-# # Salva i dati in un file chiamato "dati.json" nella directory del pacchetto
-# save_json_in_lib(api_keys, "gaga.json")
+#     #### Initialize Clients ####
+#     openai_client = OpenAI(api_key=str(openai_api_key))
+#     deepseek_client = OpenAI(api_key=str(deepseek_api_key), base_url="https://api.deepseek.com")
+#     x_client = OpenAI(api_key=str(x_api_key), base_url="https://api.x.ai/v1")
 #
-# # Carica i dati dal file "dati.json" nella directory del pacchetto
-# api_keys = load_json_from_lib("gaga.json")
-# print(api_keys)
+# LoadClients()
 
-# # Verifica se il file api_keys.json esiste
-# file_path = os.path.join(os.path.dirname(__file__), "api_keys.json")
-#
-# # Usa os.path.exists per controllare l'esistenza di un file
-# if not os.path.exists(file_path):
-#     print("Il file non esiste.")
-# else:
-#     print("Il file esiste.")
-
-
-################ set API-key #################
-
-current_dir = os.getcwd()
-api_key = None
-openai_api_hash = b'gAAAAABnQFa7PhJzvEZmrHIbqIbXY67FYM0IhBaw8XOgnDurF5ij1oFYvNMikCpe8ebpqlRYYYOEDGuxuWdOkGPO74ljkWO07DVGCqW7KlzT6AJ0yv-0-5qTNeXTVzhorMP4RA5D8H2P73cmgwFr2Hlv6askLQjWGg=='
-def load_api_keys(overwrite=False):
-    # if not api_keys.json in cwd, save it in pkg dir
-    if not os.path.exists("api_keys.json"):
-        file_path = os.path.join(os.path.dirname(__file__), "api_keys.json")
-        #if not os.path.isfile(current_dir + '/openai_api_key.txt'):
-        #if not os.path.join(os.path.dirname(__file__), "api_keys.json"):
-        if not os.path.exists(file_path) or overwrite:
-            
-            #if simple_bool('Do you have an openai key? '):
-            openai_api_key = input('Provide here your OpenAI api key, if not leave blank:')
-            if openai_api_key == "":
-                print('\nPlease, get your API-key at https://platform.openai.com/api-keys')
-                openai_api_key = "missing"
-
-            deepseek_api_key = input('Provide here your DeepSeek api key, if not leave blank:')
-            if deepseek_api_key == "":
-                print('\nPlease, get your DeepSeek API-key')
-                deepseek_api_key = "missing"
-
-
-            x_api_key = input('Provide here your Grok api key, if not leave blank:')
-            if x_api_key == "":
-                print('\nPlease, get your DeepSeek API-key')
-                x_api_key = "missing"
-
-            #if simple_bool('Do you have an openai key? '):
-            gemini_api_key = input('Provide here your Gemini api key, if not leave blank:')
-            if gemini_api_key == "":
-                print('\nPlease, get your Gemini API-key')
-                gemini_api_key = "missing"
-
-            api_keys = {
-                "openai": openai_api_key,
-                "deepseek": deepseek_api_key,
-                "grok": x_api_key,
-                "gemini": gemini_api_key,
-            }
-            save_json_in_lib(api_keys, "api_keys.json")
-        else:
-            #api_key = open(current_dir + '/openai_api_key.txt', 'r').read()
-            api_keys = load_json_from_lib("api_keys.json")
-
-    else:
-        # if api_keys.json in cwd, take them from here
-        api_keys = load_json_from_lib("api_keys.json", local=True)
-
-    return api_keys
-
-
-#### initialize client ####
-api_keys = load_api_keys()
-
-openai_api_key = api_keys.get("openai", "missing")
-gemini_api_key = api_keys.get("gemini", "missing")
-deepseek_api_key = api_keys.get("deepseek", "missing")
-x_api_key = api_keys.get("grok", "missing")           
-openai_client = OpenAI(api_key=str(openai_api_key))
-deepseek_client = OpenAI(api_key=str(deepseek_api_key), base_url="https://api.deepseek.com")
-x_client = OpenAI(api_key=str(x_api_key), base_url="https://api.x.ai/v1")
-
-
-#
 # try:
 #     client.embeddings.create(input='', model= "text-embedding-3-small")
 # except AuthenticationError as e:
 #     # If an error occurs (e.g., wrong API key)
 #     print(f"Error occurred: {e}")
 
-# def change_key():
-#     global openai_client
-#     global api_key
-#     if simple_bool('change API key?'):
-#         api_key = ''
-#         with open(current_dir + '/openai_api_key.txt', 'w') as file:
-#             file.write(input('insert here your openai api key:'))
-#         api_key = open(current_dir + '/openai_api_key.txt', 'r').read()
-#         openai_client = OpenAI(api_key=str(api_key))
+
 
 ### Models ###
 
@@ -220,7 +121,7 @@ gpt_models_dict = {
     "gemini-2.0-flash-exp": 16385,
 }
 
-gpt_models = [i for i in gpt_models_dict.keys() if "gpt" in i or "o1" in i]+["dall-e-2", "dall-e-3", "whisper-1"]
+gpt_models = [i for i in gpt_models_dict.keys() if "gpt" in i or "o1" in i]+["dall-e-2", "dall-e-3", "whisper-1", "tts-1", "tts-1-hd"]
 deepseek_models = ["deepseek-chat", 'deepseek-reasoner']
 x_models = ["grok-2-1212", 'grok-2-vision-1212', "grok-2-latest"]
 
@@ -597,6 +498,8 @@ class GPT:
                 self.client = OpenAI(api_key=str(my_key))
             elif self.model in deepseek_models:
                 self.client = OpenAI(api_key=str(my_key), base_url="https://api.deepseek.com")
+            elif model in x_models:
+                self.client = OpenAI(api_key=str(my_key), base_url="https://api.x.ai/v1")
 
         else:
             self.select_client(self.model)
@@ -1118,7 +1021,7 @@ class GPT:
                 translate: bool = False,
                 response_format: str = "text",
                 print_transcription: bool = True):
-        self.client = openai_client
+        self.client = OpenAI(api_key=load_api_keys()["openai"])
 
         audio_file = open(filepath, "rb")
         if not translate:
@@ -1147,7 +1050,7 @@ class GPT:
                     speed: int = 1,
                     #play: bool = False
                     ):
-        self.client = openai_client
+        self.client = OpenAI(api_key=load_api_keys()["openai"])
 
         filename = f"{filename}.{response_format}"
 
@@ -1155,7 +1058,7 @@ class GPT:
             model=model, # tts-1 or tts-1-hd
             voice=voice,
             response_format=response_format,
-            input=text,
+            input=text+"  [pause]",
             speed=speed
         )
 
@@ -1589,7 +1492,7 @@ if debug: print(f'Languages:{datetime.now()}')
 # chinese =  agent("chinese")
 # japanese = agent("japanese")
 # japanese_teacher =  agent("japanese_teacher")
-# portuguese_teacher = agent("agent("japanese_teacher") 
+# portuguese_teacher = agent("agent("japanese_teacher")
 
 
 #%%
