@@ -210,6 +210,14 @@ def load_api_keys():
             # load api keys from pkg
             api_keys = load_json_from_lib("api_keys.json")
         else:
+            """
+            Please, provide API keys to the system running function:
+            
+            from mychatgpt import save_api_keys
+            save_api_keys()
+            
+            (api keys are saved locally in your environment)
+            """
             api_keys = {}
     else:
         # if api_keys.json in cwd, take them from here
