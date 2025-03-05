@@ -53,6 +53,7 @@ if debug: print(f'Loading package...')
 if debug: print(f'check:{datetime.now()}')
 
 ################ set API-key #################
+api_keys = load_api_keys()
 
 # def LoadClients():
 #     global openai_client, deepseek_client, x_client
@@ -1226,6 +1227,7 @@ class GPT:
         gpt = make_model(gpt) or self.model
 
         if memory or self.memory:
+            # if BooleanAgent(chatgpt, f"The reply needs to activate memory recall function or not?  {m}")
             self.load_memories()
 
         p = pc.paste() if paste else ''
