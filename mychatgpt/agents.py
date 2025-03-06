@@ -1,11 +1,91 @@
 from mychatgpt import *
+import re, ast
+import time
 
-def BooleanAgent(gpt, question):
-    prompt="You are a Boolean agent. You answer to any question with a True or False."
+base_agent = GPT()
+
+def BooleanAgent(question, bias="", gpt=base_agent, print_=True):
+    """
+
+    :param gpt: class GPT() from main.py
+    :param question:
+    :return:
+    """
+    n= time.time()
+    prompt="You are a Boolean agent. You answer to any question with a True or False."+bias
     gpt.ask(question, system=prompt, print_reply=False)
     # parse the reply
     boolean = True if "true".lower() in gpt.ask_reply.lower() else False
+
+    if print_: print(f"output: {str(boolean)} runtime: {time.time() - n}")
     return boolean
+
+
+def parse_code_blobs(code_blob: str) -> str:
+    """Parses the LLM's output to get any code blob inside. Will return the code directly if it's code."""
+    pattern = r"```(?:py|python)?\n(.*?)\n```"
+    matches = re.findall(pattern, code_blob, re.DOTALL)
+    if len(matches) == 0:
+        try:  # Maybe the LLM outputted a code blob directly
+            ast.parse(code_blob)
+            return code_blob
+        except SyntaxError:
+            pass
+
+        if "final" in code_blob and "answer" in code_blob:
+            raise ValueError(
+                f"""
+Your code snippet is invalid, because the regex pattern {pattern} was not found in it.
+Here is your code snippet:
+{code_blob}
+It seems like you're trying to return the final answer, you can do it as follows:
+Code:
+```py
+final_answer("YOUR FINAL ANSWER HERE")
+```<end_code>""".strip()
+            )
+        raise ValueError(
+            f"""
+Your code snippet is invalid, because the regex pattern {pattern} was not found in it.
+Here is your code snippet:
+{code_blob}
+Make sure to include code with the correct pattern, for instance:
+Thoughts: Your thoughts
+Code:
+```py
+# Your python code here
+```<end_code>""".strip()
+        )
+    return "\n\n".join(match.strip() for match in matches)
+
+def CodeAgent(command, gpt=base_agent, format ='python', add=""):
+    """
+
+    :param gpt: class GPT() from main.py
+    :param instruction:
+    :return:
+    """
+    print("Generating code...")
+    # Specify prompt to guide model to generate executable Python code
+    # system = "\nYou are a Code agent. You provide executable Python code for any task or question."
+    system = instructions['delamain'] + features['reply_style'][format]+f"\n{add}"
+
+    # The agent asks for the task or question
+    gpt.ask(command, system=system, print_reply=False)
+
+    # Parses the reply to extract code
+    generated_code = parse_code_blobs(gpt.ask_reply)
+
+    # Executes the generated code
+    # Using `exec()` to execute the string as Python code
+    print("Executing code...")
+    try:
+        exec(generated_code)
+    except Exception as e:
+        print(f"Error in executing code: {str(e)}")
+
+# CodeAgent(C, "calcola la funzione di Lorentz")
+
 
 
 #### Web Data Extractors ###
