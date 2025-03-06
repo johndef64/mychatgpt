@@ -1,5 +1,6 @@
 # pygpt64/__init__.py
-
+import time
+start = time.time()
 # Definisci la versione del pacchetto
 __version__ = '0.4.6'
 print(f'mychatgpt version {__version__}')
@@ -16,5 +17,5 @@ from .main import *
 # from .module1 import Class1, function1
 # from .module2 import Class2, function2
 
-print('mychatgpt is ready.')
+print(f'mychatgpt is ready in {round(time.time()-start,2)} seconds.')
 #%%

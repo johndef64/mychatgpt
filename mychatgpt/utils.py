@@ -45,12 +45,14 @@ import soundfile as sf
 #     subprocess.check_call(['pip', 'install', 'pillow'])
 from PIL import Image
 
-# Simple functions
+### Simple functions ###
 def simple_bool(message, y='y', n ='n'):
     choose = input(message+" ("+y+"/"+n+"): ").lower()
     your_bool = choose in [y]
     return your_bool
 
+
+# Copy/Paste Functions
 # Function to check whether pyperclip works in the system
 def check_copy_paste():
     try:
@@ -58,6 +60,15 @@ def check_copy_paste():
         return True
     except pc.PyperclipException:
         return False
+
+has_copy_paste = check_copy_paste()
+def send2clip(text, executable=True):
+    if has_copy_paste:
+        if executable:
+            text = text.replace('```', '###')
+        pc.copy(text)
+
+
 
 def is_base64_image(data):
     # Regex pattern to check for base64 image prefix

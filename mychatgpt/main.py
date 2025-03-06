@@ -37,7 +37,6 @@ from langdetect import detect, DetectorFactory
 
 
 is_colab = 'google.colab' in sys.modules
-has_copy_paste = check_copy_paste()
 
 if not has_copy_paste:
     print('''Warning: your system not have a copy/paste mechanism. This function has been disabled for your case but you can try this out:
@@ -418,7 +417,10 @@ ollama_client = ollama.Client() #set_ollama_client()  #ollama
 
 if debug: print(f'check:{datetime.now()}')
 
-### Main Class ###
+# misc
+dummy_img = "https://avatars.githubusercontent.com/u/116732521?v=4"
+
+##### Main Class ######
 class GPT:
     def __init__(self,
                  assistant: str = None,                    # in-build assistant name
@@ -427,6 +429,7 @@ class GPT:
                  translate: bool = False,                # translate outputs
                  save_log: bool = True,                  # save log file
                  to_clip: bool = True,                   # send reply t clipboard
+                 executable: bool = False,
                  print_token: bool = True,               # print token count
                  model: str or int = 'gpt-4o-mini',      # set openai main model
                  talk_model: str = 'gpt-4o-2024-08-06',  # set openai speak model
@@ -444,6 +447,7 @@ class GPT:
         self.to_clip = to_clip
         self.print_token = print_token
         self.memory = memory
+        self.executable = executable
 
 
         self.total_tokens = 0  # iniziale token count
@@ -464,7 +468,6 @@ class GPT:
         self.talk_model = talk_model
         self.dalle = dalle
         self.image_size = image_size
-        self.dummy_img = "https://avatars.githubusercontent.com/u/116732521?v=4"
 
         # init assistant
         who = self.assistant
@@ -932,11 +935,7 @@ class GPT:
         if play:
             self.text2speech(self.chat_reply , voice=voice, model=tts)
 
-    def send2clip(self, text, fix=True):
-        if has_copy_paste:
-            if fix:
-                text = text.replace('```', '###')
-            pc.copy(text)
+
 
     ### Image Models ###
 
@@ -1012,7 +1011,7 @@ class GPT:
 
 
     def replicate(self, image, styler='', model ='dall-e-2'):
-        self.send_image(image)
+        self.send_message("", image=image)
         self.create_image(prompt=self.chat_reply , response_format='b64_json', model=model, show_image=True)
 
 
@@ -1219,7 +1218,7 @@ class GPT:
              create: bool = False,
              speak: bool = False,
              clip:bool = True,
-             fix:bool = True,
+             #fix:bool = True,
              voice="nova",
              tts='tts-1',
              token: bool = False):
@@ -1239,7 +1238,7 @@ class GPT:
                           print_token=token,
                           create=create)
         if clip:
-            self.send2clip(self.chat_reply, fix)
+            send2clip(self.chat_reply, self.executable)
 
         if translate or self.translate:
             self.auto_translate()
@@ -1261,7 +1260,6 @@ class GPT:
     def ci(self, *args, **kwargs):
         kwargs['image'] = pc.paste()
         self.chat(*args, **kwargs)
-
 
 
     def chat_loop(self,
@@ -1388,16 +1386,15 @@ copilot_gpt = 'gpt-4o'
 # Dizionario dei parametri
 assistant_params = {
     ### COPILOTS ###
-    'copilot_gpt': 'gpt-4o',
     'base': {'assistant': 'base'},
     'novelist': {'assistant': 'novelist'},
-    'creator': {'assistant': 'creator', 'model': copilot_gpt},
-    'fixer': {'assistant': 'fixer', 'model': copilot_gpt},
-    'delamain': {'assistant': 'delamain', 'model': copilot_gpt},
-    'oracle': {'assistant': 'oracle', 'model': copilot_gpt},
-    'roger': {'assistant': 'roger', 'model': copilot_gpt},
-    # 'robert': {'assistant': 'robert', 'model': 'gpt-4o'},  # Commentato secondo il codice fornito
-    'C': {'assistant': 'delamain', 'format': 'python', 'model': copilot_gpt},
+    'creator': {'assistant': 'creator', 'model': copilot_gpt, 'executable':True},
+    'fixer': {'assistant': 'fixer', 'model': copilot_gpt, 'executable':True},
+    'delamain': {'assistant': 'delamain', 'model': copilot_gpt, 'executable':True},
+    'oracle': {'assistant': 'oracle', 'model': copilot_gpt, 'executable':True},
+    'roger': {'assistant': 'roger', 'model': copilot_gpt, 'executable':True},
+    # 'robert': {'assistant': 'robert', 'model': 'gpt-4o', 'executable':True},
+    'copilot': {'assistant': 'delamain', 'format': 'python', 'model': copilot_gpt, 'executable':True},
 
     ### Scientific Assistants ###
     'leonardo': {'assistant': 'leonardo'},
@@ -1451,7 +1448,7 @@ fixer = agent('fixer')
 # delamain = agent('delamain')
 # oracle = agent('oracle')
 R = agent('roger')
-C = agent('C')
+C = agent('copilot')
 # Rt = agent("robert")
 
 if debug: print(f'Scientific:{datetime.now()}')

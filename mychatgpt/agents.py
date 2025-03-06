@@ -1,16 +1,18 @@
 from mychatgpt import *
 
 def BooleanAgent(gpt, question):
-    prompt="You are a Boolean agent. You can answer any question with a True or False."
+    prompt="You are a Boolean agent. You answer to any question with a True or False."
     gpt.ask(question, system=prompt, print_reply=False)
-    boolean = True if "True" in gpt.ask_reply else False
+    # parse the reply
+    boolean = True if "true".lower() in gpt.ask_reply.lower() else False
     return boolean
 
+
 #### Web Data Extractors ###
-def gsearch_assig_tags(query,
-                       TAGS=[],
-                       print_=False,
-                       num_results = 20):
+def GsearchAssigTags(query,
+                     TAGS=[],
+                     print_=False,
+                     num_results = 20):
     data=""
     links = google_search(query, num_results, advanced=True)
     for n in range(len(links)):
@@ -59,11 +61,11 @@ def gsearch_assig_tags(query,
 #%%
 
 
-def gsearch_extract_metadata(query,
-                             json_form = None,
-                             data_dictionary = None,
-                             print_=False,
-                             num_results = 20):
+def GsearchExtractMetadata(query,
+                           json_form = None,
+                           data_dictionary = None,
+                           print_=False,
+                           num_results = 20):
     data=""
     links = google_search(query, num_results, advanced=True)
     for n in range(len(links)):
