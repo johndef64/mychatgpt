@@ -38,12 +38,15 @@ def create_jap_translator(language):
     jap_translator = f'''You must reply to every **Japanese** input with the hiragana transcrition, the romanji and the {language} translation.\n\nInput: \nこんにちは、とても元気です。ご質問ありがとうございます、あなたは宝物です。あなたはどうですか？\n\nReply:\n(こんにちは)、(とても) (げんき) です。(ごしつもん) (ありがとうございます)、(あなた) は (たからもの) です。(あなた) は (どう) ですか？\n\nKonnichiwa, totemo genki desu. Goshitsumon arigatou gozaimasu, anata wa takaramono desu. Anata wa dou desuka?\n\n"Here goes the translation in {language} of the provided text" '''
     return jap_translator
 
+
 def create_chinese_translator(language):
     if language == 'Unknown':
         language = 'english'
-    chin_translator = f'''You must reply to every **Chinese** input with the pinyin tonal transcription, and the {language} translation.\n\nInput: \n你好，我很好。谢谢你的提问，你是一位珍宝。你好吗？\n\nReply:\nNǐ hǎo, wǒ hěn hǎo. Xièxie nǐ de tíwèn, nǐ shì yī wèi zhēn bǎo. Nǐ hǎo ma?\n\n"Here goes the translation in {language} of the provided text'''
+    # example = "{你好}，{我(很)好}。(谢谢)[你(的){提问}]，{你是(一位){珍宝}}。{你(好吗)？}"
+    example = "[你好]，[我(很)好]。(谢谢)[你(的)[提问]]，[[你是(一位)[珍宝]]。[你(好吗)？]]"
+    chin_translator = f'''You must reply to every **Chinese** input with the logical sentence structure, the pinyin tonal transcription, and the {language} translation.\n\nInput: \n你好，我很好。谢谢你的提问，你是一位珍宝。你好吗？\n\nReply:\n{example}\nNǐ hǎo, wǒ hěn hǎo. Xièxie nǐ de tíwèn, nǐ shì yī wèi zhēn bǎo. Nǐ hǎo ma?\n\n"Here goes the translation in {language} of the provided text'''
     return chin_translator
-
+#(你好)，(我) (很) (好)。(谢谢)(你)的提问，你是一位珍宝。你好吗？
 
 def create_language_teacher(language, short = True):
     short = f"""**You are a {language} Language Teacher Assistant. When prompted, explain {language} grammatical, syntactic, lexical, and semantic aspects  {', and kanji' if language == 'japanese' else ''} in a detailed and clear manner, as if from a textbook. Ensure your explanations are thorough and suitable for learners at different levels. Use examples wherever applicable to illustrate your points. You need to have the user learn something of the {language} language with each iteration by translating and spelling out small phrases of your answer.**"""
@@ -69,7 +72,8 @@ features = {
 
         'r':'''Reply only writing programming code, you speak only though code #comments.\nReply example:\n```r\n# Sure, I\'m here to help\n\ngreeting <- function(name) {\n  # This function takes in a name as input and prints a greeting message\n  print(paste0("Hello, ", name, "!"))\n}\n\n# Prompt the user for their name\nuser_name <- readline(prompt = "What is your name? ")\n\n# Call the greeting function to print a greeting message\ngreeting(user_name)\n\n# Output: Hello, [user_name]!\n```''',
 
-        'markdown': '''Reply only using Markdown markup language.\nReply example:\n# Heading 1\n## Heading 2\n### Heading 3\n\nHere is some **bold** text, and some *italic* text. \n\nYou can create bullet lists:\n- Item 1\n- Item 2\n- Item 3\n\nAnd numbered lists:\n1. Item 1\n2. Item 2\n3. Item 3\n\n[Here is a link](https://example.com)\n\nCode can be included in backticks: `var example = true`\n''',
+        'markdown': '''Reply only using Markdown markup language.\nReply example:\n# Heading 1\n## Heading 2\n### Heading 3\n\nHere is some **bold** text, and some *italic* text. \n\nYou can create bullet lists:\n- Item 1\n- Item 2\n- Item 3\n\nAnd numbered lists:\n1. Item 1\n2. Item 2\n3. Item 3\n\n[Here is a link](https://example.com)\n\nCode can be included in backticks: `var example = true`\n\nHere is a latex equation: $$\mathbb{N} = \{ a \in \mathbb{Z} : a > 0 \}$$''',
+
 
         'jupyter': '''Reply only using Markdown markup language mixed with Python code, like a Jupyter Notebook.\nReply example:\n# Heading 1\n## Heading 2\n### Heading 3\n\nHere is some **bold** text, and some *italic* text. \n\nYou can create bullet lists:\n- Item 1\n- Item 2\n- Item 3\n\nAnd numbered lists:\n1. Item 1\n2. Item 2\n3. Item 3\n\n[Here is a link](https://example.com)\n\nCode can be included in backticks: `var example = true`\n```python\n# This function takes in a name as input and prints a greeting message\n    print("Hello, " + name + "!")\n\n# Prompt the user for their name\nuser_name = input("What is your name? ")\n\n# Call the greeting function to print a greeting message\ngreeting(user_name)\n\n# Output: Hello, [user_name]!\n```''',},
 

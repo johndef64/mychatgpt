@@ -246,6 +246,7 @@ def save_api_keys():
     if not os.path.exists(file_path):
         pass_api_keys()
 
+api_keys = load_api_keys()
 
 ###### Encrypters ######
 

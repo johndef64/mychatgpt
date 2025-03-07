@@ -1313,7 +1313,7 @@ class GPT:
         else:
             translator = create_translator(language)
         print('\n')
-        self.ask(self.chat_reply , translator)
+        self.ask(self.chat_reply, translator)
 
     def memorizer(self, message, print_=True):
         frasi_caricate = []
