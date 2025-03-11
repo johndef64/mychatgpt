@@ -933,7 +933,8 @@ class GPT:
         #     pc.copy(clip_reply)
 
         if play:
-            self.text2speech(self.chat_reply , voice=voice, model=tts)
+            #self.text2speech(self.chat_reply , voice=voice, model=tts)
+            Text2Speech(self.chat_reply , voice=voice, model=tts)
 
 
 
@@ -1016,6 +1017,7 @@ class GPT:
 
 
     ####### Speech to Text #######
+    """
     def whisper(self,
                 filepath: str = '',
                 translate: bool = False,
@@ -1039,6 +1041,7 @@ class GPT:
 
     voices = ['alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer']
     response_formats = ["mp3", "flac", "aac", "opus"]
+    
     def text2speech(self,
                     text: str = '',
                     voice: str = "alloy",
@@ -1088,13 +1091,9 @@ class GPT:
             #     play_audio(filename)
 
 
-
-    #if "silence.mp3" not in os.listdir():
-    #    text2speech(' ',filename="silence.mp3")
-
     def speech2speech(self, voice: str ='nova', tts: str = 'tts-1',
                       filename="speech2speech.mp3",
-                      translate=False, play=True, info =True, duration=5):
+                      translate=False, play=True, info =True):
         #record_audio(duration=duration, filename="audio.mp3")
         loop_audio(start='alt', stop='ctrl', filename='temp.wav', printinfo=info)
         transcript = self.whisper('temp.wav', translate=translate)
@@ -1115,7 +1114,7 @@ class GPT:
             elif kb.is_pressed(exit):
                 print('Loop Stopped')
                 break
-
+"""
 
     ###### Talk With ######
     def speak(self,
@@ -1138,7 +1137,8 @@ class GPT:
             system = system
         self.send_message(message,system=system,
                           model=model, maxtoken=max, print_reply=printall, print_token=False)
-        self.text2speech(self.chat_reply , voice=voice, model=tts)
+        #self.text2speech(self.chat_reply , voice=voice, model=tts)
+        Text2Speech(self.chat_reply , voice=voice, model=tts)
 
 
     def speak_loop(self,
@@ -1177,7 +1177,8 @@ class GPT:
 
         #record_audio(duration, "input.mp3")
         loop_audio(start='alt', stop='ctrl', filename='temp.wav', printinfo=printinfo)
-        transcript = self.whisper("temp.wav", print_transcription=printall)
+        #transcript = self.whisper("temp.wav", print_transcription=printall)
+        transcript = Whisper("temp.wav", print_transcription=printall)
 
         who = self.assistant
         if who and who in assistants:
@@ -1244,7 +1245,8 @@ class GPT:
             self.auto_translate()
 
         if speak:
-            self.text2speech(self.chat_reply, voice=voice, model=tts)
+            #self.text2speech(self.chat_reply, voice=voice, model=tts)
+            Text2Speech(self.chat_reply, voice=voice, model=tts)
 
         if memory or self.memory:
             self.memorizer(m)

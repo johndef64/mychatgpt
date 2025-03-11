@@ -572,14 +572,16 @@ def reload_paper(file_path):
 def expand_context_by_section(gpt,
                               section_list: list=None,
                               sections_dict: dict=None,
-                              clear:bool=True,
-                              property:str= "of my work",
+                              clear:bool =True,
+                              property:str = "of my work",
                               format='tex'):
     if clear: gpt.clear_chat()
 
     if section_list:
         for section in section_list:
+
             section_clean = clean_tex(sections_dict[section]) if format == 'tex' else clean_markdown(sections_dict[section])
+
             gpt.expand_chat(f'\nThis is the {section} section {property}:\n{section_clean}', 'user')
 
 """
@@ -783,3 +785,100 @@ def extract_and_convert_to(text, enclosure = "[]"):
         result_value = ast.literal_eval(enclosure)
 
     return result_value
+
+
+### client functions ###
+
+####### Speech to Text #######
+import io
+from openai import OpenAI
+
+Client = OpenAI(api_key=api_keys["openai"])
+def Whisper(filepath: str = '',
+            translate: bool = False,
+            response_format: str = "text",
+            print_transcription: bool = True,
+            client=Client
+            ):
+
+    audio_file = open(filepath, "rb")
+    if not translate:
+        transcript = client.audio.transcriptions.create( model="whisper-1", file=audio_file, response_format=response_format)
+    else:
+        transcript = client.audio.translations.create( model="whisper-1", file=audio_file, response_format=response_format)
+    if print_transcription: print(transcript)
+    audio_file.close()
+    return transcript
+
+
+####### Text to Speech #######
+
+voices = ['alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer']
+response_formats = ["mp3", "flac", "aac", "opus"]
+def Text2Speech(text: str = '',
+                voice: str = "alloy",
+                model: str = "tts-1",
+                stream:bool = True,
+                save_audio: bool = False,
+                response_format: str = "mp3",
+                filename: str = "speech",
+                speed: int = 1,
+                client=Client
+                ):
+
+    filename = f"{filename}.{response_format}"
+
+    spoken_response = client.audio.speech.create(
+        model=model, # tts-1 or tts-1-hd
+        voice=voice,
+        response_format=response_format,
+        input=text+"  [pause]",
+        speed=speed
+    )
+
+    if stream:
+        # Create a buffer using BytesIO to store the data
+        buffer = io.BytesIO()
+
+        # Iterate through the 'spoken_response' data in chunks of 4096 bytes and write each chunk to the buffer
+        for chunk in spoken_response.iter_bytes(chunk_size=4096):
+            buffer.write(chunk)
+
+        # Set the position in the buffer to the beginning (0) to be able to read from the start
+        buffer.seek(0)
+
+        with sf.SoundFile(buffer, 'r') as sound_file:
+            data = sound_file.read(dtype='int16')
+            sd.play(data, sound_file.samplerate)
+            sd.wait()
+
+    if save_audio:
+        if os.path.exists(filename):
+            os.remove(filename)
+
+        spoken_response.stream_to_file(filename)
+
+
+def Speech2Speech(voice: str ='nova', tts: str = 'tts-1',
+                  filename="speech2speech.mp3",
+                  translate=False, play=True, info =True):
+    #record_audio(duration=duration, filename="audio.mp3")
+    loop_audio(start='alt', stop='ctrl', filename='temp.wav', printinfo=info)
+    transcript = Whisper('temp.wav', translate=translate)
+    Text2Speech(transcript, voice=voice, model= tts, filename=filename, stream=play)
+
+def Speech2SpeechLoop(voice: str ='nova', tts: str = 'tts-1',
+                       filename="speech2speech.mp3",
+                       translate=False,
+                       play=True,
+                       chat='alt' ,
+                       exit='shift'):
+
+    print('Press '+chat+' to record, '+exit+' to exit.')
+    while True:
+        if kb.is_pressed(chat):
+            Speech2Speech(voice= voice, tts= tts, filename=filename, translate=translate, play=play, info=False)
+            print('Press '+chat+' to record, '+exit+' to exit.')
+        elif kb.is_pressed(exit):
+            print('Loop Stopped')
+            break
