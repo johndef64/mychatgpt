@@ -1424,6 +1424,8 @@ assistant_params = {
     'luca': {'assistant': 'luca', 'translate': True, 'memory': True},
     'hero': {'assistant': 'hero', 'translate': True, 'memory': True},
     'yoko': {'assistant': 'yoko', 'translate': True, 'memory': True},
+    'xiao': {'assistant': 'xiao', 'translate': True, 'memory': True},
+    'peng': {'assistant': 'peng', 'translate': True, 'memory': True},
 
 
     ### Languages ###
