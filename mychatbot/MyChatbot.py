@@ -105,6 +105,8 @@ with st.sidebar:
 
     instructions = st.text_input("Add Instructions")
 
+    user_avi = st.selectbox('Change your avatar', ['🧑🏻', '🧔🏻', '👩🏻', '👧🏻', '👸🏻','👱🏻‍♂️','🧑🏼','👸🏼','🧒🏽','👳🏽','👴🏼', '🎅🏻', ])
+
 ###
 from mychatgpt import gpt_models, deepseek_models,x_models
 # selct client
@@ -144,6 +146,8 @@ st.session_state.assistant = assistants[st.session_state[assistant_key]] + featu
 
 st.title("💬 Ask Assistant")
 st.caption("🚀 Your GPT Assistant powered by OpenAI")
+
+st.info(AssistantInfo)
 if "chat_thread" not in st.session_state:
     #st.session_state["chat_thread"] = [{"role": "assistant", "content": "How can I help you?"}]
     st.session_state["chat_thread"] = [{"role": "system", "content": st.session_state.assistant}]
@@ -160,7 +164,8 @@ avatar_dict = {
     'none':"🤖", 'hero':"👦🏻", 'yoko':"👧🏻", 'miguel':"🧑🏼", 'francois':"🧑🏻", 'luca':"🧔🏻", 'julia':"👱🏻‍♀️", 'mike':"👱🏻‍♂️", 'penrose':"👨🏻‍🏫", 'leonardo':"👨🏻‍🔬", 'mendel':"👨🏻‍⚕️", 'darwin':"👴🏻", 'delamain':"👨🏻‍💻"
 }
 voice = voice_dict.get(get_assistant, "echo")
-avatar = avatar_dict.get(get_assistant, "🤖")
+chatbot_avi = avatar_dict.get(get_assistant, "🤖")
+
 print("Voice:", voice)
 
 
@@ -170,11 +175,16 @@ print("Voice:", voice)
 #    st.session_state["chat_thread"] = [{"role": "system", "content": assistants[assistant]}]
 #    #st.write('assistant changed')
 
-# <<<<<<<<<<<<Build chat>>>>>>>>>>>>>
+# <<<<<<<<<<<<Display chat>>>>>>>>>>>>>
 for msg in st.session_state["chat_thread"]:
     if msg['role'] != 'system':
         if not isinstance(msg["content"], list):
-            st.chat_message(msg["role"]).write(msg["content"])
+            # Avatar
+            if msg["role"] == 'user':
+                avatar = user_avi
+            else:
+                avatar = chatbot_avi
+            st.chat_message(msg["role"], avatar=avatar).write(msg["content"])
 
 
 if prompt := st.chat_input():
@@ -202,7 +212,7 @@ if prompt := st.chat_input():
     
     # Get User Prompt:
     st.session_state["chat_thread"].append({"role": "user", "content": prompt})
-    st.chat_message('user').write(prompt)
+    st.chat_message('user', avatar=user_avi).write(prompt)
     
     # Generate Reply
     chat_thread = []
@@ -221,7 +231,7 @@ if prompt := st.chat_input():
 
     # Append Reply
     st.session_state["chat_thread"].append({"role": "assistant", "content": reply})
-    st.chat_message('assistant', avatar=avatar).write(reply)
+    st.chat_message('assistant', avatar=chatbot_avi).write(reply)
 
     if translate_in != 'none':
         language = translate_in
