@@ -281,12 +281,12 @@ AssistantInfo= """
 | Copilots           | base              | Assists with basic tasks and functionalities.       |          |          |
 | Copilots           | novelist          | Specializes in creative writing assistance.         |          |          |
 | Copilots           | creator           | Aids in content creation and ideation.              |          |          |
-| Copilots           | fixer             | Dedicated to troubleshooting and problem solving.   |          |          |
-| Copilots           | delamain          | Focuses on advanced task management.                |          |          |
-| Copilots           | oracle            | Provides predictive insights and advice.            |          |          |
-| Copilots           | roger             | Supports general practical solutions.               |          |          |
-| Copilots           | robert            | Aids in technical setup and operations.             |          |          |
-| Copilots           | copilot           | Assists with Python-related tasks.                  | Python   |          |
+| Copilots           | fixer             | Can fix any text based on the context.              |          |          |
+| Copilots           | delamain          | Coding copilot for every purpose.                   |          |          |
+| Copilots           | oracle            | Coding copilot for every purpose.                   |          |          |
+| Copilots           | roger             | R Coding copilot for every purpose.                 | R         |          |
+| Copilots           | robert            | R Coding copilot for every purpose.                 | R         |          |
+| Copilots           | copilot           | Python Coding copilot for every purpose.            | Python   |          |
 | Scientific         | leonardo          | Supports scientific research activities.            |          |          |
 | Scientific         | newton            | Aids in Python-based scientific computations.       | Python   |          |
 | Scientific         | galileo           | Specializes in scientific documentation.            | Markdown |          |
@@ -304,18 +304,18 @@ AssistantInfo= """
 | Scientific         | springer          | Specializes in academic content formatting.         | Markdown |          |
 | Characters         | julia             | Provides character-based creative support.          |          |          |
 | Characters         | mike              | Provides character-based interactive chat.          |          |          |
-| Characters         | michael           | Provides character-based interactive chat.          |          | English     |
-| Characters         | miguel            | Provides character-based interactive chat.          |          | Portuguese     |
-| Characters         | francois          | Provides character-based interactive chat.          |          | French     |
-| Characters         | luca              | Provides character-based interactive chat.          |          | Italian     |
-| Characters         | hero              | Provides character-based interactive chat.          |          | Japanese     |
-| Characters         | yoko              | Provides character-based creative support.          |          | Japanese     |
-| Characters         | xiao              | Provides character-based creative support.          |          | Chinese     |
-| Characters         | peng              | Provides character-based interactive chat.          |          | Chinese     |
-| Languages          | chinese           | Facilitates Chinese language learning.              |          | Chinese     |
-| Languages          | japanese          | Aids in Japanese language learning and translation. |          | Japanese     |
-| Languages          | japanese_teacher  | Specializes in teaching Japanese.                   |          | Japanese    |
-| Languages          | portuguese_teacher| Provides assistance with learning Portuguese.       |          | Portuguese     |
+| Characters         | michael           | Provides character-based interactive chat.          |          | English    |
+| Characters         | miguel            | Provides character-based interactive chat.          |          | Portuguese |
+| Characters         | francois          | Provides character-based interactive chat.          |          | French    |
+| Characters         | luca              | Provides character-based interactive chat.          |          | Italian    |
+| Characters         | hero              | Provides character-based interactive chat.          |          | Japanese    |
+| Characters         | yoko              | Provides character-based creative support.          |          | Japanese    |
+| Characters         | xiao              | Provides character-based creative support.          |          | Chinese    |
+| Characters         | peng              | Provides character-based interactive chat.          |          | Chinese    |
+| Languages          | chinese           | Facilitates Chinese language learning.              |          | Chinese    |
+| Languages          | japanese          | Aids in Japanese language learning and translation. |          | Japanese    |
+| Languages          | japanese_teacher  | Specializes in teaching Japanese.                   |          | Japanese   |
+| Languages          | portuguese_teacher| Provides assistance with learning Portuguese.       |          | Portuguese  |
 """
 
 
