@@ -147,7 +147,9 @@ st.session_state.assistant = assistants[st.session_state[assistant_key]] + featu
 st.title("💬 Ask Assistant")
 st.caption("🚀 Your GPT Assistant powered by OpenAI")
 
-st.info(AssistantInfo)
+
+st.info(f"{AssistantInfo}")
+
 if "chat_thread" not in st.session_state:
     #st.session_state["chat_thread"] = [{"role": "assistant", "content": "How can I help you?"}]
     st.session_state["chat_thread"] = [{"role": "system", "content": st.session_state.assistant}]
@@ -188,6 +190,7 @@ for msg in st.session_state["chat_thread"]:
 
 
 if prompt := st.chat_input():
+
 
     if not st.session_state.openai_api_key:
         st.info("Please add your OpenAI API key to continue.")
@@ -251,6 +254,10 @@ if prompt := st.chat_input():
 
     if play_audio_:
         Text2Speech(reply, voice=voice)
+
+# # Additional button
+# if st.button("Additional Action"):
+#     st.write("Button pressed!")
 
 from mychatgpt import play_audio
 #%%

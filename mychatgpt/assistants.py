@@ -275,48 +275,53 @@ assistants = {
     #'''\nRispondi come nel seguante esempio:\n    Input: Compra scarpe ai grandi magazzini.\n    Traduzione: Ela compra sapatos na loja de departamentos.\n    Analisi:\n        Pronome: Ela - lei\n        Verb: Compra - comprare\n        Sostantivo: Sapatos - scarpe\n        Preposizione: Na (in + il) - a\n        Sostantivo: Loja - negozio\n        Preposizione: De - di\n        Sostantivo: Departamentos - grandi magazzini.'''
 }
 
-AssistantInfo= """
-| Group              | Assistant         | Description                                         | Format   | Language |
-|--------------------|-------------------|-----------------------------------------------------|----------|--------- |
-| Copilots           | base              | Assists with basic tasks and functionalities.       |          |          |
-| Copilots           | novelist          | Specializes in creative writing assistance.         |          |          |
-| Copilots           | creator           | Aids in content creation and ideation.              |          |          |
-| Copilots           | fixer             | Can fix any text based on the context.              |          |          |
-| Copilots           | delamain          | Coding copilot for every purpose.                   |          |          |
-| Copilots           | oracle            | Coding copilot for every purpose.                   |          |          |
-| Copilots           | roger             | R Coding copilot for every purpose.                 | R         |          |
-| Copilots           | robert            | R Coding copilot for every purpose.                 | R         |          |
-| Copilots           | copilot           | Python Coding copilot for every purpose.            | Python   |          |
-| Scientific         | leonardo          | Supports scientific research activities.            |          |          |
-| Scientific         | newton            | Aids in Python-based scientific computations.       | Python   |          |
-| Scientific         | galileo           | Specializes in scientific documentation.            | Markdown |          |
-| Scientific         | mendel            | Assists with data-related scientific tasks.         |          |          |
-| Scientific         | watson            | Focuses on typesetting scientific documents.        | LaTeX    |          |
-| Scientific         | venter            | Supports bioinformatics and coding tasks.           | Python   |          |
-| Scientific         | crick             | Specializes in structuring scientific content.      | Markdown |          |
-| Scientific         | darwin            | Aids in evolutionary biology research tasks.        |          |          |
-| Scientific         | dawkins           | Supports documentation and writing tasks.           | Markdown |          |
-| Scientific         | penrose           | Assists in theoretical research fields.             |          |          |
-| Scientific         | turing            | Focuses on computational and AI tasks.              | Python   |          |
-| Scientific         | marker            | Specializes in document review and editing.         | Markdown |          |
-| Scientific         | collins           | Aids in collaborative scientific projects.          |          |          |
-| Scientific         | elsevier          | Focuses on publication-ready document creation.     | LaTeX    |          |
-| Scientific         | springer          | Specializes in academic content formatting.         | Markdown |          |
-| Characters         | julia             | Provides character-based creative support.          |          |          |
-| Characters         | mike              | Provides character-based interactive chat.          |          |          |
-| Characters         | michael           | Provides character-based interactive chat.          |          | English    |
-| Characters         | miguel            | Provides character-based interactive chat.          |          | Portuguese |
-| Characters         | francois          | Provides character-based interactive chat.          |          | French    |
-| Characters         | luca              | Provides character-based interactive chat.          |          | Italian    |
-| Characters         | hero              | Provides character-based interactive chat.          |          | Japanese    |
-| Characters         | yoko              | Provides character-based creative support.          |          | Japanese    |
-| Characters         | xiao              | Provides character-based creative support.          |          | Chinese    |
-| Characters         | peng              | Provides character-based interactive chat.          |          | Chinese    |
-| Languages          | chinese           | Facilitates Chinese language learning.              |          | Chinese    |
-| Languages          | japanese          | Aids in Japanese language learning and translation. |          | Japanese    |
-| Languages          | japanese_teacher  | Specializes in teaching Japanese.                   |          | Japanese   |
-| Languages          | portuguese_teacher| Provides assistance with learning Portuguese.       |          | Portuguese  |
+from io import StringIO
+import pandas as pd
+
+# Define CSV data as a string
+csv_data = """Group,Assistant,Description,Format,Language
+Copilots,base,Assists with basic tasks and functionalities,,
+Copilots,novelist,Specializes in creative writing assistance,,
+Copilots,creator,Aids in content creation and ideation,,
+Copilots,fixer,Can fix any text based on the context,,
+Copilots,delamain,Coding copilot for every purpose,,
+Copilots,oracle,Coding copilot for every purpose,,
+Copilots,roger,R Coding copilot for every purpose,R,
+Copilots,robert,R Coding copilot for every purpose,R,
+Copilots,copilot,Python Coding copilot for every purpose,Python,
+Scientific,leonardo,Supports scientific research activities,,
+Scientific,newton,Aids in Python-based scientific computations,Python,
+Scientific,galileo,Specializes in scientific documentation,Markdown,
+Scientific,mendel,Assists with data-related scientific tasks,,
+Scientific,watson,Focuses on typesetting scientific documents,LaTeX,
+Scientific,venter,Supports bioinformatics and coding tasks,Python,
+Scientific,crick,Specializes in structuring scientific content,Markdown,
+Scientific,darwin,Aids in evolutionary biology research tasks,,
+Scientific,dawkins,Supports documentation and writing tasks,Markdown,
+Scientific,penrose,Assists in theoretical research fields,,
+Scientific,turing,Focuses on computational and AI tasks,Python,
+Scientific,marker,Specializes in document review and editing,Markdown,
+Scientific,collins,Aids in collaborative scientific projects,,
+Scientific,elsevier,Focuses on publication-ready document creation,LaTeX,
+Scientific,springer,Specializes in academic content formatting,Markdown,
+Characters,julia,Provides character-based creative support,,
+Characters,mike,Provides character-based interactive chat,,
+Characters,michael,Provides character-based interactive chat,,English
+Characters,miguel,Provides character-based interactive chat,,Portuguese
+Characters,francois,Provides character-based interactive chat,,French
+Characters,luca,Provides character-based interactive chat,,Italian
+Characters,hero,Provides character-based interactive chat,,Japanese
+Characters,yoko,Provides character-based creative support,,Japanese
+Characters,xiao,Provides character-based creative support,,Chinese
+Characters,peng,Provides character-based interactive chat,,Chinese
+Languages,chinese,Facilitates Chinese language learning,,Chinese
+Languages,japanese,Aids in Japanese language learning and translation,,Japanese
+Languages,japanese_teacher,Specializes in teaching Japanese,,Japanese
+Languages,portuguese_teacher,Provides assistance with learning Portuguese,,Portuguese
 """
+
+# Convert DataFrame to Markdown table
+AssistantInfo =  pd.read_csv(StringIO(csv_data)).to_markdown(index=False)
 
 
 ######### ASSISTANT DUMP #########
