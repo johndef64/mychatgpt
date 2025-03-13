@@ -61,6 +61,7 @@ print("App Ready!")
 
 # <<<<<<<<<<<<Sidebar code>>>>>>>>>>>>>
 with st.sidebar:
+
     if not st.session_state.openai_api_key:
         st.session_state.openai_api_key = st.text_input("OpenAI API Key", key="chatbot_api_key", type="password")
         #st.session_state.gemini_api_key   = st.text_input("Gemini API Key", type="password")
@@ -73,6 +74,13 @@ with st.sidebar:
     st.markdown("[Get an OpenAI API key](https://platform.openai.com/account/api-keys)")
     st.markdown("[View the source code](https://github.com/johndef64/mychatgpt/tree/main/mychatbot)")
     #st.markdown("[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/streamlit/llm-examples?quickstart=1)")
+
+    # Button to show markdown text
+    Info = False
+    if st.button("Assistant Info"):
+        Info = True
+
+
 
     #model = st.selectbox("GPT model", ['gpt-3.5-turbo', 'gpt-4o'])
     model = st.radio('Choose a model:', api_models)
@@ -197,8 +205,8 @@ AssistantInfo = """
 
 """
 
-
-st.info(f"{AssistantInfo}")
+if Info:
+    st.info(f"{AssistantInfo}")
 
 if "chat_thread" not in st.session_state:
     #st.session_state["chat_thread"] = [{"role": "assistant", "content": "How can I help you?"}]
