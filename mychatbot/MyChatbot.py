@@ -147,6 +147,56 @@ st.session_state.assistant = assistants[st.session_state[assistant_key]] + featu
 st.title("💬 Ask Assistant")
 st.caption("🚀 Your GPT Assistant powered by OpenAI")
 
+AssistantInfo = """
+#### Copilots 💻
+- **Base**: Assists with basic tasks and functionalities.
+- **Novelist**: Specializes in creative writing assistance.
+- **Creator**: Aids in content creation and ideation.
+- **Fixer**: Can fix any text based on the context.
+- **Delamain**: Coding copilot for every purpose.
+- **Oracle**: Coding copilot for every purpose.
+- **Roger**: R coding copilot for every purpose.
+- **Robert**: R coding copilot for every purpose.
+- **Copilot**: Python coding copilot for every purpose.
+
+#### Scientific 🔬
+- **Leonardo**: Supports scientific research activities.
+- **Newton**: Aids in Python-based scientific computations.
+- **Galileo**: Specializes in scientific documentation (Markdown).
+- **Mendel**: Assists with data-related scientific tasks.
+- **Watson**: Focuses on typesetting scientific documents (LaTeX).
+- **Venter**: Supports bioinformatics and coding tasks (Python).
+- **Crick**: Specializes in structuring scientific content (Markdown).
+- **Darwin**: Aids in evolutionary biology research tasks.
+- **Dawkins**: Supports documentation and writing tasks (Markdown).
+- **Penrose**: Assists in theoretical research fields.
+- **Turing**: Focuses on computational and AI tasks (Python).
+- **Marker**: Specializes in scientific documentation (Markdown).
+- **Collins**: Aids in collaborative scientific projects.
+- **Elsevier**: Focuses on publication-ready document creation (LaTeX).
+- **Springer**: Specializes in academic content formatting (Markdown).
+
+#### Characters 🎭
+- **Julia**: Provides character-based creative support.
+- **Mike**: Provides character-based interactive chat.
+- **Michael**: Provides character-based interactive chat (English).
+- **Miguel**: Provides character-based interactive chat (Portuguese).
+- **Francois**: Provides character-based interactive chat (French).
+- **Luca**: Provides character-based interactive chat (Italian).
+- **Hero**: Provides character-based interactive chat (Japanese).
+- **Yoko**: Provides character-based creative support (Japanese).
+- **Xiao**: Provides character-based creative support (Chinese).
+- **Peng**: Provides character-based interactive chat (Chinese).
+
+#### Languages 🌐
+- **English, French, Italian, Portuguese**
+- **Chinese**: Facilitates Chinese language learning.
+- **Japanese**: Aids in Japanese language learning and translation.
+- **Japanese Teacher**: Specializes in teaching Japanese.
+- **Portuguese Teacher**: Provides assistance with learning Portuguese.
+
+"""
+
 
 st.info(f"{AssistantInfo}")
 
@@ -159,11 +209,23 @@ if "chat_thread" not in st.session_state:
 #    st.session_state["chat_thread"] = update_assistant(st.session_state["chat_thread"])
 
 voice_dict = {
-    'none':'echo','luca':'onyx', 'hero':'echo', 'yoko':'nova', 'miguel':'echo', 'francois':'onyx', 'julia':'shimmer', 'mike':'onyx', 'penrose':'onyx', 'leonardo':'onyx', 'mendel':'onyx', 'darwin':'onyx','delamain':'onyx'
+    'none':'echo','luca':'onyx',
+    'hero':'echo', 'peng':'echo',
+    'yoko':'nova', 'xiao':'nova',
+    'miguel':'echo', 'francois':'onyx', 'michael':'onyx',
+    'julia':'shimmer', 'mike':'onyx',
+    'penrose':'onyx', 'leonardo':'onyx', 'mendel':'onyx', 'darwin':'onyx','delamain':'onyx'
 }
 
 avatar_dict = {
-    'none':"🤖", 'hero':"👦🏻", 'yoko':"👧🏻", 'miguel':"🧑🏼", 'francois':"🧑🏻", 'luca':"🧔🏻", 'julia':"👱🏻‍♀️", 'mike':"👱🏻‍♂️", 'penrose':"👨🏻‍🏫", 'leonardo':"👨🏻‍🔬", 'mendel':"👨🏻‍⚕️", 'darwin':"👴🏻", 'delamain':"👨🏻‍💻"
+    'none':"🤖",
+    'hero':"👦🏻", 'yoko':"👧🏻", 'peng':"👦🏻", 'xiao':"👧🏻",
+    'miguel':"🧑🏼", 'francois':"🧑🏻",
+    'luca':"🧔🏻", 'michael':"🧔🏻",
+    'julia':"👱🏻‍♀️", 'mike':"👱🏻‍♂️",
+    'penrose':"👨🏻‍🏫", 'leonardo':"👨🏻‍🔬", 'mendel':"👨🏻‍⚕️",
+    'darwin':"👴🏻", 'dawkins':"👴🏻",
+    'delamain':"👨🏻‍💻"
 }
 voice = voice_dict.get(get_assistant, "echo")
 chatbot_avi = avatar_dict.get(get_assistant, "🤖")
@@ -190,7 +252,6 @@ for msg in st.session_state["chat_thread"]:
 
 
 if prompt := st.chat_input():
-
 
     if not st.session_state.openai_api_key:
         st.info("Please add your OpenAI API key to continue.")
