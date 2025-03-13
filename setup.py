@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='mychatgpt',
-    version='0.4.6',
+    version='0.4.7',
     packages=find_packages(),  # Automatically find packages in your project
     install_requires=[         # Optional: specify dependencies
         "openai", "tiktoken", "langdetect", "pandas", "pyperclip", "gdown", "pyyaml","scipy", "nltk", "PyPDF2", 'cryptography', 'matplotlib', "pygame", "sounddevice", "soundfile", "keyboard", "markdown", "pillow", "ollama", "beautifulsoup4", "googlesearch-python", "tabulate"
