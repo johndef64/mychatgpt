@@ -569,6 +569,8 @@ class GPT:
             else:
                 self.chat_thread.append({"role": role, "content": message})
 
+    e = expand_chat
+
     def build_messages(self, chat):
         messages = []
         for message in chat:
