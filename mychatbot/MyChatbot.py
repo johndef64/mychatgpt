@@ -29,14 +29,16 @@ def update_assistant(input_list):
     updated_list.append({"role": "system", "content": st.session_state.assistant})
     return updated_list
 
-assistant_list = list(assistants.keys())
-assistant_key = 'assistant_'
-if assistant_key not in st.session_state:
-    st.session_state[assistant_key] = 'none'
+# assistant_list = list(assistants.keys())
+assistant_list = ['none', 'base', 'creator', 'fixer', 'novelist', 'delamain',  'oracle', 'roger', 'robert', 'galileo', 'newton', 'leonardo', 'mendel', 'watson', 'crick', 'venter', 'collins', 'elsevier', 'springer', 'darwin', 'dawkins', 'turing', 'marker', 'penrose', 'mike', 'michael', 'julia', 'jane', 'yoko', 'asuka', 'misa', 'hero', 'xiao', 'peng', 'miguel', 'francois', 'luca', 'english', 'spanish', 'french', 'italian', 'portuguese', 'korean', 'chinese', 'japanese', 'japanese_teacher', 'portuguese_teacher' ]
+# print(assistant_list)
+
+if "assistant_name" not in st.session_state:
+    st.session_state['assistant_name'] = 'none'
 
 format_list = list(features['reply_style'].keys())
-if "format_" not in st.session_state:
-    st.session_state["format_"] = 'base'
+if "format_name" not in st.session_state:
+    st.session_state["format_name"] = 'base'
 #%%
 
 # Check if the file exists
@@ -87,15 +89,17 @@ with st.sidebar:
 
     #assistant = st.selectbox("Assistant", ['none', 'penrose', 'leonardo', 'mendel', 'darwin','delamain'])
     #language = st.selectbox("Language", ['none', 'Japanese','French','English', 'Portuguese', 'Italian', 'Chinese', 'Spanish'])
-    get_assistant = st.selectbox("**Assistant**", assistant_list,
-                                index=assistant_list.index(st.session_state[assistant_key]))
+    get_assistant = st.selectbox("**Assistant**", assistant_list)#, index=assistant_list.index(st.session_state["assistant_name"]))
 
-    get_format = st.selectbox("**Format**", format_list,
-                                 index=format_list.index(st.session_state["format_"]))
+    get_format = st.selectbox("**Format**", format_list     )#, index=format_list.index(st.session_state["format_name"]))
 
     translate_in = st.selectbox("**Translate in**", ["none", "English", "French", "Japanese", "Italian", "Spanish"])
 
     play_audio_ = st.checkbox('Play Audio?')
+
+    # Update session state with the selected value
+    st.session_state["assistant_name"] = get_assistant
+    st.session_state["format_name"] = get_format
 
     # Add a button in the sidebar and assign the function to be executed on click
     #st.markdown("Press Clearchat after Assistant selection")
@@ -115,7 +119,10 @@ with st.sidebar:
 
     user_avi = st.selectbox('Change your avatar', ['🧑🏻', '🧔🏻', '👩🏻', '👧🏻', '👸🏻','👱🏻‍♂️','🧑🏼','👸🏼','🧒🏽','👳🏽','👴🏼', '🎅🏻', ])
 
-###
+############################################################################################
+############################################################################################
+#
+
 from mychatgpt import gpt_models, deepseek_models,x_models
 # selct client
 def select_client(model):
@@ -144,12 +151,12 @@ if uploaded_file:
 #image = uploaded_image.read().decode()
 #st.session_state["chat_thread"] = ...
 
-# Update session state with the selected value
-st.session_state[assistant_key] = get_assistant
-st.session_state["format_"] = get_format
+# # Update session state with the selected value
+# st.session_state[assistant_name] = get_assistant
+# st.session_state["format_name"] = get_format
 
 # Build assistant
-st.session_state.assistant = assistants[st.session_state[assistant_key]] + features['reply_style'][st.session_state["format_"]]
+st.session_state['assistant'] = assistants[st.session_state["assistant_name"]] + features['reply_style'][st.session_state["format_name"]]
 
 
 st.title("💬 Ask Assistant")
