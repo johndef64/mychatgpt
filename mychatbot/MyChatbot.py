@@ -19,7 +19,7 @@ api_models = ['gpt-4o-mini', 'gpt-4o',
 
 # Function to be executed on button click
 def clearchat():
-    st.session_state["chat_thread"] = [{"role": "system", "content": st.session_state.assistant}]
+    st.session_state["chat_thread"] = [{"role": "system", "content": st.session_state['assistant']}]
     st.write("Chat cleared!")
 
 def remove_system_entries(input_list):
@@ -39,6 +39,17 @@ if "assistant_name" not in st.session_state:
 format_list = list(features['reply_style'].keys())
 if "format_name" not in st.session_state:
     st.session_state["format_name"] = 'base'
+
+if "assistant" not in st.session_state:
+    st.session_state['assistant'] = assistants[st.session_state["assistant_name"]]
+
+# Build assistant
+st.session_state['assistant'] = assistants[st.session_state["assistant_name"]] + features['reply_style'][st.session_state["format_name"]]
+
+if "chat_thread" not in st.session_state:
+    #st.session_state["chat_thread"] = [{"role": "assistant", "content": "How can I help you?"}]
+    st.session_state["chat_thread"] = [{"role": "system", "content": st.session_state["assistant"]}]
+
 #%%
 
 # Check if the file exists
@@ -155,8 +166,6 @@ if uploaded_file:
 # st.session_state[assistant_name] = get_assistant
 # st.session_state["format_name"] = get_format
 
-# Build assistant
-st.session_state['assistant'] = assistants[st.session_state["assistant_name"]] + features['reply_style'][st.session_state["format_name"]]
 
 
 st.title("💬 Ask Assistant")
@@ -215,9 +224,7 @@ AssistantInfo = """
 if Info:
     st.info(f"{AssistantInfo}")
 
-if "chat_thread" not in st.session_state:
-    #st.session_state["chat_thread"] = [{"role": "assistant", "content": "How can I help you?"}]
-    st.session_state["chat_thread"] = [{"role": "system", "content": st.session_state.assistant}]
+
 
 # Update Language Automatically
 #if st.session_state.persona not in st.session_state["chat_thread"]:
