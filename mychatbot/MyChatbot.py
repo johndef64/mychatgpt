@@ -6,9 +6,9 @@ import base64
 from mychatgpt import GPT
 from mychatgpt.utils import *
 from mychatgpt.assistants import *
-from mychatgpt import rileva_lingua
+from mychatgpt import rileva_lingua, update_log
 
-
+save_log=True
 #%%
 # General parameters
 api_models = ['gpt-4o-mini', 'gpt-4o',
@@ -318,6 +318,11 @@ if prompt := st.chat_input():
     # Append Reply
     st.session_state["chat_thread"].append({"role": "assistant", "content": reply})
     st.chat_message('assistant', avatar=chatbot_avi).write(reply)
+    if check_copy_paste():
+        pc.copy(reply)
+    if save_log:
+        update_log(st.session_state["chat_thread"][-2])
+        update_log(st.session_state["chat_thread"][-1])
 
     if translate_in != 'none':
         language = translate_in
@@ -335,8 +340,11 @@ if prompt := st.chat_input():
         st.session_state["chat_thread"].append({"role": "assistant", "content": translation})
         st.chat_message('assistant').write(translation)
 
+
     if play_audio_:
         Text2Speech(reply, voice=voice)
+
+
 
 # # Additional button
 # if st.button("Additional Action"):
