@@ -46,9 +46,13 @@ if "assistant" not in st.session_state:
 # Build assistant
 st.session_state['assistant'] = assistants[st.session_state["assistant_name"]] + features['reply_style'][st.session_state["format_name"]]
 
+# Initialize Chat Thread
 if "chat_thread" not in st.session_state:
     #st.session_state["chat_thread"] = [{"role": "assistant", "content": "How can I help you?"}]
     st.session_state["chat_thread"] = [{"role": "system", "content": st.session_state["assistant"]}]
+
+# Update assistant in chat thread
+st.session_state["chat_thread"] = update_assistant(st.session_state["chat_thread"])
 
 #%%
 
@@ -111,6 +115,7 @@ with st.sidebar:
     # Update session state with the selected value
     st.session_state["assistant_name"] = get_assistant
     st.session_state["format_name"] = get_format
+    ### UPDATE HERE CHAT THERD WITH NEW ASSISTANT (Replace)
 
     # Add a button in the sidebar and assign the function to be executed on click
     #st.markdown("Press Clearchat after Assistant selection")

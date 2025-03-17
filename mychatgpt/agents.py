@@ -91,8 +91,8 @@ def CodeAgent(command, gpt=base_agent, format ='python', add=""):
 #### Web Data Extractors ###
 def GsearchAssigTags(query,
                      TAGS=[],
-                     print_=False,
-                     num_results = 20):
+                     num_results = 20,
+                     print_=False,):
     data=""
     links = google_search(query, num_results, advanced=True)
     for n in range(len(links)):
@@ -128,9 +128,9 @@ def GsearchAssigTags(query,
     # Print the resulting dictionary
     assigned_tags = extract_and_convert_to(extractor.chat_reply, "[]")
 
-    if len(assigned_tags) == 0:
-        C.c("@ correct the following python list sintax and return the corrected list:\n\n"+extractor.chat_reply)
-        assigned_tags = extract_and_convert_to(C.chat_reply, "[]")
+    while len(assigned_tags) == 0:
+          C.c("@ correct the following python list sintax and return the corrected list:\n\n"+extractor.chat_reply)
+          assigned_tags = extract_and_convert_to(C.chat_reply, "[]")
     ###############################
     return assigned_tags
 
