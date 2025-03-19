@@ -234,6 +234,7 @@ def load_api_keys():
                 "deepseek": "miss",
                 "grok":     "miss",
                 "gemini":   "miss",
+                "aimlapi":   "miss",
             }
     else:
         # if api_keys.json in cwd, take them from here
