@@ -124,8 +124,9 @@ gpt_models_dict = {
 gpt_models = [i for i in gpt_models_dict.keys() if "gpt" in i or "o1" in i]+["dall-e-2", "dall-e-3", "whisper-1", "tts-1", "tts-1-hd"]
 deepseek_models = ["deepseek-chat", 'deepseek-reasoner']
 x_models = ["grok-2-1212", 'grok-2-vision-1212', "grok-2-latest"]
+aiml_models = ["cognitivecomputations/dolphin-2.5-mixtral-8x7", "qwen-turbo"]
 
-openai_compliant = gpt_models + deepseek_models + x_models
+openai_compliant = gpt_models + deepseek_models + x_models + aiml_models
 
 
 ####### Image Models #######
@@ -518,6 +519,8 @@ class GPT:
             self.client = OpenAI(api_key=load_api_keys()["deepseek"], base_url="https://api.deepseek.com")
         elif model in x_models:
             self.client = OpenAI(api_key=load_api_keys()["grok"], base_url="https://api.x.ai/v1")
+        elif model in aiml_models:
+            self.client = OpenAI(api_key=load_api_keys()["aimlapi"], base_url="https://api.aimlapi.com/v1")
 
 
 
@@ -646,6 +649,9 @@ class GPT:
                 except AttributeError:
                     separator = False
                     pass
+                except IndexError:
+                    # Handle IndexError differently
+                    continue
 
                 chunk_message = chunk.choices[0].delta.content or ""  # extract the message
             else:
@@ -695,7 +701,7 @@ class GPT:
         self.assistant = assistant
         print('\n*Assistant:', assistants_df.assistant[assistant_id])
 
-    def clear_chat(self, warning=True, keep_system=True):
+    def clear_chat(self, keep_system=True, warning=True):
         if keep_system:
             self.chat_thread = [line for line in self.chat_thread if line.get("role") == "system"]
         else:
