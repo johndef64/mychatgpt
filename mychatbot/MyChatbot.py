@@ -32,6 +32,16 @@ def update_assistant(input_list):
 # assistant_list = list(assistants.keys())
 assistant_list = ['none', 'base', 'creator', 'fixer', 'novelist', 'delamain',  'oracle', 'roger', 'robert', 'galileo', 'newton', 'leonardo', 'mendel', 'watson', 'crick', 'venter', 'collins', 'elsevier', 'springer', 'darwin', 'dawkins', 'turing', 'marker', 'penrose', 'mike', 'michael', 'julia', 'jane', 'yoko', 'asuka', 'misa', 'hero', 'xiao', 'peng', 'miguel', 'francois', 'luca', 'english', 'spanish', 'french', 'italian', 'portuguese', 'korean', 'chinese', 'japanese', 'japanese_teacher', 'portuguese_teacher' ]
 # print(assistant_list)
+# Try to import 'extra' from 'extra_assistant' if it's available
+try:
+    from extra_assistants import extra
+except ImportError:
+    # If the import fails, initialize 'extra' as an empty dictionary
+    extra = {}
+# Add values from 'extra' to 'assistants'
+assistants.update(extra)
+# Add keys from 'extra' to 'assistant_list'
+assistant_list.extend(extra.keys())
 
 if "assistant_name" not in st.session_state:
     st.session_state['assistant_name'] = 'none'
@@ -246,13 +256,15 @@ voice_dict = {
 
 avatar_dict = {
     'none':"🤖",
+    'base':"🤖",
     'hero':"👦🏻", 'yoko':"👧🏻", 'peng':"👦🏻", 'xiao':"👧🏻",
     'miguel':"🧑🏼", 'francois':"🧑🏻",
     'luca':"🧔🏻", 'michael':"🧔🏻",
     'julia':"👱🏻‍♀️", 'mike':"👱🏻‍♂️",
     'penrose':"👨🏻‍🏫", 'leonardo':"👨🏻‍🔬", 'mendel':"👨🏻‍⚕️",
     'darwin':"👴🏻", 'dawkins':"👴🏻",
-    'delamain':"👨🏻‍💻"
+    'delamain':"👨🏻‍💻",
+    'alfred':"🤵🏻"
 }
 voice = voice_dict.get(get_assistant, "echo")
 chatbot_avi = avatar_dict.get(get_assistant, "🤖")
