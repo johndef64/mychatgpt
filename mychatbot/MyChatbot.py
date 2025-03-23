@@ -26,7 +26,7 @@ def remove_system_entries(input_list):
     return [entry for entry in input_list if entry.get('role') != 'system']
 def update_assistant(input_list):
     updated_list = remove_system_entries(input_list)
-    updated_list.append({"role": "system", "content": st.session_state.assistant})
+    updated_list.append({"role": "system", "content": st.session_state.assistant })
     return updated_list
 
 # assistant_list = list(assistants.keys())
@@ -168,9 +168,14 @@ def select_client(model):
 
 # <<<<<<<<<<<< >>>>>>>>>>>>>
 
+def add_instructions(instructions):
+    if not any(entry.get("role") == "system" and instructions in entry.get("content", "") 
+           for entry in st.session_state["chat_thread"]):
+        st.session_state["chat_thread"].append({"role": "system", "content": instructions})
+
 ### Add Context to system
 if instructions:
-    st.session_state["chat_thread"].append({"role": "system", "content": instructions})
+   add_instructions(instructions)
 
 if uploaded_file:
     text = uploaded_file.read().decode()
@@ -310,8 +315,19 @@ if prompt := st.chat_input():
 
     elif prompt.startswith("+"):
         prompt = prompt[1:]
-        st.session_state["chat_thread"].append({"role": "user", "content": prompt})
-        st.chat_message('user', avatar=user_avi).write(prompt)
+        role = "user"
+        if prompt.startswith("+"):
+            prompt = prompt[1:]
+            role = "system"
+
+        if role == "system":
+            add_instructions(prompt)  # in conflict with update_assistant
+            st.write("Instrucition updated!")
+        else:
+            st.session_state["chat_thread"].append({"role": role, "content": prompt})
+            st.chat_message(role, avatar=user_avi).write(prompt)
+
+
     
     elif prompt in ["."]:
         st.session_state["chat_thread"].pop()
