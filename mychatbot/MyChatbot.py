@@ -27,7 +27,17 @@ def remove_system_entries(input_list):
 def update_assistant(input_list):
     updated_list = remove_system_entries(input_list)
     updated_list.append({"role": "system", "content": st.session_state.assistant })
+    for add in  st.session_state["sys_addings"]:
+        updated_list.append({"role": "system", "content": add })
     return updated_list
+
+def remove_last_non_system(input_list):
+    # Iterate backwards to find and remove the last non-system entry
+    for i in range(len(input_list) - 1, -1, -1):
+        if input_list[i].get('role') != 'system':
+            del input_list[i]  # Remove the entry
+            break  # Exit the loop once the entry is removed
+    return input_list
 
 # assistant_list = list(assistants.keys())
 assistant_list = ['none', 'base', 'creator', 'fixer', 'novelist', 'delamain',  'oracle', 'roger', 'robert', 'galileo', 'newton', 'leonardo', 'mendel', 'watson', 'crick', 'venter', 'collins', 'elsevier', 'springer', 'darwin', 'dawkins', 'turing', 'marker', 'penrose', 'mike', 'michael', 'julia', 'jane', 'yoko', 'asuka', 'misa', 'hero', 'xiao', 'peng', 'miguel', 'francois', 'luca', 'english', 'spanish', 'french', 'italian', 'portuguese', 'korean', 'chinese', 'japanese', 'japanese_teacher', 'portuguese_teacher' ]
@@ -61,8 +71,13 @@ if "chat_thread" not in st.session_state:
     #st.session_state["chat_thread"] = [{"role": "assistant", "content": "How can I help you?"}]
     st.session_state["chat_thread"] = [{"role": "system", "content": st.session_state["assistant"]}]
 
+if "sys_addings" not in st.session_state:
+    st.session_state["sys_addings"] = []
+
 # Update assistant in chat thread
 st.session_state["chat_thread"] = update_assistant(st.session_state["chat_thread"])
+
+
 
 #%%
 
@@ -123,7 +138,7 @@ with st.sidebar:
     #play_audio_ = st.checkbox('Play Audio?')
     col1, col2 = st.columns(2)
     play_audio_ = col1.checkbox('Play Audio')
-    copy_reply_ = col2.checkbox('Copy Reply', value=True)
+    copy_reply_ = col2.checkbox('Copy Reply', value=False)
 
     # Update session state with the selected value
     st.session_state["assistant_name"] = get_assistant
@@ -175,7 +190,8 @@ def add_instructions(instructions):
 
 ### Add Context to system
 if instructions:
-   add_instructions(instructions)
+   #add_instructions(instructions)
+   st.session_state["sys_addings"].append(instructions)
 
 if uploaded_file:
     text = uploaded_file.read().decode()
@@ -321,7 +337,7 @@ if prompt := st.chat_input():
             role = "system"
 
         if role == "system":
-            add_instructions(prompt)  # in conflict with update_assistant
+            st.session_state["sys_addings"].append(prompt)
             st.write("Instrucition updated!")
         else:
             st.session_state["chat_thread"].append({"role": role, "content": prompt})
@@ -330,8 +346,9 @@ if prompt := st.chat_input():
 
     
     elif prompt in ["."]:
-        st.session_state["chat_thread"].pop()
-        st.session_state["chat_thread"].pop()
+        remove_last_non_system(st.session_state["chat_thread"])
+        #st.session_state["chat_thread"].pop()
+        #st.session_state["chat_thread"].pop()
         st.rerun()
 
     else:
