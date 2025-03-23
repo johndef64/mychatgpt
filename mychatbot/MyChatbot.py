@@ -297,15 +297,25 @@ def display_chat():
 display_chat()
 
 # Create a container with input and button
-#with st.container():
+# with st.container():
 #    col1, col2 = st.columns([4, 1]) # create two columns within the container
 #    with col1:
 
-
 if prompt := st.chat_input():
-    if prompt in ["-", ".", "@"]:
+    # Quick commands:
+    if prompt in ["-", "@"]:
         clearchat()
         time.sleep(0.7)
+        st.rerun()
+
+    elif prompt.startswith("+"):
+        prompt = prompt[1:]
+        st.session_state["chat_thread"].append({"role": "user", "content": prompt})
+        st.chat_message('user', avatar=user_avi).write(prompt)
+    
+    elif prompt in ["."]:
+        st.session_state["chat_thread"].pop()
+        st.session_state["chat_thread"].pop()
         st.rerun()
 
     else:
@@ -334,11 +344,13 @@ if prompt := st.chat_input():
         st.session_state["chat_thread"].append({"role": "user", "content": prompt})
         st.chat_message('user', avatar=user_avi).write(prompt)
         
-        # Generate Reply
+        # Build Chat Thread
         chat_thread = []
         for msg in st.session_state["chat_thread"]:
             if not msg["content"].startswith('<<'):
                 chat_thread.append(msg)
+
+        # Generate Reply        
         response = client.chat.completions.create(model=model,
                                                 messages=chat_thread,
                                                 stream=False,
