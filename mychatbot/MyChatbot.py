@@ -120,7 +120,10 @@ with st.sidebar:
 
     translate_in = st.selectbox("**Translate in**", ["none", "English", "French", "Japanese", "Italian", "Spanish"])
 
-    play_audio_ = st.checkbox('Play Audio?')
+    #play_audio_ = st.checkbox('Play Audio?')
+    col1, col2 = st.columns(2)
+    play_audio_ = col1.checkbox('Play Audio')
+    copy_reply_ = col2.checkbox('Copy Reply', value=True)
 
     # Update session state with the selected value
     st.session_state["assistant_name"] = get_assistant
@@ -280,101 +283,104 @@ print("Voice:", voice)
 
 
 # <<<<<<<<<<<<Display chat>>>>>>>>>>>>>
-for msg in st.session_state["chat_thread"]:
-    if msg['role'] != 'system':
-        if not isinstance(msg["content"], list):
-            # Avatar
-            if msg["role"] == 'user':
-                avatar = user_avi
-            else:
-                avatar = chatbot_avi
-            st.chat_message(msg["role"], avatar=avatar).write(msg["content"])
+def display_chat():
+    for msg in st.session_state["chat_thread"]:
+        if msg['role'] != 'system':
+            if not isinstance(msg["content"], list):
+                # Avatar
+                if msg["role"] == 'user':
+                    avatar = user_avi
+                else:
+                    avatar = chatbot_avi
+                st.chat_message(msg["role"], avatar=avatar).write(msg["content"])
 
+display_chat()
 
 # Create a container with input and button
 #with st.container():
 #    col1, col2 = st.columns([4, 1]) # create two columns within the container
 #    with col1:
 
+
 if prompt := st.chat_input():
-    if prompt.startswith('@'):
-        prompt = prompt[1:]
+    if prompt in ["-", ".", "@"]:
         clearchat()
+        time.sleep(0.7)
+        st.rerun()
 
-    if not st.session_state.openai_api_key:
-        st.info("Please add your OpenAI API key to continue.")
-        st.stop()
+    else:
+        if not st.session_state.openai_api_key:
+            st.info("Please add your OpenAI API key to continue.")
+            st.stop()
 
-    if image_path:
-        if image_path.startswith('http'):
-            print('<Image path:',image_path, '>')
-            pass
-        else:
-            print('<Enconding Image...>')
-            base64_image = encode_image(image_path)
-            image_path = f"data:image/jpeg;base64,{base64_image}"
+        if image_path:
+            if image_path.startswith('http'):
+                print('<Image path:',image_path, '>')
+                pass
+            else:
+                print('<Enconding Image...>')
+                base64_image = encode_image(image_path)
+                image_path = f"data:image/jpeg;base64,{base64_image}"
 
-        image_add = {"role": 'user',
-                    "content": [{"type": "image_url", "image_url": {"url": image_path} }] }
-        if image_add not in st.session_state["chat_thread"]:
-            st.session_state["chat_thread"].append(image_add)
+            image_add = {"role": 'user',
+                        "content": [{"type": "image_url", "image_url": {"url": image_path} }] }
+            if image_add not in st.session_state["chat_thread"]:
+                st.session_state["chat_thread"].append(image_add)
 
-    #client = OpenAI(api_key=st.session_state.openai_api_key)
-    client = select_client(model)
-    
-    # Get User Prompt:
-    st.session_state["chat_thread"].append({"role": "user", "content": prompt})
-    st.chat_message('user', avatar=user_avi).write(prompt)
-    
-    # Generate Reply
-    chat_thread = []
-    for msg in st.session_state["chat_thread"]:
-        if not msg["content"].startswith('<<'):
-            chat_thread.append(msg)
-    response = client.chat.completions.create(model=model,
-                                            messages=chat_thread,
-                                            stream=False,
-                                            top_p=1,
-                                            frequency_penalty=0,
-                                            presence_penalty=0
-                                            )
+        #client = OpenAI(api_key=st.session_state.openai_api_key)
+        client = select_client(model)
+        
+        # Get User Prompt:
+        st.session_state["chat_thread"].append({"role": "user", "content": prompt})
+        st.chat_message('user', avatar=user_avi).write(prompt)
+        
+        # Generate Reply
+        chat_thread = []
+        for msg in st.session_state["chat_thread"]:
+            if not msg["content"].startswith('<<'):
+                chat_thread.append(msg)
+        response = client.chat.completions.create(model=model,
+                                                messages=chat_thread,
+                                                stream=False,
+                                                top_p=1,
+                                                frequency_penalty=0,
+                                                presence_penalty=0
+                                                )
 
-    reply = response.choices[0].message.content
+        reply = response.choices[0].message.content
 
-    # Append Reply
-    st.session_state["chat_thread"].append({"role": "assistant", "content": reply})
-    st.chat_message('assistant', avatar=chatbot_avi).write(reply)
-    if check_copy_paste():
-        pc.copy(reply)
-    if save_log:
-        update_log(st.session_state["chat_thread"][-2])
-        update_log(st.session_state["chat_thread"][-1])
+        # Append Reply
+        st.session_state["chat_thread"].append({"role": "assistant", "content": reply})
+        st.chat_message('assistant', avatar=chatbot_avi).write(reply)
+        if check_copy_paste() and copy_reply_:
+            pc.copy(reply)
+        if save_log:
+            update_log(st.session_state["chat_thread"][-2])
+            update_log(st.session_state["chat_thread"][-1])
 
-    if translate_in != 'none':
-        language = translate_in
-        reply_language = rileva_lingua(reply)
-        if reply_language == 'Japanese':
-            translator = create_jap_translator(language)
-        elif 'Chinese' in reply_language.split(" "):
-            translator = create_chinese_translator(language)
-        else:
-            translator = create_translator(language)
-        response_ = client.chat.completions.create(model=model,
-                                                messages=[{"role": "system", "content": translator},
-                                                            {"role": "user", "content": reply}])
-        translation = "<<"+response_.choices[0].message.content+">>"
-        st.session_state["chat_thread"].append({"role": "assistant", "content": translation})
-        st.chat_message('assistant').write(translation)
+        if translate_in != 'none':
+            language = translate_in
+            reply_language = rileva_lingua(reply)
+            if reply_language == 'Japanese':
+                translator = create_jap_translator(language)
+            elif 'Chinese' in reply_language.split(" "):
+                translator = create_chinese_translator(language)
+            else:
+                translator = create_translator(language)
+            response_ = client.chat.completions.create(model=model,
+                                                    messages=[{"role": "system", "content": translator},
+                                                                {"role": "user", "content": reply}])
+            translation = "<<"+response_.choices[0].message.content+">>"
+            st.session_state["chat_thread"].append({"role": "assistant", "content": translation})
+            st.chat_message('assistant').write(translation)
 
 
-    if play_audio_:
-        Text2Speech(reply, voice=voice)
+        if play_audio_:
+            Text2Speech(reply, voice=voice)
 
     #with col2:
     #    if st.button("New Chat"):
     #    clearchat()
-
-
 
 # # Additional button
 # if st.button("Additional Action"):

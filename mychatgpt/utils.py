@@ -33,6 +33,7 @@ if platform.system() == "Linux":
     if not is_package_installed("libportaudio2"):
         subprocess.check_call(["sudo","apt-get", "update"])
         subprocess.check_call(["sudo","apt-get", "install", "libportaudio2"])
+        # or conda install -c conda-forge portaudio
     else:
         pass
 

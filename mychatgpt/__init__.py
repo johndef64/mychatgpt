@@ -1,8 +1,9 @@
 # pygpt64/__init__.py
 import time
 start = time.time()
-# Definisci la versione del pacchetto
-__version__ = '0.4.6'
+from importlib.metadata import version
+
+__version__ = version('mychatgpt')
 print(f'mychatgpt version {__version__}')
 print('Loading package...')
 
