@@ -40,7 +40,7 @@ def remove_last_non_system(input_list):
     return input_list
 
 # assistant_list = list(assistants.keys())
-assistant_list = ['none', 'base', 'creator', 'fixer', 'novelist', 'delamain',  'oracle', 'roger', 'robert', 'galileo', 'newton', 'leonardo', 'mendel', 'watson', 'crick', 'venter', 'collins', 'elsevier', 'springer', 'darwin', 'dawkins', 'turing', 'marker', 'penrose', 'mike', 'michael', 'julia', 'jane', 'yoko', 'asuka', 'misa', 'hero', 'xiao', 'peng', 'miguel', 'francois', 'luca', 'english', 'spanish', 'french', 'italian', 'portuguese', 'korean', 'chinese', 'japanese', 'japanese_teacher', 'portuguese_teacher' ]
+assistant_list = ['none', 'base', 'creator', 'fixer', 'novelist', 'delamain',  'oracle', 'snake', 'roger', 'robert', 'galileo', 'newton', 'leonardo', 'mendel', 'watson', 'crick', 'venter', 'collins', 'elsevier', 'springer', 'darwin', 'dawkins', 'turing', 'marker', 'penrose', 'mike', 'michael', 'julia', 'jane', 'yoko', 'asuka', 'misa', 'hero', 'xiao', 'peng', 'miguel', 'francois', 'luca', 'english', 'spanish', 'french', 'italian', 'portuguese', 'korean', 'chinese', 'japanese', 'japanese_teacher', 'portuguese_teacher' ]
 # print(assistant_list)
 # Try to import 'extra' from 'extra_assistant' if it's available
 try:
@@ -119,7 +119,7 @@ with st.sidebar:
 
     # Button to show markdown text
     Info = False
-    if st.button("Assistant Info"):
+    if st.button("Show Info"):
         Info = True
 
 
@@ -135,9 +135,11 @@ with st.sidebar:
 
     translate_in = st.selectbox("**Translate in**", ["none", "English", "French", "Japanese", "Italian", "Spanish"])
 
+    instructions = st.text_input("Add Instructions")
+
     #play_audio_ = st.checkbox('Play Audio?')
     col1, col2 = st.columns(2)
-    play_audio_ = col1.checkbox('Play Audio')
+    play_audio_ = col1.checkbox('Play Audio', value=False)
     copy_reply_ = col2.checkbox('Copy Reply', value=False)
 
     # Update session state with the selected value
@@ -145,13 +147,14 @@ with st.sidebar:
     st.session_state["format_name"] = get_format
     ### UPDATE HERE CHAT THERD WITH NEW ASSISTANT (Replace)
 
+
+
     # Add a button in the sidebar and assign the function to be executed on click
     #st.markdown("Press Clearchat after Assistant selection")
     if st.button("Clear chat"):
         clearchat()
 
     # Uploaders
-    uploaded_file = st.file_uploader("Upload an text file", type=("txt", "md"))
 
     image_path = st.text_input("Load Image (path or url)")
     #image_file = st.file_uploader("Upload an image file", type=("jpg", "png"))
@@ -159,7 +162,7 @@ with st.sidebar:
         with open(image_path, "rb") as image_file:
             return base64.b64encode(image_file.read()).decode('utf-8')
 
-    instructions = st.text_input("Add Instructions")
+    uploaded_file = st.file_uploader("Upload an text file", type=("txt", "md"))
 
     user_avi = st.selectbox('Change your avatar', ['🧑🏻', '🧔🏻', '👩🏻', '👧🏻', '👸🏻','👱🏻‍♂️','🧑🏼','👸🏼','🧒🏽','👳🏽','👴🏼', '🎅🏻', ])
 
@@ -210,6 +213,17 @@ if uploaded_file:
 st.title("💬 Ask Assistant")
 st.caption("🚀 Your GPT Assistant powered by OpenAI")
 
+# Draft information formatted within an info box
+info = """
+#### Quick Commands:
+- Start message with "+" to add message without getting a reply
+- Start message with "++" to add additional system instructions
+- Enter ":" to pop out last iteration
+- Enter '-' to clear chat
+"""
+# Display the info box using Streamlit's 'info' function
+# st.info(info)
+
 AssistantInfo = """
 #### Copilots 💻
 - **Base**: Assists with basic tasks and functionalities.
@@ -218,9 +232,9 @@ AssistantInfo = """
 - **Fixer**: Can fix any text based on the context.
 - **Delamain**: Coding copilot for every purpose.
 - **Oracle**: Coding copilot for every purpose.
+- **Snake**: Python coding copilot for every purpose.
 - **Roger**: R coding copilot for every purpose.
 - **Robert**: R coding copilot for every purpose.
-- **Copilot**: Python coding copilot for every purpose.
 
 #### Scientific 🔬
 - **Leonardo**: Supports scientific research activities.
@@ -262,6 +276,7 @@ AssistantInfo = """
 
 if Info:
     st.info(f"{AssistantInfo}")
+    st.info(f"{info}")
 
 
 
@@ -287,7 +302,7 @@ avatar_dict = {
     'julia':"👱🏻‍♀️", 'mike':"👱🏻‍♂️",
     'penrose':"👨🏻‍🏫", 'leonardo':"👨🏻‍🔬", 'mendel':"👨🏻‍⚕️",
     'darwin':"👴🏻", 'dawkins':"👴🏻",
-    'delamain':"👨🏻‍💻",
+    'delamain':"👨🏻‍💻",'snake':"👨🏻‍💻",'roger':"👨🏻‍💻",
     'alfred':"🤵🏻"
 }
 voice = voice_dict.get(get_assistant, "echo")
