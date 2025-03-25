@@ -1,4 +1,4 @@
-import os
+import os, sys, contextlib
 from openai import OpenAI
 import streamlit as st
 import base64
@@ -141,6 +141,7 @@ with st.sidebar:
     col1, col2 = st.columns(2)
     play_audio_ = col1.checkbox('Play Audio', value=False)
     copy_reply_ = col2.checkbox('Copy Reply', value=False)
+    run_code = st.checkbox('Run Code', value=False)
 
     # Update session state with the selected value
     st.session_state["assistant_name"] = get_assistant
@@ -165,6 +166,11 @@ with st.sidebar:
     uploaded_file = st.file_uploader("Upload an text file", type=("txt", "md"))
 
     user_avi = st.selectbox('Change your avatar', ['🧑🏻', '🧔🏻', '👩🏻', '👧🏻', '👸🏻','👱🏻‍♂️','🧑🏼','👸🏼','🧒🏽','👳🏽','👴🏼', '🎅🏻', ])
+
+
+    # if st.button("Copy Reply"):
+    #     pc.copy(reply)
+
 
 ############################################################################################
 ############################################################################################
@@ -437,6 +443,12 @@ if prompt := st.chat_input():
 
         if play_audio_:
             Text2Speech(reply, voice=voice)
+
+        if run_code:
+            from ExecuteCode import ExecuteCode
+            ExecuteCode(reply)
+
+
 
     #with col2:
     #    if st.button("New Chat"):
