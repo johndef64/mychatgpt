@@ -1,5 +1,4 @@
 import io, sys, contextlib
-
 import streamlit as st  # Dependency for creating web apps
 import matplotlib.pyplot as plt  # For plotting graphs
 import pandas as pd  # For handling data frames

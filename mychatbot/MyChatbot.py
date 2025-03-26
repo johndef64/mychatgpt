@@ -31,6 +31,9 @@ api_models = ['gpt-4o-mini', 'gpt-4o',
 def clearchat():
     ss[chat_n] = [{"role": "system", "content": ss['assistant']}]
     st.write("Chat cleared!")
+def clearsys():
+    ss[chat_n] = [entry for entry in ss[chat_n] if entry['role'] != 'system']
+    st.write("System cleared!")
 
 def remove_system_entries(input_list):
     return [entry for entry in input_list if entry.get('role') != 'system']
@@ -164,7 +167,7 @@ with st.sidebar:
     col1, col2 = st.columns(2)
     play_audio_ = col1.checkbox('Play Audio', value=False)
     copy_reply_ = col2.checkbox('Copy Reply', value=False)
-    run_code = st.checkbox('Run Code', value=False)
+    run_code = col1.checkbox('Run Code', value=False)
 
     # Update session state with the selected value
     ss[assistant_name] = get_assistant
@@ -176,8 +179,11 @@ with st.sidebar:
 
     # Add a button in the sidebar and assign the function to be executed on click
     #st.markdown("Press Clearchat after Assistant selection")
-    if st.button("Clear chat"):
+    col12, col22 = st.columns(2)
+    if col12.button("Clear chat"):
         clearchat()
+    if col22.button("Clear system"):
+        clearsys()
 
     # Uploaders
 
