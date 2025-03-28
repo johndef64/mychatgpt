@@ -18,6 +18,36 @@ chat_n = f"chat_{chat_num}"
 sys_addings = f"sys_add_{chat_num}"
 model_name = f"model_{chat_num}"
 
+import os
+import pickle
+
+
+def generate_chat_name(path, assistant_name):
+    # Counter starts at 1
+    index = 1
+    # Continuously checking if the file with the current index exists
+    while os.path.exists(os.path.join(path, f"{assistant_name}_{index}.pkl")):
+        index += 1
+    # Return the chat name with the next available index
+    return f"{assistant_name}_{index}"
+
+
+def save_chat_as_pickle(path='chats/'):
+    if not os.path.exists(path):
+        os.mkdir(path)
+
+    chat_name = generate_chat_name(path, ss[assistant_name])
+    # Save chat content in pickle format
+    with open(os.path.join(path, chat_name + '.pkl'), 'wb') as file:
+        pickle.dump(ss[chat_n], file)
+
+
+def load_chat_from_pickle(file_path):
+    # Load chat content from pickle file
+    with open(file_path, 'rb') as file:
+        return pickle.load(file)
+
+
 # %%
 # General parameters
 api_models = ['gpt-4o-mini', 'gpt-4o',
@@ -204,8 +234,21 @@ with st.sidebar:
     user_avi = st.selectbox('Change your avatar',
                             ['🧑🏻', '🧔🏻', '👩🏻', '👧🏻', '👸🏻', '👱🏻‍♂️', '🧑🏼', '👸🏼', '🧒🏽', '👳🏽', '👴🏼', '🎅🏻', ])
 
-    # if st.button("Copy Reply"):
-    #     pc.copy(reply)
+    # Additional button
+    if st.button("Save Chat"):
+        save_chat_as_pickle()
+        st.write("Chat Saved!")
+
+    # List files in the 'chats/' directory
+    files_in_chats = os.listdir('chats/') if os.path.exists('chats/') else (os.makedirs('chats'), [])[1]
+
+    # Implement a select box to choose a file
+    file_path = st.selectbox("Choose a file to load", files_in_chats)
+
+    if st.button("Load Chat"):
+        full_path = os.path.join('chats/', file_path)
+        ss[chat_n] = load_chat_from_pickle(full_path)
+        st.write("Chat Loaded!")
 
 ############################################################################################
 ############################################################################################
@@ -344,7 +387,8 @@ avatar_dict = {
     'penrose': "👨🏻‍🏫", 'leonardo': "👨🏻‍🔬", 'mendel': "👨🏻‍⚕️",
     'darwin': "👴🏻", 'dawkins': "👴🏻",
     'delamain': "👨🏻‍💻", 'snake': "👨🏻‍💻", 'roger': "👨🏻‍💻",
-    'alfred': "🤵🏻"
+    'alfred': "🤵🏻",
+    'laura': "👩🏻",
 }
 voice = voice_dict.get(get_assistant, "echo")
 chatbot_avi = avatar_dict.get(get_assistant, "🤖")
@@ -483,11 +527,6 @@ if prompt := st.chat_input():
     # with col2:
     #    if st.button("New Chat"):
     #    clearchat()
-
-# # Additional button
-# if st.button("Additional Action"):
-#     st.write("Button pressed!")
-
 
 # %%
 
