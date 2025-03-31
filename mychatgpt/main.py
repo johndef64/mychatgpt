@@ -1444,7 +1444,7 @@ assistant_params = {
 }
 
 # Funzione per creare nuovi oggetti GPT con i parametri dal dizionario
-def agent(assistant_key):
+def bot(assistant_key):
     params = assistant_params.get(assistant_key, {})
     return GPT(**params)
 
@@ -1453,57 +1453,57 @@ if debug: print(f'Copilots:{datetime.now()}')
 
 # An embedded assistant or a character of your choice
 
-chatgpt = agent('base')
-# novelist = agent('novelist')
-# creator = agent('creator')
-fixer = agent('fixer')
-# delamain = agent('delamain')
-# oracle = agent('oracle')
-R = agent('roger')
-C = agent('copilot')
-# Rt = agent("robert")
+chatgpt = bot('base')
+# novelist = bot('novelist')
+# creator = bot('creator')
+fixer = bot('fixer')
+# delamain = bot('delamain')
+# oracle = bot('oracle')
+R = bot('roger')
+C = bot('copilot')
+# Rt = bot("robert")
 
 if debug: print(f'Scientific:{datetime.now()}')
 
 # Scientific Assistants
 
-# leonardo = agent('leonardo')
-# newton =   agent('leonardo')
-# galileo =  agent('leonardo')
-mendel =   agent('mendel')
-watson =   agent('mendel')
-# venter =   agent('mendel')
-# crick =    agent('mendel')
-# darwin =   agent('darwin')
-# dawkins =  agent('darwin')
-penrose =  agent('penrose')
-# turing =   agent('penrose')
-# marker =   agent('penrose')
-# collins =  agent('collins')
-# elsevier = agent('collins')
-# springer = agent('collins')
+# leonardo = bot('leonardo')
+# newton =   bot('leonardo')
+# galileo =  bot('leonardo')
+mendel =   bot('mendel')
+watson =   bot('mendel')
+# venter =   bot('mendel')
+# crick =    bot('mendel')
+# darwin =   bot('darwin')
+# dawkins =  bot('darwin')
+penrose =  bot('penrose')
+# turing =   bot('penrose')
+# marker =   bot('penrose')
+# collins =  bot('collins')
+# elsevier = bot('collins')
+# springer = bot('collins')
 
 if debug: print(f'Characters:{datetime.now()}')
 
 # Characters
-julia    = agent('julia')
-# mike     = agent('mike')
-# michael  = agent('michael')
-# miguel   = agent('miguel')
-# francois = agent('francois')
-# luca     = agent('luca')
-# hero     = agent('hero')
-yoko     = agent('yoko')
+julia    = bot('julia')
+# mike     = bot('mike')
+# michael  = bot('michael')
+# miguel   = bot('miguel')
+# francois = bot('francois')
+# luca     = bot('luca')
+# hero     = bot('hero')
+yoko     = bot('yoko')
 
 
 if debug: print(f'Languages:{datetime.now()}')
 
 # Languages
 
-# chinese =  agent("chinese")
-# japanese = agent("japanese")
-# japanese_teacher =  agent("japanese_teacher")
-# portuguese_teacher = agent("agent("japanese_teacher")
+# chinese =  bot("chinese")
+# japanese = bot("japanese")
+# japanese_teacher =  bot("japanese_teacher")
+# portuguese_teacher = bot("bot("japanese_teacher")
 
 
 #%%

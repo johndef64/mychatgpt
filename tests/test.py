@@ -1,6 +1,6 @@
 #%%
 # Import module
-from mychatgpt import julia, C, agent
+from mychatgpt import julia, C, bot
 #%%
 # Copy you code inside the clipboard
 C.cp("""@ optimises this function : """)
@@ -57,13 +57,13 @@ fixer.cp("")
 
 #%%
 # Test traslators
-from mychatgpt import agent
-chinese = agent("chinese")
+from mychatgpt import bot
+chinese = bot("chinese")
 chinese.c("こんにちは、お元気ですか？")
 #%%
 from mychatgpt import display_assistants
 display_assistants()
-ch = agent("chinese")
+ch = bot("chinese")
 ch.c("ciao piacere di conoscerti, mi chiamo giovanni.")
 #%%
 # Text Python Copilot
@@ -81,7 +81,7 @@ G.c("@NO", 4)
 
 #%%
 
-# Engage in a chat with Julia agent
+# Engage in a chat with Julia bot
 julia.chat('Hi Julia, how are you today?')
 #%%
 julia.chat("Hi Julia, today my paper was published!")
@@ -128,7 +128,7 @@ print('\nPrompt used: ', julia.ask_reply)
 GPT().create_image("Create a Sailor Mercury fan art in punk goth style", model='dall-e-3')
 #%%
 
-# Engage in a chat with Yoko agent
+# Engage in a chat with Yoko bot
 
 # Set the model version to 4 for Yoko
 yoko.model = 4
@@ -264,15 +264,15 @@ else:
 
 
 #%%
-from mychatgpt import agent
-chinese = agent("chinese")
+from mychatgpt import bot
+chinese = bot("chinese")
 chinese.c("Ciao Jinyi Ye, è un piacere di conoscerti", speak=True)
 #%%
 chinese.text2speech(chinese.chat_reply)
 #%%
 
-from mychatgpt import agent
-japanese = agent("japanese")
+from mychatgpt import bot
+japanese = bot("japanese")
 
 japanese.text2speech("ciao, cosa fai di bello oggi?", voice="nova", save_audio=True)
 #%%
