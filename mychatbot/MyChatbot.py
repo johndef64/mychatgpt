@@ -138,7 +138,7 @@ ss[chat_n] = update_assistant(ss[chat_n])
 
 # Check if the file exists
 # if os.path.exists('openai_api_key.txt'):
-if len(list(load_api_keys().keys() ))> 0:
+if len(list(load_api_keys().keys() )) > 0:
     api_keys = load_api_keys()
     ss.openai_api_key   = api_keys.get("openai", "missing")
     ss.gemini_api_key   = api_keys.get("gemini", "missing")
@@ -149,7 +149,7 @@ if len(list(load_api_keys().keys() ))> 0:
     #     ss.openai_api_key = file.read().strip()
     #     #ss.openai_api_key = str(open('openai_api_key.txt', 'r').read())
 else:
-    ss.openai_api_key = None
+    ss.openai_api_key   = None
     ss.gemini_api_key   = None
     ss.deepseek_api_key = None
     ss.x_api_key        = None
@@ -161,12 +161,21 @@ with st.sidebar:
 
     if not ss.openai_api_key:
         ss.openai_api_key = st.text_input("OpenAI API Key", key="chatbot_api_key", type="password")
+    if not ss.deepseek_api_key:
         #ss.gemini_api_key   = st.text_input("Gemini API Key", type="password")
         ss.deepseek_api_key = st.text_input("Deepseek API Key",  type="password")
-        ss.x_api_key        = st.text_input("Xai API Key",  type="password")
+    if not ss.x_api_key:
+        ss.x_api_key  = st.text_input("Xai API Key",  type="password")
 
-    else:
-        st.markdown("[API key provided]")
+    # if ss.openai_api_key and ss.deepseek_api_key and ss.x_api_key:
+    #     st.markdown("[API key provided]")
+    keys = {
+        "OpenAI": ss.openai_api_key,
+        "DeepSeek": ss.deepseek_api_key,
+        "X": ss.x_api_key
+    }
+    provided_keys = [name for name, key in keys.items() if key]
+    st.markdown(", ".join(provided_keys) + " API key(s) provided" if provided_keys else "No API keys provided")
 
     st.markdown("[Get an OpenAI API key](https://platform.openai.com/account/api-keys)")
     st.markdown("[View the source code](https://github.com/johndef64/mychatgpt/tree/main/mychatbot)")
@@ -310,7 +319,6 @@ AssistantInfo = """
 - **Oracle**: Coding copilot for every purpose.
 - **Snake**: Python coding copilot for every purpose.
 - **Roger**: R coding copilot for every purpose.
-- **Robert**: R coding copilot for every purpose.
 
 #### Scientific 🔬
 - **Leonardo**: Supports scientific research activities.

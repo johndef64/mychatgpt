@@ -87,22 +87,11 @@ def CodeAgent(command, gpt=base_agent, format ='python', add=""):
 # CodeAgent(C, "calcola la funzione di Lorentz")
 
 
-
-#### Web Data Extractors ###
-def GsearchAssigTags(query,
-                     TAGS=[],
-                     num_results = 20,
-                     print_=False,):
-    data=""
-    links = google_search(query, num_results, advanced=True)
-    for n in range(len(links)):
-        data += links[n].url+"\n"+    links[n].title+"\n"+    links[n].description+"\n\n"
-        if print_: print(links[n].url)
-        if print_: print(links[n].title)
-        if print_: print(links[n].description)
-    print(f"len data:{len(data)}")
-
-
+def AssignTags(query,
+               TAGS=[],
+               data="",
+               model="gpt-4o",
+               print_=False):
     instructions=f""" Act as an Expert Tagger from textual data into structured list format. 
     text classification or text categorization machine. You use a corpus of predefined tags and labels to properly label and tag unstructured input text of the user."""
     corpus= f"""This below is the corpus of tags you are trained to indentify in the text provided: {TAGS}"""
@@ -114,7 +103,7 @@ def GsearchAssigTags(query,
     reply_example=""" """  # aggiungi qui un Data Dictionary come esempio
     # contents, categories, appearance, features, orientation, style, passions, activities, attitudes, practices, kinks
 
-    extractor = GPT(model="gpt-4o")
+    extractor = GPT(model=model)
     extractor.clear_chat()
     extractor.expand_chat(instructions, "system")
     extractor.expand_chat(corpus, "system")
@@ -135,6 +124,26 @@ def GsearchAssigTags(query,
     return assigned_tags
 
 
+#### Web Data Extractors ###
+def GsearchAssigTags(query,
+                     TAGS=[],
+                     num_results = 20,
+                     model="gpt-4o",
+                     print_=False,):
+    data=""
+    links = google_search(query, num_results, advanced=True)
+    for n in range(len(links)):
+        data += links[n].url+"\n"+    links[n].title+"\n"+    links[n].description+"\n\n"
+        if print_: print(links[n].url)
+        if print_: print(links[n].title)
+        if print_: print(links[n].description)
+    print(f"len data:{len(data)}")
+
+    assigned_tags = AssignTags(query, TAGS, data, model=model, print_=print_)
+
+    return assigned_tags
+
+
 # tags = gsearch_assig_tags("jojo bizzarre avneture", ["kitten", "cute", "animal", "spoon", "monster", "person", "Jojo", "stand power", "Jotaro"])
 #
 # tags
@@ -144,8 +153,11 @@ def GsearchAssigTags(query,
 def GsearchExtractMetadata(query,
                            json_form = None,
                            data_dictionary = None,
+                           num_results = 20,
+                           model="gpt-4o",
+                           tags=None,
                            print_=False,
-                           num_results = 20):
+                           ):
     data=""
     links = google_search(query, num_results, advanced=True)
     for n in range(len(links)):
@@ -164,7 +176,7 @@ def GsearchExtractMetadata(query,
             {str(json_form)}
             """
 
-    extractor = GPT(model="gpt-4o")
+    extractor = GPT(model=model)
     extractor.clear_chat()
     extractor.expand_chat(instructions, "system")
     if data_dictionary:
@@ -181,6 +193,11 @@ def GsearchExtractMetadata(query,
         C.c("@ correct the following python dict synthax and return the corrected dict:\n\n"+extractor.chat_reply)
         data_dict = extract_and_convert_to(C.chat_reply, enclosure="{}")
     ###############################
+
+    if tags:
+        assigned_tags = AssignTags(query, tags, data, model=model, print_=print_)
+        data_dict["tags"] = assigned_tags
+
     return data_dict
 
 
@@ -227,7 +244,39 @@ dummy_form =  {
         }
     }
 }
-###
+
+dummy_tags = [
+    # News related tags
+    "news", "journalism", "reporting", "headline", "article", "media", "broadcast", "coverage", 
+    "interview", "exclusive", "investigation", "press", "update", "bulletin", "source", "editorial", 
+    "column", "correspondent", "subscription", "newsfeed", "publisher", "agency", "periodical", "tabloid",
+
+    # Politics related tags
+    "politics", "election", "campaign", "democracy", "government", "senate", "congress", "cabinet", 
+    "policy", "legislation", "bill", "diplomacy", "debate", "reform", "law", "rights", "constitution", 
+    "justice", "lobby", "parliament", "ministry", "vote", "poll", "party", "representative", 
+
+    # Animal related tags
+    "animals", "wildlife", "zoology", "habitat", "species", "endangered", "biodiversity", "ecosystem", 
+    "fauna", "flora", "mammal", "reptile", "amphibian", "avian", "insect", "aquatic", "conservation", 
+    "sanctuary", "safari", "pet", "veterinary", "animalcare", "domestic", "exotic", "trainer",
+
+    # Travel related tags
+    "travel", "vacation", "holiday", "destination", "tourism", "journey", "adventure", "itinerary", 
+    "landscape", "culture", "heritage", "exploration", "backpacking", "flight", "cruise", "resort", 
+    "hiking", "sightseeing", "luxury", "escape", "beach", "island", "city", "guide", "backpacking",
+
+    # Food related tags
+    "food", "cuisine", "recipe", "cooking", "baking", "meal", "dessert", "flavor", "ingredient", 
+    "kitchen", "restaurant", "dining", "gourmet", "appetizer", "maincourse", "snack", "beverage", 
+    "breakfast", "lunch", "dinner", "brunch", "buffet", "barbecue", "vegetarian", "vegan",
+
+    # General content tags
+    "content", "blog", "post", "article", "creator", "writer", "editor", "publication", "story", 
+    "narrative", "creative", "platform", "media", "communication", "network", "engagement", "audience", 
+    "analytics", "trending", "feature", "multimedia", "information", "data", "digital", "strategy"
+]
+
 ###
 #
 # data = gsearch_extract_metadata("Dua Lipa Singer", json_form=dummy_form)
