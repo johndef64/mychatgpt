@@ -2,25 +2,25 @@ import os, sys, contextlib
 from openai import OpenAI
 import streamlit as st
 import base64
-# from assistants import *
+#from assistants import *
 from mychatgpt import GPT, play_audio
 from mychatgpt.utils import *
 from mychatgpt.assistants import *
 from mychatgpt import rileva_lingua, update_log
 
-save_log = True
+save_log=True
 ss = st.session_state
 ### session states name definition ####
 chat_num = '2'
 assistant_name = f"assistant_{chat_num}"
-format_name = f"format_{chat_num}"
-chat_n = f"chat_{chat_num}"
-sys_addings = f"sys_add_{chat_num}"
+format_name    = f"format_{chat_num}"
+chat_n         = f"chat_{chat_num}"
+sys_addings    = f"sys_add_{chat_num}"
 model_name = f"model_{chat_num}"
+
 
 import os
 import pickle
-
 
 def generate_chat_name(path, assistant_name):
     # Counter starts at 1
@@ -31,7 +31,6 @@ def generate_chat_name(path, assistant_name):
     # Return the chat name with the next available index
     return f"{assistant_name}_{index}"
 
-
 def save_chat_as_pickle(path='chats/'):
     if not os.path.exists(path):
         os.mkdir(path)
@@ -40,15 +39,21 @@ def save_chat_as_pickle(path='chats/'):
     # Save chat content in pickle format
     with open(os.path.join(path, chat_name + '.pkl'), 'wb') as file:
         pickle.dump(ss[chat_n], file)
-
+    return chat_name
 
 def load_chat_from_pickle(file_path):
     # Load chat content from pickle file
     with open(file_path, 'rb') as file:
         return pickle.load(file)
 
+def delete_file(file_path):
+    if os.path.exists(file_path):
+        os.remove(file_path)
+        return True
+    else:
+        return False
 
-# %%
+#%%
 # General parameters
 api_models = ['gpt-4o-mini', 'gpt-4o',
               # "o1-mini",
@@ -60,24 +65,18 @@ api_models = ['gpt-4o-mini', 'gpt-4o',
 def clearchat():
     ss[chat_n] = [{"role": "system", "content": ss['assistant']}]
     st.write("Chat cleared!")
-
-
 def clearsys():
     ss[chat_n] = [entry for entry in ss[chat_n] if entry['role'] != 'system']
     st.write("System cleared!")
 
-
 def remove_system_entries(input_list):
     return [entry for entry in input_list if entry.get('role') != 'system']
-
-
 def update_assistant(input_list):
     updated_list = remove_system_entries(input_list)
-    updated_list.append({"role": "system", "content": ss.assistant})
-    for add in ss[sys_addings]:
-        updated_list.append({"role": "system", "content": add})
+    updated_list.append({"role": "system", "content": ss.assistant })
+    for add in  ss[sys_addings]:
+        updated_list.append({"role": "system", "content": add })
     return updated_list
-
 
 def remove_last_non_system(input_list):
     # Iterate backwards to find and remove the last non-system entry
@@ -87,18 +86,16 @@ def remove_last_non_system(input_list):
             break  # Exit the loop once the entry is removed
     return input_list
 
-
 # assistant_list = list(assistants.keys())
 assistant_list = [
-    'none', 'base', 'creator', 'fixer', 'novelist', 'delamain', 'oracle', 'snake', 'roger',  # 'robert',
+    'none', 'base', 'creator', 'fixer', 'novelist', 'delamain',  'oracle', 'snake', 'roger', #'robert',
     'leonardo', 'galileo', 'newton',
     'mendel', 'watson', 'crick', 'venter',
     'collins', 'elsevier', 'springer',
     'darwin', 'dawkins',
     'penrose', 'turing', 'marker',
     'mike', 'michael', 'julia', 'jane', 'yoko', 'asuka', 'misa', 'hero', 'xiao', 'peng', 'miguel', 'francois', 'luca',
-    'english', 'spanish', 'french', 'italian', 'portuguese', 'korean', 'chinese', 'japanese', 'japanese_teacher',
-    'portuguese_teacher'
+    'english', 'spanish', 'french', 'italian', 'portuguese', 'korean', 'chinese', 'japanese', 'japanese_teacher', 'portuguese_teacher'
 ]
 
 # Try to import 'extra' from 'extra_assistant' if it's available
@@ -111,6 +108,7 @@ except ImportError:
 assistants.update(extra)
 # Add keys from 'extra' to 'assistant_list'
 assistant_list.extend(extra.keys())
+
 
 if assistant_name not in ss:
     ss[assistant_name] = 'none'
@@ -127,7 +125,7 @@ ss['assistant'] = assistants[ss[assistant_name]] + features['reply_style'][ss[fo
 
 # Initialize Chat Thread
 if chat_n not in ss:
-    # ss[chat_n] = [{"role": "assistant", "content": "How can I help you?"}]
+    #ss[chat_n] = [{"role": "assistant", "content": "How can I help you?"}]
     ss[chat_n] = [{"role": "system", "content": ss["assistant"]}]
 
 if sys_addings not in ss:
@@ -143,62 +141,72 @@ ss[chat_n] = update_assistant(ss[chat_n])
 # if 'assistant_index' not in ss:
 #     ss.assistant_index = 0
 
-# %%
+#%%
 
 # Check if the file exists
 # if os.path.exists('openai_api_key.txt'):
-if len(list(load_api_keys().keys())) > 0:
+if len(list(load_api_keys().keys() )) > 0:
     api_keys = load_api_keys()
-    ss.openai_api_key = api_keys.get("openai", "missing")
-    ss.gemini_api_key = api_keys.get("gemini", "missing")
+    ss.openai_api_key   = api_keys.get("openai", "missing")
+    ss.gemini_api_key   = api_keys.get("gemini", "missing")
     ss.deepseek_api_key = api_keys.get("deepseek", "missing")
-    ss.x_api_key = api_keys.get("grok", "missing")
+    ss.x_api_key        = api_keys.get("grok", "missing")
 
     # with open('openai_api_key.txt', 'r') as file:
     #     ss.openai_api_key = file.read().strip()
     #     #ss.openai_api_key = str(open('openai_api_key.txt', 'r').read())
 else:
-    ss.openai_api_key = None
-    ss.gemini_api_key = None
+    ss.openai_api_key   = None
+    ss.gemini_api_key   = None
     ss.deepseek_api_key = None
-    ss.x_api_key = None
+    ss.x_api_key        = None
 
 print("App Ready!")
 
 # <<<<<<<<<<<<Sidebar code>>>>>>>>>>>>>
 with st.sidebar:
+
     if not ss.openai_api_key:
         ss.openai_api_key = st.text_input("OpenAI API Key", key="chatbot_api_key", type="password")
-        # ss.gemini_api_key   = st.text_input("Gemini API Key", type="password")
-        ss.deepseek_api_key = st.text_input("Deepseek API Key", type="password")
-        ss.x_api_key = st.text_input("Xai API Key", type="password")
+    if not ss.deepseek_api_key:
+        #ss.gemini_api_key   = st.text_input("Gemini API Key", type="password")
+        ss.deepseek_api_key = st.text_input("Deepseek API Key",  type="password")
+    if not ss.x_api_key:
+        ss.x_api_key  = st.text_input("Xai API Key",  type="password")
 
-    else:
-        st.markdown("[API key provided]")
+    # if ss.openai_api_key and ss.deepseek_api_key and ss.x_api_key:
+    #     st.markdown("[API key provided]")
+    keys = {
+        "OpenAI": ss.openai_api_key,
+        "DeepSeek": ss.deepseek_api_key,
+        "X": ss.x_api_key
+    }
+    provided_keys = [name for name, key in keys.items() if key]
+    st.markdown(", ".join(provided_keys) + " API key(s) provided" if provided_keys else "No API keys provided")
 
     st.markdown("[Get an OpenAI API key](https://platform.openai.com/account/api-keys)")
     st.markdown("[View the source code](https://github.com/johndef64/mychatgpt/tree/main/mychatbot)")
-    # st.markdown("[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/streamlit/llm-examples?quickstart=1)")
+    #st.markdown("[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/streamlit/llm-examples?quickstart=1)")
 
     # Button to show markdown text
     Info = False
     if st.button("Show Info"):
         Info = True
 
+
     ### select values ###
     model = st.radio('Choose a model:', api_models, index=api_models.index(ss[model_name]))
 
-    # assistant = st.selectbox("Assistant", ['none', 'penrose', 'leonardo', 'mendel', 'darwin','delamain'])
-    # language = st.selectbox("Language", ['none', 'Japanese','French','English', 'Portuguese', 'Italian', 'Chinese', 'Spanish'])
+    #assistant = st.selectbox("Assistant", ['none', 'penrose', 'leonardo', 'mendel', 'darwin','delamain'])
+    #language = st.selectbox("Language", ['none', 'Japanese','French','English', 'Portuguese', 'Italian', 'Chinese', 'Spanish'])
     get_assistant = st.selectbox("**Assistant**", assistant_list, index=assistant_list.index(ss[assistant_name]))
     get_format = st.selectbox("**Reply Format**", format_list, index=format_list.index(ss[format_name]))
 
-    translate_in = st.selectbox("**Translate Reply in**",
-                                ["none", "English", "French", "Japanese", "Italian", "Spanish"])
+    translate_in = st.selectbox("**Translate Reply in**", ["none", "English", "French", "Japanese", "Italian", "Spanish"])
 
     instructions = st.text_input("Add Instructions")
 
-    # play_audio_ = st.checkbox('Play Audio?')
+    #play_audio_ = st.checkbox('Play Audio?')
     col1, col2 = st.columns(2)
     play_audio_ = col1.checkbox('Play Audio', value=False)
     copy_reply_ = col2.checkbox('Copy Reply', value=False)
@@ -210,8 +218,10 @@ with st.sidebar:
     ss[model_name] = model
     ### UPDATE HERE CHAT THERD WITH NEW ASSISTANT (Replace)
 
+
+
     # Add a button in the sidebar and assign the function to be executed on click
-    # st.markdown("Press Clearchat after Assistant selection")
+    #st.markdown("Press Clearchat after Assistant selection")
     col12, col22 = st.columns(2)
     if col12.button("Clear chat"):
         clearchat()
@@ -221,41 +231,42 @@ with st.sidebar:
     # Uploaders
 
     image_path = st.text_input("Load Image (path or url)")
-
-
-    # image_file = st.file_uploader("Upload an image file", type=("jpg", "png"))
+    #image_file = st.file_uploader("Upload an image file", type=("jpg", "png"))
     def encode_image(image_path):
         with open(image_path, "rb") as image_file:
             return base64.b64encode(image_file.read()).decode('utf-8')
 
-
     uploaded_file = st.file_uploader("Upload an text file", type=("txt", "md"))
 
-    user_avi = st.selectbox('Change your avatar',
-                            ['🧑🏻', '🧔🏻', '👩🏻', '👧🏻', '👸🏻', '👱🏻‍♂️', '🧑🏼', '👸🏼', '🧒🏽', '👳🏽', '👴🏼', '🎅🏻', ])
+    user_avi = st.selectbox('Change your avatar', ['🧑🏻', '🧔🏻', '👩🏻', '👧🏻', '👸🏻','👱🏻‍♂️','🧑🏼','👸🏼','🧒🏽','👳🏽','👴🏼', '🎅🏻', ])
 
     # Additional button
     if st.button("Save Chat"):
-        save_chat_as_pickle()
-        st.write("Chat Saved!")
+        chat_name = save_chat_as_pickle()
+        st.write(f"Chat Saved as {chat_name}!")
 
     # List files in the 'chats/' directory
     files_in_chats = os.listdir('chats/') if os.path.exists('chats/') else (os.makedirs('chats'), [])[1]
 
     # Implement a select box to choose a file
-    file_path = st.selectbox("Choose a file to load", files_in_chats)
+    chat_path = st.selectbox("Choose a file to load", files_in_chats)
+    full_path = os.path.join('chats/', chat_path)
 
-    if st.button("Load Chat"):
-        full_path = os.path.join('chats/', file_path)
+    col1, col2 = st.columns(2)
+    if col1.button("Load Chat"):
         ss[chat_n] = load_chat_from_pickle(full_path)
         st.write("Chat Loaded!")
+
+    if col2.button("Delete Chat"):
+        delete_file(full_path)
+        st.write("Chat Deleted!")
+
+
 
 ############################################################################################
 ############################################################################################
 
 from mychatgpt import gpt_models, deepseek_models, x_models
-
-
 # selct client
 def select_client(model):
     if model in gpt_models:
@@ -272,28 +283,27 @@ def select_client(model):
 # <<<<<<<<<<<< >>>>>>>>>>>>>
 
 def add_instructions(instructions):
-    if not any(entry.get("role") == "system" and instructions in entry.get("content", "")
-               for entry in ss[chat_n]):
+    if not any(entry.get("role") == "system" and instructions in entry.get("content", "") 
+           for entry in ss[chat_n]):
         ss[chat_n].append({"role": "system", "content": instructions})
-
 
 ### Add Context to system
 if instructions:
-    # add_instructions(instructions)
-    ss[sys_addings].append(instructions)
+   #add_instructions(instructions)
+   ss[sys_addings].append(instructions)
 
 if uploaded_file:
     text = uploaded_file.read().decode()
-    ss[chat_n].append(
-        {"role": "system", "content": "Read the text below and add it's content to your knowledge:\n\n" + text})
+    ss[chat_n].append({"role": "system", "content": "Read the text below and add it's content to your knowledge:\n\n"+text})
 
-# if uploaded_file:
-# image = uploaded_image.read().decode()
-# ss[chat_n] = ...
+#if uploaded_file:
+#image = uploaded_image.read().decode()
+#ss[chat_n] = ...
 
 # # Update session state with the selected value
 # ss[assistant_name] = get_assistant
 # ss["format_name"] = get_format
+
 
 
 st.title("💬 Ask Assistant")
@@ -320,7 +330,6 @@ AssistantInfo = """
 - **Oracle**: Coding copilot for every purpose.
 - **Snake**: Python coding copilot for every purpose.
 - **Roger**: R coding copilot for every purpose.
-- **Robert**: R coding copilot for every purpose.
 
 #### Scientific 🔬
 - **Leonardo**: Supports scientific research activities.
@@ -364,31 +373,33 @@ if Info:
     st.info(f"{AssistantInfo}")
     st.info(f"{info}")
 
+
+
 # Update Language Automatically
-# if ss.persona not in ss[chat_n]:
+#if ss.persona not in ss[chat_n]:
 #    ss[chat_n] = update_assistant(ss[chat_n])
 
 voice_dict = {
-    'none': 'echo', 'luca': 'onyx',
-    'hero': 'echo', 'peng': 'echo',
-    'yoko': 'nova', 'xiao': 'nova',
-    'miguel': 'echo', 'francois': 'onyx', 'michael': 'onyx',
-    'julia': 'shimmer', 'mike': 'onyx',
-    'penrose': 'onyx', 'leonardo': 'onyx', 'mendel': 'onyx', 'darwin': 'onyx', 'delamain': 'onyx'
+    'none':'echo','luca':'onyx',
+    'hero':'echo', 'peng':'echo',
+    'yoko':'nova', 'xiao':'nova',
+    'miguel':'echo', 'francois':'onyx', 'michael':'onyx',
+    'julia':'shimmer', 'mike':'onyx',
+    'penrose':'onyx', 'leonardo':'onyx', 'mendel':'onyx', 'darwin':'onyx','delamain':'onyx'
 }
 
 avatar_dict = {
-    'none': "🤖",
-    'base': "🤖",
-    'hero': "👦🏻", 'yoko': "👧🏻", 'peng': "👦🏻", 'xiao': "👧🏻",
-    'miguel': "🧑🏼", 'francois': "🧑🏻",
-    'luca': "🧔🏻", 'michael': "🧔🏻",
-    'julia': "👱🏻‍♀️", 'mike': "👱🏻‍♂️",
-    'penrose': "👨🏻‍🏫", 'leonardo': "👨🏻‍🔬", 'mendel': "👨🏻‍⚕️",
-    'darwin': "👴🏻", 'dawkins': "👴🏻",
-    'delamain': "👨🏻‍💻", 'snake': "👨🏻‍💻", 'roger': "👨🏻‍💻",
-    'alfred': "🤵🏻",
-    'laura': "👩🏻",
+    'none':"🤖",
+    'base':"🤖",
+    'hero':"👦🏻", 'yoko':"👧🏻", 'peng':"👦🏻", 'xiao':"👧🏻",
+    'miguel':"🧑🏼", 'francois':"🧑🏻",
+    'luca':"🧔🏻", 'michael':"🧔🏻",
+    'julia':"👱🏻‍♀️", 'mike':"👱🏻‍♂️",
+    'penrose':"👨🏻‍🏫", 'leonardo':"👨🏻‍🔬", 'mendel':"👨🏻‍⚕️",
+    'darwin':"👴🏻", 'dawkins':"👴🏻",
+    'delamain':"👨🏻‍💻",'snake':"👨🏻‍💻",'roger':"👨🏻‍💻",
+    'alfred':"🤵🏻",
+    'laura':"👩🏻",
 }
 voice = voice_dict.get(get_assistant, "echo")
 chatbot_avi = avatar_dict.get(get_assistant, "🤖")
@@ -396,8 +407,9 @@ chatbot_avi = avatar_dict.get(get_assistant, "🤖")
 print("Voice:", voice)
 
 
+
 # Trigger the specific function based on the selection
-# if assistant and not ss[chat_n] == [{"role": "system", "content": assistants[assistant]}]:
+#if assistant and not ss[chat_n] == [{"role": "system", "content": assistants[assistant]}]:
 #    ss[chat_n] = [{"role": "system", "content": assistants[assistant]}]
 #    #st.write('assistant changed')
 
@@ -414,8 +426,8 @@ def display_chat():
                     avatar = chatbot_avi
                 st.chat_message(msg["role"], avatar=avatar).write(msg["content"])
 
-
 display_chat()
+
 
 # <<<<<<<<<<<<Engage chat>>>>>>>>>>>>>
 
@@ -441,11 +453,11 @@ if prompt := st.chat_input():
             st.chat_message(role, avatar=user_avi).write(prompt)
 
 
-
+    
     elif prompt in ["."]:
         remove_last_non_system(ss[chat_n])
-        # ss[chat_n].pop()
-        # ss[chat_n].pop()
+        #ss[chat_n].pop()
+        #ss[chat_n].pop()
         st.rerun()
 
     else:
@@ -455,7 +467,7 @@ if prompt := st.chat_input():
 
         if image_path:
             if image_path.startswith('http'):
-                print('<Image path:', image_path, '>')
+                print('<Image path:',image_path, '>')
                 pass
             else:
                 print('<Enconding Image...>')
@@ -463,31 +475,33 @@ if prompt := st.chat_input():
                 image_path = f"data:image/jpeg;base64,{base64_image}"
 
             image_add = {"role": 'user',
-                         "content": [{"type": "image_url", "image_url": {"url": image_path}}]}
+                        "content": [{"type": "image_url", "image_url": {"url": image_path} }] }
             if image_add not in ss[chat_n]:
                 ss[chat_n].append(image_add)
 
-        # client = OpenAI(api_key=ss.openai_api_key)
+        #client = OpenAI(api_key=ss.openai_api_key)
         client = select_client(model)
-
+        
         # Get User Prompt:
         ss[chat_n].append({"role": "user", "content": prompt})
         st.chat_message('user', avatar=user_avi).write(prompt)
-
+        
         # Build Chat Thread
         chat_thread = []
         for msg in ss[chat_n]:
-            if not msg["content"].startswith('<<'):
+            if isinstance(msg["content"], list):
+                chat_thread.append(msg)
+            elif not msg["content"].startswith('<<'):
                 chat_thread.append(msg)
 
-        # Generate Reply
+        # Generate Reply        
         response = client.chat.completions.create(model=model,
-                                                  messages=chat_thread,
-                                                  stream=False,
-                                                  top_p=1,
-                                                  frequency_penalty=0,
-                                                  presence_penalty=0
-                                                  )
+                                                messages=chat_thread,
+                                                stream=False,
+                                                top_p=1,
+                                                frequency_penalty=0,
+                                                presence_penalty=0
+                                                )
 
         reply = response.choices[0].message.content
 
@@ -510,24 +524,31 @@ if prompt := st.chat_input():
             else:
                 translator = create_translator(language)
             response_ = client.chat.completions.create(model=model,
-                                                       messages=[{"role": "system", "content": translator},
-                                                                 {"role": "user", "content": reply}])
-            translation = "<<" + response_.choices[0].message.content + ">>"
+                                                    messages=[{"role": "system", "content": translator},
+                                                                {"role": "user", "content": reply}])
+            translation = "<<"+response_.choices[0].message.content+">>"
             ss[chat_n].append({"role": "assistant", "content": translation})
             st.chat_message('assistant').write(translation)
+
 
         if play_audio_:
             Text2Speech(reply, voice=voice)
 
         if run_code:
             from ExecuteCode import ExecuteCode
-
             ExecuteCode(reply)
 
-    # with col2:
+
+
+    #with col2:
     #    if st.button("New Chat"):
     #    clearchat()
 
-# %%
+
+
+
+
+
+#%%
 
 
