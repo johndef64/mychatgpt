@@ -7,6 +7,8 @@ setup(
     install_requires=[         # Optional: specify dependencies
         "openai", "tiktoken", "langdetect", "pandas", "pyperclip", "gdown", "pyyaml","scipy", "nltk", "PyPDF2", 'cryptography', 'matplotlib', "pygame", "sounddevice", "soundfile", "keyboard", "markdown", "pillow", "ollama", "beautifulsoup4", "googlesearch-python", "tabulate"
     ],
+    #pip install google-generativeai
+
     #entry_points={             # Optional: command-line scripts
     #    'console_scripts': [
     #        'your-command=your_package.module:function',
@@ -23,5 +25,5 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
     ],
-    python_requires='>=3.6',  # Specify required Python versions
+    python_requires='>=3.9',  # Specify required Python versions
 )

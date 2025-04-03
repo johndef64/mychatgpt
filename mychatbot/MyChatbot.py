@@ -39,12 +39,19 @@ def save_chat_as_pickle(path='chats/'):
     # Save chat content in pickle format
     with open(os.path.join(path, chat_name + '.pkl'), 'wb') as file:
         pickle.dump(ss[chat_n], file)
+    return chat_name
 
 def load_chat_from_pickle(file_path):
     # Load chat content from pickle file
     with open(file_path, 'rb') as file:
         return pickle.load(file)
 
+def delete_file(file_path):
+    if os.path.exists(file_path):
+        os.remove(file_path)
+        return True
+    else:
+        return False
 
 #%%
 # General parameters
@@ -235,20 +242,24 @@ with st.sidebar:
 
     # Additional button
     if st.button("Save Chat"):
-        save_chat_as_pickle()
-        st.write("Chat Saved!")
+        chat_name = save_chat_as_pickle()
+        st.write(f"Chat Saved as {chat_name}!")
 
     # List files in the 'chats/' directory
     files_in_chats = os.listdir('chats/') if os.path.exists('chats/') else (os.makedirs('chats'), [])[1]
 
     # Implement a select box to choose a file
-    file_path = st.selectbox("Choose a file to load", files_in_chats)
+    chat_path = st.selectbox("Choose a file to load", files_in_chats)
+    full_path = os.path.join('chats/', chat_path)
 
-    if st.button("Load Chat"):
-        full_path = os.path.join('chats/', file_path)
+    col1, col2 = st.columns(2)
+    if col1.button("Load Chat"):
         ss[chat_n] = load_chat_from_pickle(full_path)
         st.write("Chat Loaded!")
 
+    if col2.button("Delete Chat"):
+        delete_file(full_path)
+        st.write("Chat Deleted!")
 
 
 
@@ -478,7 +489,9 @@ if prompt := st.chat_input():
         # Build Chat Thread
         chat_thread = []
         for msg in ss[chat_n]:
-            if not msg["content"].startswith('<<'):
+            if isinstance(msg["content"], list):
+                chat_thread.append(msg)
+            elif not msg["content"].startswith('<<'):
                 chat_thread.append(msg)
 
         # Generate Reply        
