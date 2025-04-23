@@ -196,7 +196,7 @@ def pass_api_keys():
 
     x_api_key = input('Provide here your Grok api key, if not leave blank:')
     if x_api_key == "":
-        print('Please, get your DeepSeek API-key')
+        print('Please, get your Grok API-key')
         x_api_key = "missing"
 
     #if simple_bool('Do you have an openai key? '):
@@ -205,11 +205,17 @@ def pass_api_keys():
         print('Please, get your Gemini API-key')
         gemini_api_key = "missing"
 
+    groq_api_key = input('Provide here your Groq api key, if not leave blank:')
+    if groq_api_key == "":
+        print('Please, get your Groq API-key')
+        groq_api_key = "missing"
+
     api_keys = {
         "openai": openai_api_key,
         "deepseek": deepseek_api_key,
         "grok": x_api_key,
         "gemini": gemini_api_key,
+        "groq": groq_api_key,
     }
     save_json_in_lib(api_keys, "api_keys.json")
 
@@ -236,6 +242,7 @@ def load_api_keys():
                 "grok":     "miss",
                 "gemini":   "miss",
                 "aimlapi":   "miss",
+                "groq":   "miss",
             }
     else:
         # if api_keys.json in cwd, take them from here

@@ -526,6 +526,8 @@ class GPT:
                 self.client = OpenAI(api_key=str(my_key), base_url="https://api.deepseek.com")
             elif model in x_models:
                 self.client = OpenAI(api_key=str(my_key), base_url="https://api.x.ai/v1")
+            elif model in groq_models:
+                self.client = Groq(api_key=str(my_key)),
 
         else:
             self.select_client(self.model)
