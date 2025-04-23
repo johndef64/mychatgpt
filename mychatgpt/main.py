@@ -19,6 +19,7 @@ import tiktoken
 import pandas as pd
 import pyperclip as pc
 from openai import OpenAI, AuthenticationError
+from groq import Groq
 from scipy.spatial import distance
 
 import keyboard as kb
@@ -125,8 +126,27 @@ gpt_models = [i for i in gpt_models_dict.keys() if "gpt" in i or "o1" in i]+["da
 deepseek_models = ["deepseek-chat", 'deepseek-reasoner']
 x_models = ["grok-2-1212", 'grok-2-vision-1212', "grok-2-latest"]
 aiml_models = ["cognitivecomputations/dolphin-2.5-mixtral-8x7", "qwen-turbo"]
+groq_models = [
+    "gemma2-9b-it",
+    "llama-3.3-70b-versatile",
+    "llama-3.1-8b-instant",
+    "llama-guard-3-8b",
+    "llama3-70b-8192",
+    "llama3-8b-8192",
+    "whisper-large-v3",
+    "whisper-large-v3-turbo",
+    "distil-whisper-large-v3-en",
+    "allam-2-7b",
+    "deepseek-r1-distill-llama-70b",
+    "meta-llama/llama-4-maverick-17b-128e-instruct",
+    "meta-llama/llama-4-scout-17b-16e-instruct",
+    "mistral-saba-24b",
+    "playai-tts",
+    "playai-tts-arabic",
+    "qwen-qwq-32b"
+]
 
-openai_compliant = gpt_models + deepseek_models + x_models + aiml_models
+openai_compliant = gpt_models + deepseek_models + x_models + aiml_models + groq_models
 
 
 ####### Image Models #######
@@ -284,6 +304,7 @@ from nltk.stem import PorterStemmer
 from nltk.tokenize import word_tokenize
 
 def get_embeddings(input="Your text string goes here", model="text-embedding-3-small"):
+    openai_client = OpenAI(api_key=api_keys.get("openai", "missing"))
     response = openai_client.embeddings.create(
         input=input,
         model=model
@@ -519,6 +540,8 @@ class GPT:
             self.client = OpenAI(api_key=load_api_keys()["deepseek"], base_url="https://api.deepseek.com")
         elif model in x_models:
             self.client = OpenAI(api_key=load_api_keys()["grok"], base_url="https://api.x.ai/v1")
+        elif model in groq_models:
+            self.client = Groq(api_key=load_api_keys()["groq"])
         elif model in aiml_models:
             self.client = OpenAI(api_key=load_api_keys()["aimlapi"], base_url="https://api.aimlapi.com/v1")
 
@@ -1470,13 +1493,13 @@ if debug: print(f'Scientific:{datetime.now()}')
 # leonardo = bot('leonardo')
 # newton =   bot('leonardo')
 # galileo =  bot('leonardo')
-mendel =   bot('mendel')
-watson =   bot('mendel')
+# mendel =   bot('mendel')
+# watson =   bot('mendel')
 # venter =   bot('mendel')
 # crick =    bot('mendel')
 # darwin =   bot('darwin')
 # dawkins =  bot('darwin')
-penrose =  bot('penrose')
+# penrose =  bot('penrose')
 # turing =   bot('penrose')
 # marker =   bot('penrose')
 # collins =  bot('collins')
@@ -1486,14 +1509,14 @@ penrose =  bot('penrose')
 if debug: print(f'Characters:{datetime.now()}')
 
 # Characters
-julia    = bot('julia')
+# julia    = bot('julia')
 # mike     = bot('mike')
 # michael  = bot('michael')
 # miguel   = bot('miguel')
 # francois = bot('francois')
 # luca     = bot('luca')
 # hero     = bot('hero')
-yoko     = bot('yoko')
+# yoko     = bot('yoko')
 
 
 if debug: print(f'Languages:{datetime.now()}')

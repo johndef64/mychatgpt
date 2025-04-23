@@ -58,7 +58,23 @@ def delete_file(file_path):
 api_models = ['gpt-4o-mini', 'gpt-4o',
               # "o1-mini",
               "deepseek-chat", "deepseek-reasoner",
-              "grok-2-latest"]
+              "grok-2-latest",
+
+              "gemma2-9b-it",
+              #"llama-3.3-70b-versatile",
+              #"llama-3.1-8b-instant",
+              #"llama-guard-3-8b",
+              #"llama3-70b-8192",
+              #"llama3-8b-8192",
+              #"allam-2-7b",
+              "deepseek-r1-distill-llama-70b",
+              "meta-llama/llama-4-maverick-17b-128e-instruct",
+              "meta-llama/llama-4-scout-17b-16e-instruct",
+              #"mistral-saba-24b",
+              #"playai-tts",
+              "qwen-qwq-32b"
+              
+              ]
 
 
 # Function to be executed on button click
@@ -151,6 +167,7 @@ if len(list(load_api_keys().keys() )) > 0:
     ss.gemini_api_key   = api_keys.get("gemini", "missing")
     ss.deepseek_api_key = api_keys.get("deepseek", "missing")
     ss.x_api_key        = api_keys.get("grok", "missing")
+    ss.groq_api_key     = api_keys.get("groq", "missing")
 
     # with open('openai_api_key.txt', 'r') as file:
     #     ss.openai_api_key = file.read().strip()
@@ -160,6 +177,7 @@ else:
     ss.gemini_api_key   = None
     ss.deepseek_api_key = None
     ss.x_api_key        = None
+    ss.groq_api_key    = None
 
 print("App Ready!")
 
@@ -173,13 +191,16 @@ with st.sidebar:
         ss.deepseek_api_key = st.text_input("Deepseek API Key",  type="password")
     if not ss.x_api_key:
         ss.x_api_key  = st.text_input("Xai API Key",  type="password")
+    if not ss.x_api_key:
+        ss.groq_api_key  = st.text_input("Groq API Key",  type="password")
 
     # if ss.openai_api_key and ss.deepseek_api_key and ss.x_api_key:
     #     st.markdown("[API key provided]")
     keys = {
         "OpenAI": ss.openai_api_key,
         "DeepSeek": ss.deepseek_api_key,
-        "X": ss.x_api_key
+        "X": ss.x_api_key,
+        "Groq": ss.groq_api_key
     }
     provided_keys = [name for name, key in keys.items() if key]
     st.markdown(", ".join(provided_keys) + " API key(s) provided" if provided_keys else "No API keys provided")
@@ -266,7 +287,7 @@ with st.sidebar:
 ############################################################################################
 ############################################################################################
 
-from mychatgpt import gpt_models, deepseek_models, x_models
+from mychatgpt import gpt_models, deepseek_models, x_models, groq_models, Groq
 # selct client
 def select_client(model):
     if model in gpt_models:
@@ -277,6 +298,9 @@ def select_client(model):
     elif model in x_models:
         print("using Xai model")
         client = OpenAI(api_key=load_api_keys()["grok"], base_url="https://api.x.ai/v1")
+    elif model in groq_models:
+        print("using Groq models")
+        client = Groq(api_key=load_api_keys()["groq"])
     return client
 
 
