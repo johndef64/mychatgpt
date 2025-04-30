@@ -143,7 +143,9 @@ groq_models = [
     "mistral-saba-24b",
     "playai-tts",
     "playai-tts-arabic",
-    "qwen-qwq-32b"
+    "qwen-qwq-32b",
+    "compound-beta",
+    "compound-beta-mini",
 ]
 
 openai_compliant = gpt_models + deepseek_models + x_models + aiml_models + groq_models

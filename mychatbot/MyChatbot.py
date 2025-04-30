@@ -1,4 +1,4 @@
-import os, sys, contextlib
+import os, sys, contextlib, re
 from openai import OpenAI
 import streamlit as st
 import base64
@@ -70,9 +70,11 @@ api_models = ['gpt-4o-mini', 'gpt-4o',
               "deepseek-r1-distill-llama-70b",
               "meta-llama/llama-4-maverick-17b-128e-instruct",
               "meta-llama/llama-4-scout-17b-16e-instruct",
-              #"mistral-saba-24b",
+              "mistral-saba-24b",
               #"playai-tts",
-              "qwen-qwq-32b"
+              "qwen-qwq-32b",
+              "compound-beta",
+              "compound-beta-mini"
               
               ]
 
@@ -101,6 +103,14 @@ def remove_last_non_system(input_list):
             del input_list[i]  # Remove the entry
             break  # Exit the loop once the entry is removed
     return input_list
+
+
+
+
+
+# Output: modified_string => "This is a string with tags."
+#         extracted_parts => ["sample", "thought"]
+
 
 # assistant_list = list(assistants.keys())
 assistant_list = [
@@ -461,6 +471,16 @@ def display_chat():
 display_chat()
 
 
+def strip_think_tag(input_string):
+    # Trova la parte all'interno dei tag <think>
+    pattern = r"<think>(.*?)</think>"
+    think_part = re.findall(pattern, input_string, re.DOTALL)
+    # Rimuovi la parte <think> dalla stringa originale
+    senza_think = re.sub(pattern, '', input_string, flags=re.DOTALL).strip()
+    # Rimuovi eventuali spazi aggiuntivi
+    think_part = think_part[0].strip() if think_part else ''
+    return senza_think, think_part
+
 # <<<<<<<<<<<<Engage chat>>>>>>>>>>>>>
 
 if prompt := st.chat_input():
@@ -550,6 +570,9 @@ if prompt := st.chat_input():
                                                 )
 
         reply = response.choices[0].message.content
+        pc.copy(reply)
+        reply, chain_of_thoughts = strip_think_tag(reply)
+        print("<<<Chain of thoughts: ", chain_of_thoughts,">>>")
 
         # Opt out image from context
         if uploaded_image:
@@ -563,7 +586,7 @@ if prompt := st.chat_input():
                 )
             ]
             print(ss[chat_n])
-            
+
 
         # Append Reply
         ss[chat_n].append({"role": "assistant", "content": reply})

@@ -1,4 +1,4 @@
-import os, sys, contextlib
+import os, sys, contextlib, re
 from openai import OpenAI
 import streamlit as st
 import base64
@@ -70,9 +70,11 @@ api_models = ['gpt-4o-mini', 'gpt-4o',
               "deepseek-r1-distill-llama-70b",
               "meta-llama/llama-4-maverick-17b-128e-instruct",
               "meta-llama/llama-4-scout-17b-16e-instruct",
-              #"mistral-saba-24b",
+              "mistral-saba-24b",
               #"playai-tts",
-              "qwen-qwq-32b"
+              "qwen-qwq-32b",
+              "compound-beta",
+              "compound-beta-mini"
               
               ]
 
@@ -101,6 +103,14 @@ def remove_last_non_system(input_list):
             del input_list[i]  # Remove the entry
             break  # Exit the loop once the entry is removed
     return input_list
+
+
+
+
+
+# Output: modified_string => "This is a string with tags."
+#         extracted_parts => ["sample", "thought"]
+
 
 # assistant_list = list(assistants.keys())
 assistant_list = [
@@ -251,11 +261,19 @@ with st.sidebar:
 
     # Uploaders
 
-    image_path = st.text_input("Load Image (path or url)")
+    image_path = None
+    #image_path = st.text_input("Load Image (path or url)")
     #image_file = st.file_uploader("Upload an image file", type=("jpg", "png"))
     def encode_image(image_path):
         with open(image_path, "rb") as image_file:
             return base64.b64encode(image_file.read()).decode('utf-8')
+
+        
+    uploaded_image = st.file_uploader("Upload a image file", type=("jpg", "png", "jpeg"))
+    def encode_ioimage(uploaded_image):
+        image_data = uploaded_image.read()
+        return base64.b64encode(image_data).decode("utf-8")
+
 
     uploaded_file = st.file_uploader("Upload an text file", type=("txt", "md"))
 
@@ -453,6 +471,16 @@ def display_chat():
 display_chat()
 
 
+def strip_think_tag(input_string):
+    # Trova la parte all'interno dei tag <think>
+    pattern = r"<think>(.*?)</think>"
+    think_part = re.findall(pattern, input_string, re.DOTALL)
+    # Rimuovi la parte <think> dalla stringa originale
+    senza_think = re.sub(pattern, '', input_string, flags=re.DOTALL).strip()
+    # Rimuovi eventuali spazi aggiuntivi
+    think_part = think_part[0].strip() if think_part else ''
+    return senza_think, think_part
+
 # <<<<<<<<<<<<Engage chat>>>>>>>>>>>>>
 
 if prompt := st.chat_input():
@@ -488,15 +516,22 @@ if prompt := st.chat_input():
         if not ss.openai_api_key:
             st.info("Please add your OpenAI API key to continue.")
             st.stop()
+            
 
-        if image_path:
-            if image_path.startswith('http'):
-                print('<Image path:',image_path, '>')
-                pass
+        if image_path or uploaded_image:
+            # if image_path:
+            #     if image_path.startswith('http'):
+            #         print('<Image path:',image_path, '>')
+            #     pass
+            # else:
+            print('<Enconding Image...>')
+            if uploaded_image:
+                base64_image = encode_ioimage(uploaded_image)
             else:
-                print('<Enconding Image...>')
                 base64_image = encode_image(image_path)
-                image_path = f"data:image/jpeg;base64,{base64_image}"
+
+                
+            image_path = f"data:image/jpeg;base64,{base64_image}"
 
             image_add = {"role": 'user',
                         "content": [{"type": "image_url", "image_url": {"url": image_path} }] }
@@ -505,6 +540,13 @@ if prompt := st.chat_input():
 
         #client = OpenAI(api_key=ss.openai_api_key)
         client = select_client(model)
+        
+        # change model if model is not multimodal
+        if image_path:
+            if model in gpt_models:
+                pass
+            elif model in x_models:
+                model = "grok-2-vision-1212"
         
         # Get User Prompt:
         ss[chat_n].append({"role": "user", "content": prompt})
@@ -528,12 +570,34 @@ if prompt := st.chat_input():
                                                 )
 
         reply = response.choices[0].message.content
+        pc.copy(reply)
+        reply, chain_of_thoughts = strip_think_tag(reply)
+        print("<<<Chain of thoughts: ", chain_of_thoughts,">>>")
+
+        # Opt out image from context
+        if uploaded_image:
+            # Sostituisci se l'ultimo messaggio è multimodale
+            # Filtra e rimuovi tutti i messaggi che contengono una parte con tipo "image_url"
+            ss[chat_n] = [
+                msg for msg in ss[chat_n]
+                if not (
+                    isinstance(msg.get("content"), list)
+                    and any(part.get("type") == "image_url" for part in msg["content"])
+                )
+            ]
+            print(ss[chat_n])
+
 
         # Append Reply
         ss[chat_n].append({"role": "assistant", "content": reply})
         st.chat_message('assistant', avatar=chatbot_avi).write(reply)
+        
+
+
+
         if check_copy_paste() and copy_reply_:
             pc.copy(reply)
+
         if save_log:
             update_log(ss[chat_n][-2])
             update_log(ss[chat_n][-1])
