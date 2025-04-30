@@ -251,11 +251,19 @@ with st.sidebar:
 
     # Uploaders
 
-    image_path = st.text_input("Load Image (path or url)")
+    image_path = None
+    #image_path = st.text_input("Load Image (path or url)")
     #image_file = st.file_uploader("Upload an image file", type=("jpg", "png"))
     def encode_image(image_path):
         with open(image_path, "rb") as image_file:
             return base64.b64encode(image_file.read()).decode('utf-8')
+
+        
+    uploaded_image = st.file_uploader("Upload a image file", type=("jpg", "png", "jpeg"))
+    def encode_ioimage(uploaded_image):
+        image_data = uploaded_image.read()
+        return base64.b64encode(image_data).decode("utf-8")
+
 
     uploaded_file = st.file_uploader("Upload an text file", type=("txt", "md"))
 
@@ -488,15 +496,22 @@ if prompt := st.chat_input():
         if not ss.openai_api_key:
             st.info("Please add your OpenAI API key to continue.")
             st.stop()
+            
 
-        if image_path:
-            if image_path.startswith('http'):
-                print('<Image path:',image_path, '>')
-                pass
+        if image_path or uploaded_image:
+            # if image_path:
+            #     if image_path.startswith('http'):
+            #         print('<Image path:',image_path, '>')
+            #     pass
+            # else:
+            print('<Enconding Image...>')
+            if uploaded_image:
+                base64_image = encode_ioimage(uploaded_image)
             else:
-                print('<Enconding Image...>')
                 base64_image = encode_image(image_path)
-                image_path = f"data:image/jpeg;base64,{base64_image}"
+
+                
+            image_path = f"data:image/jpeg;base64,{base64_image}"
 
             image_add = {"role": 'user',
                         "content": [{"type": "image_url", "image_url": {"url": image_path} }] }
@@ -505,6 +520,13 @@ if prompt := st.chat_input():
 
         #client = OpenAI(api_key=ss.openai_api_key)
         client = select_client(model)
+        
+        # change model if model is not multimodal
+        if image_path:
+            if model in gpt_models:
+                pass
+            elif model in x_models:
+                model = "grok-2-vision-1212"
         
         # Get User Prompt:
         ss[chat_n].append({"role": "user", "content": prompt})
@@ -529,11 +551,30 @@ if prompt := st.chat_input():
 
         reply = response.choices[0].message.content
 
+        # Opt out image from context
+        if uploaded_image:
+            # Sostituisci se l'ultimo messaggio è multimodale
+            # Filtra e rimuovi tutti i messaggi che contengono una parte con tipo "image_url"
+            ss[chat_n] = [
+                msg for msg in ss[chat_n]
+                if not (
+                    isinstance(msg.get("content"), list)
+                    and any(part.get("type") == "image_url" for part in msg["content"])
+                )
+            ]
+            print(ss[chat_n])
+            
+
         # Append Reply
         ss[chat_n].append({"role": "assistant", "content": reply})
         st.chat_message('assistant', avatar=chatbot_avi).write(reply)
+        
+
+
+
         if check_copy_paste() and copy_reply_:
             pc.copy(reply)
+
         if save_log:
             update_log(ss[chat_n][-2])
             update_log(ss[chat_n][-1])
