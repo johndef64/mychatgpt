@@ -73,8 +73,8 @@ api_models = ['gpt-4o-mini', 'gpt-4o',
               "mistral-saba-24b",
               #"playai-tts",
               "qwen-qwq-32b",
-              "compound-beta",
-              "compound-beta-mini"
+              #"compound-beta",
+              #"compound-beta-mini"
               
               ]
 
