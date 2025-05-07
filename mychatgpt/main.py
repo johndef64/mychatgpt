@@ -457,6 +457,7 @@ class GPT:
                  print_token: bool = True,               # print token count
                  model: str or int = 'gpt-4o-mini',      # set openai main model
                  talk_model: str = 'gpt-4o-2024-08-06',  # set openai speak model
+                 voice: str = 'nova',                    # set voice model
                  dalle: str = "dall-e-2",                # set dall-e model
                  image_size: str = '512x512',            # set generated image size
                  memory : bool = False,
@@ -492,6 +493,7 @@ class GPT:
         self.talk_model = talk_model
         self.dalle = dalle
         self.image_size = image_size
+        self.voice = voice
 
         # init assistant
         who = self.assistant
@@ -826,6 +828,7 @@ class GPT:
                      play: bool = False,         # play audio response
                      voice: str = 'nova',        # choose voice (op.voices)
                      tts: str = "tts-1",         # choose tts model
+                     talk: bool = False,         # talk directly (openai) 
 
                      reinforcement: bool = False,
 
@@ -909,31 +912,36 @@ class GPT:
         ### Send message ###
         messages = self.build_messages(self.chat_thread)
 
-        if model in openai_compliant:
-            response = self.client.chat.completions.create(
-                model=model,
-                messages=messages,
-                temperature=temperature,
-                stream=True,
-                max_tokens=maxtoken,  # set max token
-                top_p=1,
-                frequency_penalty=0,
-                presence_penalty=0
-            )
+        if not talk:
+            if model in openai_compliant:
+                response = self.client.chat.completions.create(
+                        model=model,
+                        messages=messages,
+                        temperature=temperature,
+                        stream=True,
+                        max_tokens=maxtoken,  # set max token
+                        top_p=1,
+                        frequency_penalty=0,
+                        presence_penalty=0
+                    )
+
+            else:
+                response = self.ollama_client.chat(
+                    model=model,
+                    stream=True,
+                    messages=messages
+                )
+
+                # self.chat_reply  = response['message']['content']
+                # print(self.chat_reply )
+
+            ### Get reply and stream ###
+            self.response = response
+            self.chat_reply, self.reasoning_content = self.stream_reply(response, print_reply=print_reply, lag=lag, model=model)
 
         else:
-            response = self.ollama_client.chat(
-                model=model,
-                stream=True,
-                messages=messages
-            )
+            self.chat_reply, self.reasoning_content = Chat2Speech(messages, voice=voice), ""
 
-            # self.chat_reply  = response['message']['content']
-            # print(self.chat_reply )
-
-        ### Get reply and stream ###
-        self.response = response
-        self.chat_reply, self.reasoning_content = self.stream_reply(response, print_reply=print_reply, lag=lag, model=model)
 
         # if response.choices[0].message.reasoning_content:
         #     self.reasoning_content = response.choices[0].message.reasoning_content
@@ -1253,6 +1261,7 @@ class GPT:
              memory: bool = False,
              create: bool = False,
              speak: bool = False,
+             talk: bool = False,
              clip:bool = True,
              #fix:bool = True,
              voice="nova",
@@ -1272,7 +1281,10 @@ class GPT:
                           model=gpt,
                           image=image,
                           print_token=token,
-                          create=create)
+                          create=create,
+                          voice=self.voice,
+                          talk=talk,
+                          )
         if clip:
             send2clip(self.chat_reply, self.executable)
 
@@ -1451,15 +1463,15 @@ assistant_params = {
     'springer': {'assistant': 'collins', 'format': 'markdown'},
 
     ### Characters ###
-    'julia': {'assistant': 'julia', 'memory': True},
+    'julia': {'assistant': 'julia', 'memory': True, "voice": "nova"},
     'mike': {'assistant': 'mike', 'memory': True},
     'michael': {'assistant': 'michael', 'translate': True, 'memory': True},
     'miguel': {'assistant': 'miguel', 'translate': True, 'memory': True},
     'francois': {'assistant': 'francois', 'translate': True, 'memory': True},
     'luca': {'assistant': 'luca', 'translate': True, 'memory': True},
     'hero': {'assistant': 'hero', 'translate': True, 'memory': True},
-    'yoko': {'assistant': 'yoko', 'translate': True, 'memory': True},
-    'xiao': {'assistant': 'xiao', 'translate': True, 'memory': True},
+    'yoko': {'assistant': 'yoko', 'translate': True, 'memory': True, "voice": "nova"},
+    'xiao': {'assistant': 'xiao', 'translate': True, 'memory': True, "voice": "nova"},
     'peng': {'assistant': 'peng', 'translate': True, 'memory': True},
 
 

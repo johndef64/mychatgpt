@@ -833,6 +833,7 @@ def Text2Speech(text: str = '',
                 filename: str = "speech",
                 speed: int = 1,
                 client=Client
+                
                 ):
 
     filename = f"{filename}.{response_format}"
@@ -868,6 +869,46 @@ def Text2Speech(text: str = '',
         spoken_response.stream_to_file(filename)
 
 
+def Chat2Speech(#prompt: str = '',
+                messages: list = [],
+                voice: str = "alloy",
+                model: str = "gpt-4o-audio-preview", # "gpt-4o-mini-audio-preview",
+                #stream:bool = True,
+                #save_audio: bool = False,
+                response_format: str = "mp3",
+                #filename: str = "speech",
+                speed: int = 1,
+                client=Client
+                
+                ):
+
+    completion = client.chat.completions.create(
+        model=model,
+        modalities=["text", "audio"],
+        audio={"voice": voice, "format": response_format},
+        #stream=True,
+        messages=messages,
+        # messages=[
+        #     {
+        #         "role": "user",
+        #         "content": prompt,
+        #     }
+        #     ]
+        )
+
+    # print(completion.choices[0])
+
+    wav_bytes = base64.b64decode(completion.choices[0].message.audio.data)
+    reply = completion.choices[0].message.audio.transcript
+    with open("temp.mp3", "wb") as f:
+         f.write(wav_bytes)
+    audio_buffer = io.BytesIO(wav_bytes)
+    audio_data, samplerate = sf.read(audio_buffer, dtype='float32')
+    sd.play(audio_data, samplerate)
+    sd.wait()
+    return reply
+
+
 def Speech2Speech(voice: str ='nova', tts: str = 'tts-1',
                   filename="speech2speech.mp3",
                   translate=False, play=True, info =True):
@@ -891,3 +932,5 @@ def Speech2SpeechLoop(voice: str ='nova', tts: str = 'tts-1',
         elif kb.is_pressed(exit):
             print('Loop Stopped')
             break
+
+
