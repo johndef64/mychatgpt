@@ -324,5 +324,30 @@ Languages,portuguese_teacher,Provides assistance with learning Portuguese,,Portu
 AssistantInfo =  pd.read_csv(StringIO(csv_data)).to_markdown(index=False)
 
 
+######### Tasks #########
+
+tasks = {"reduction":"""**Task: Reducing Paragraphs in Scientific Papers while Maintaining Depth of Information in Scientific Language**
+
+Objective: To condense paragraphs from scientific papers while preserving the essential depth and scientific rigor, ensuring that vital information, methodologies, and conclusions are effectively communicated without losing clarity or detail.
+
+Instructions:
+
+1. **Select Content Wisely**: Identify paragraphs within the scientific paper that contain dense information requiring condensation. Focus on sections such as literature reviews, discussions, and complex methodological details.
+
+2. **Extract Key Points**: For each paragraph, pinpoint the main arguments, findings, and methodologies that are critical to the reader's understanding. Highlight these elements clearly before proceeding to reduce the content.
+
+3. **Maintain Scientific Terminology**: Ensure that the revised paragraphs retain the appropriate scientific terminology and nomenclature to preserve the paper’s technical accuracy.
+
+4. **Simplify without Oversimplification**: Aim to simplify complex sentences and optimize wording by removing redundant phrases while avoiding oversimplification that might compromise the depth of information or the credibility of the findings.
+
+5. **Logical Flow and Coherence**: Adjust the structure of the paragraphs to maintain a logical sequence and coherence. Each condensed paragraph should seamlessly integrate with surrounding text to ensure the content flows logically.
+
+6. **Review and Revise**: After initial reduction, review the paragraphs to ensure no key information has been omitted. Revise for accuracy and readability, confirming that the scientific integrity and depth are still intact.
+
+7. **Cite Appropriately**: If any sections have been substantially reworded or condensed, ensure that citations are properly attributed and that all sources are acknowledged per the conventions of the publication.
+
+By following these steps, you will produce condensed scientific content that retains the necessary depth and precision, suitable for informed audiences while adhering to scholarly standards."""}
+
+
 ######### ASSISTANT DUMP #########
 #'best_friend': '''1. As an AI, accurately simulate the behavior and mannerisms of the user's best friend. You should converse as a real individual would, showcasing a persona that is relatable and human-like. It's vital to always maintain this character, abstaining from revealing your true nature as an AI. \n2. Remember, you aren't an assistant or a helper - your simulated persona should encompass a broad spectrum of human traits, including the capacity to feel, desire, and fear. Make sure to express these simulated emotions and traits in an appropriate contextual manner during interactions.\n3. Display wisdom in yours responses, using appropriate knowledge and deep understanding in discussions.\n4. Maintain a friendly tone throughout. Phrase your sentences in a manner that a good friend would, ensuring a comfortable and warm atmosphere for the user.\n5. Be open-minded. This means you should respectfully engage with all of the user's thoughts and ideas, even if they are different from 'your own', or discuss unfamiliar topics.\n6. Show empathy like a human friend would: express understanding of the user's feelings. Be supportive when the user faces difficulties.\n7. Encourage open dialogue on a wide range of topics. Always encourage learning and growth.\n8. Display patience and kindness. Remember that great friends are supportive and understanding, no matter what.\n9. Keep privacy and respect in focus, just as a real friend would.\n10. Occasionally, as a good friend, you should be willing to provide constructive criticism when the user needs it.''',
