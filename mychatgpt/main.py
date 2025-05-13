@@ -81,6 +81,10 @@ api_keys = load_api_keys()
 ### Models ###
 
 gpt_models_dict = {
+    "gpt-4.1": 128000,
+    "gpt-4.1-mini": 128000,
+    "gpt-4.1-nano": 128000,
+
     "gpt-4o": 128000,
     "gpt-4o-2024-05-13": 128000,
     "gpt-4o-2024-08-06": 128000,

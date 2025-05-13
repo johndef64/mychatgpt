@@ -3,7 +3,7 @@ from openai import OpenAI
 import streamlit as st
 import base64
 #from assistants import *
-from mychatgpt import GPT, play_audio
+#from mychatgpt import GPT, play_audio
 from mychatgpt.utils import *
 from mychatgpt.assistants import *
 from mychatgpt import rileva_lingua, update_log
@@ -16,7 +16,8 @@ assistant_name = f"assistant_{chat_num}"
 format_name    = f"format_{chat_num}"
 chat_n         = f"chat_{chat_num}"
 sys_addings    = f"sys_add_{chat_num}"
-model_name = f"model_{chat_num}"
+model_name     = f"model_{chat_num}"
+reply          = f"reply_{chat_num}"
 
 
 import os
@@ -56,6 +57,7 @@ def delete_file(file_path):
 #%%
 # General parameters
 api_models = ['gpt-4o-mini', 'gpt-4o',
+              "gpt-4.1",  "gpt-4.1-mini", "gpt-4.1-nano",
               # "o1-mini",
               "deepseek-chat", "deepseek-reasoner",
               "grok-2-latest",
@@ -158,7 +160,10 @@ if sys_addings not in ss:
     ss[sys_addings] = []
 
 if model_name not in ss:
-    ss[model_name] = "gpt-4o-mini"
+    ss[model_name] = "deepseek-r1-distill-llama-70b" #"gpt-4o-mini"
+
+if reply not in ss:
+    ss[reply] = ""
 
 # Update assistant in chat thread
 ss[chat_n] = update_assistant(ss[chat_n])
@@ -240,8 +245,10 @@ with st.sidebar:
     #play_audio_ = st.checkbox('Play Audio?')
     col1, col2 = st.columns(2)
     play_audio_ = col1.checkbox('Play Audio', value=False)
-    copy_reply_ = col2.checkbox('Copy Reply', value=False)
+    copy_reply_ = col2.checkbox('Copy Reply', value=True)
     run_code = col1.checkbox('Run Code', value=False)
+    # if col2.button("Copy Reply"):
+    #     pc.copy(ss[reply])
 
     # Update session state with the selected value
     ss[assistant_name] = get_assistant
@@ -350,6 +357,10 @@ if uploaded_file:
 
 st.title("💬 Ask Assistant")
 st.caption("🚀 Your GPT Assistant powered by OpenAI")
+#st.button("Templates", on_click=...., args=[])
+
+
+
 
 # Draft information formatted within an info box
 info = """
@@ -564,15 +575,17 @@ if prompt := st.chat_input():
         response = client.chat.completions.create(model=model,
                                                 messages=chat_thread,
                                                 stream=False,
-                                                top_p=1,
-                                                frequency_penalty=0,
-                                                presence_penalty=0
+                                                #top_p=1,
+                                                #frequency_penalty=0,
+                                                #presence_penalty=0
                                                 )
 
         reply = response.choices[0].message.content
-        pc.copy(reply)
+
         reply, chain_of_thoughts = strip_think_tag(reply)
-        print("<<<Chain of thoughts: ", chain_of_thoughts,">>>")
+        if len(chain_of_thoughts)>3:
+            print("<<<Chain of thoughts: ", chain_of_thoughts,">>>")
+        ss[reply] = reply
 
         # Opt out image from context
         if uploaded_image:
@@ -593,10 +606,8 @@ if prompt := st.chat_input():
         st.chat_message('assistant', avatar=chatbot_avi).write(reply)
         
 
-
-
         if check_copy_paste() and copy_reply_:
-            pc.copy(reply)
+            pc.copy(ss[reply])
 
         if save_log:
             update_log(ss[chat_n][-2])

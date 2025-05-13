@@ -57,6 +57,7 @@ def delete_file(file_path):
 #%%
 # General parameters
 api_models = ['gpt-4o-mini', 'gpt-4o',
+              "gpt-4.1",  "gpt-4.1-mini", "gpt-4.1-nano",
               # "o1-mini",
               "deepseek-chat", "deepseek-reasoner",
               "grok-2-latest",
@@ -159,7 +160,7 @@ if sys_addings not in ss:
     ss[sys_addings] = []
 
 if model_name not in ss:
-    ss[model_name] = "gpt-4o-mini"
+    ss[model_name] = "deepseek-r1-distill-llama-70b" #"gpt-4o-mini"
 
 if reply not in ss:
     ss[reply] = ""
