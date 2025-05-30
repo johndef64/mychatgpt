@@ -917,6 +917,7 @@ def Speech2Speech(voice: str ='nova', tts: str = 'tts-1',
     transcript = Whisper('temp.wav', translate=translate)
     Text2Speech(transcript, voice=voice, model= tts, filename=filename, stream=play)
 
+
 def Speech2SpeechLoop(voice: str ='nova', tts: str = 'tts-1',
                        filename="speech2speech.mp3",
                        translate=False,

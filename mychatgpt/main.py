@@ -148,8 +148,8 @@ groq_models = [
     "playai-tts",
     "playai-tts-arabic",
     "qwen-qwq-32b",
-    "compound-beta",
-    "compound-beta-mini",
+    #"compound-beta",
+    #"compound-beta-mini",
 ]
 
 openai_compliant = gpt_models + deepseek_models + x_models + aiml_models + groq_models
@@ -424,7 +424,12 @@ def make_model(label: (int, str) = 3):
         'mini': 'gpt-4o-mini',
         'dc': 'deepseek-chat',
         'dr': 'deepseek-reasoner',
-        'x': 'grok-2-latest'
+        'x': 'grok-2-latest',
+        "gm2":"gemma2-9b-it",
+        "l4s":"meta-llama/llama-4-scout-17b-16e-instruct",
+        "l4m":"meta-llama/llama-4-maverick-17b-128e-instruct",
+        "drl": "deepseek-r1-distill-llama-70b",
+        "q32":"qwen-qwq-32b",
     }
     # Return the corresponding model or default to label
     return models.get(label,label)
@@ -1487,9 +1492,9 @@ assistant_params = {
 }
 
 # Funzione per creare nuovi oggetti GPT con i parametri dal dizionario
-def bot(assistant_key):
+def bot(assistant_key, **kwargs):
     params = assistant_params.get(assistant_key, {})
-    return GPT(**params)
+    return GPT(**{**params, **kwargs})
 
 
 if debug: print(f'Copilots:{datetime.now()}')
