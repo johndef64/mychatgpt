@@ -292,7 +292,9 @@ with st.sidebar:
         st.write(f"Chat Saved as {chat_name}!")
 
     # List files in the 'chats/' directory
-    files_in_chats = os.listdir('chats/') if os.path.exists('chats/') else (os.makedirs('chats'), [])[1]
+    base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), 'chats'))
+    files_in_chats = os.listdir(base_dir) if os.path.exists(base_dir) else (os.makedirs(base_dir, exist_ok=True), [])[1]
+    #files_in_chats = os.listdir('chats/') if os.path.exists('chats/') else (os.makedirs('chats'), [])[1]
 
     # Implement a select box to choose a file
     chat_path = st.selectbox("Choose a file to load", files_in_chats)
