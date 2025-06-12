@@ -20,7 +20,7 @@ import pandas as pd
 import pyperclip as pc
 from openai import OpenAI, AuthenticationError
 from groq import Groq
-import anthropic
+# import anthropic
 from scipy.spatial import distance
 
 import keyboard as kb
@@ -759,16 +759,16 @@ class GPT:
                 frequency_penalty=0,
                 presence_penalty=0)
             
-        elif model in anthropics_models:
-            response = self.clientmessages.create(
-            model=model,
-            max_tokens=20000,
-            temperature=temperature,
-            messages=[
-                    {"role": "system", "content": system},
-                    {"role": "user", "content": prompt}
-                ],
-        )
+        # elif model in anthropics_models:
+        #     response = self.clientmessages.create(
+        #     model=model,
+        #     max_tokens=20000,
+        #     temperature=temperature,
+        #     messages=[
+        #             {"role": "system", "content": system},
+        #             {"role": "user", "content": prompt}
+        #         ],
+        # )
 
         else:
             response = self.ollama_client.chat(
