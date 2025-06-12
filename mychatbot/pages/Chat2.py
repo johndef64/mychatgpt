@@ -6,7 +6,7 @@ import base64
 #from mychatgpt import GPT, play_audio
 from mychatgpt.utils import *
 from mychatgpt.assistants import *
-from mychatgpt import rileva_lingua, update_log
+# from mychatgpt import rileva_lingua, update_log
 
 save_log=True
 ss = st.session_state
