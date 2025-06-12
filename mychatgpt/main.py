@@ -20,6 +20,7 @@ import pandas as pd
 import pyperclip as pc
 from openai import OpenAI, AuthenticationError
 from groq import Groq
+import anthropic
 from scipy.spatial import distance
 
 import keyboard as kb
@@ -34,7 +35,7 @@ from datetime import datetime
 import matplotlib.pyplot as plt
 from IPython.display import display
 from PIL.PngImagePlugin import PngInfo
-from langdetect import detect, DetectorFactory
+
 
 
 is_colab = 'google.colab' in sys.modules
@@ -151,8 +152,18 @@ groq_models = [
     #"compound-beta",
     #"compound-beta-mini",
 ]
+anthropics_models = [
+    "claude-2",
+    "claude-2-100k",
+    "claude-3-opus",
+    "claude-3-haiku",
+    "claude-instant-100k",
+    "claude-instant-1",
+    "claude-instant-1.2",
+    "claude-sonnet-4-20250514"
+]
 
-openai_compliant = gpt_models + deepseek_models + x_models + aiml_models + groq_models
+openai_compliant = gpt_models + deepseek_models + x_models + aiml_models + groq_models #+ anthropics_models
 
 
 ####### Image Models #######
@@ -245,57 +256,13 @@ def num_tokens_from_messages(messages, model="gpt-4o-mini-2024-07-18", warning =
 
 ### Save-Update Log ###
 
-# Function to save a list of dictionaries in a JSON file with indentation
-def salva_in_json(lista_dict, nome_file):
-    with open(nome_file, 'w', encoding='utf-8') as file_json:
-        json.dump(lista_dict, file_json, indent=4)
-        file_json.close()
-
-#Function to update JSON file with new input
-def aggiorna_json(nuovo_dict, nome_file):
-    if not os.path.exists('chat_log.json'):
-        with open('chat_log.json', encoding='utf-8') as json_file:
-            json.dump([], json_file)  # Save empty list as JSON
-    with open('chat_log.json', 'r', encoding='utf-8') as json_file:
-        data = json.load(json_file)
-
-    data.append(nuovo_dict)
-    with open(nome_file, 'w', encoding='utf-8') as file_json:
-        json.dump(data, file_json, ensure_ascii=False,  indent=4)
-
-def update_log(nuovo_dict):
-    aggiorna_json(nuovo_dict, 'chat_log.json')
 
 # inizialize log
 if not os.path.exists('chat_log.json'):
     with open('chat_log.json', 'w') as json_file:
-        json.dump([], json_file)  # Save empty list as JSON
+        json.dump([], json_file)  
 
 
-##### LANGUAGE #####
-
-def rileva_lingua(testo):
-    # Reinizializzare il seed per ottenere risultati consistenti
-    DetectorFactory.seed = 0
-
-    # Mappa manuale dei codici delle lingue ai loro nomi completi
-    language_map = {
-        'en': 'English',
-        'it': 'Italian',
-        'fr': 'French',
-        'de': 'German',
-        'es': 'Spanish',
-        'pt': 'Portuguese',
-        'nl': 'Dutch',
-        'ru': 'Russian',
-        'zh-cn': 'Chinese (Simplified)',
-        'ja': 'Japanese',
-        # Aggiungere altre lingue se necessario
-    }
-
-    # Rileva la lingua del testo e la restituisce in formato esteso
-    codice_lingua = detect(testo)
-    return language_map.get(codice_lingua, 'Unknown')
 
 
 ##### Embeddings, Similarity #######
@@ -559,6 +526,9 @@ class GPT:
             self.client = Groq(api_key=load_api_keys()["groq"])
         elif model in aiml_models:
             self.client = OpenAI(api_key=load_api_keys()["aimlapi"], base_url="https://api.aimlapi.com/v1")
+        elif model in anthropics_models:
+            #self.client = OpenAI(api_key=load_api_keys()["anthropic"], base_url="https://api.anthropic.com/v1")
+            self.client = anthropic.Anthropic(api_key=load_api_keys()["anthropic"])
 
 
 
@@ -692,6 +662,7 @@ class GPT:
                     continue
 
                 chunk_message = chunk.choices[0].delta.content or ""  # extract the message
+                
             else:
                 chunk_message = chunk['message']['content'] or ""
 
@@ -787,6 +758,17 @@ class GPT:
                 top_p=1,
                 frequency_penalty=0,
                 presence_penalty=0)
+            
+        elif model in anthropics_models:
+            response = self.clientmessages.create(
+            model=model,
+            max_tokens=20000,
+            temperature=temperature,
+            messages=[
+                    {"role": "system", "content": system},
+                    {"role": "user", "content": prompt}
+                ],
+        )
 
         else:
             response = self.ollama_client.chat(

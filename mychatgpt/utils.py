@@ -1,4 +1,5 @@
 from cryptography.fernet import Fernet
+from langdetect import detect, DetectorFactory
 import matplotlib.pyplot as plt
 from googlesearch import search
 from bs4 import BeautifulSoup
@@ -319,6 +320,33 @@ def pdf_to_text(pdf_path):
             page = reader.pages[page_num]
             text += page.extract_text()
     return text
+
+
+### Save-Update Log ###
+
+# Function to save a list of dictionaries in a JSON file with indentation
+def salva_in_json(lista_dict, nome_file):
+    with open(nome_file, 'w', encoding='utf-8') as file_json:
+        json.dump(lista_dict, file_json, indent=4)
+        file_json.close()
+
+#Function to update JSON file with new input
+def aggiorna_json(nuovo_dict, nome_file):
+    if not os.path.exists(nome_file):
+        with open(nome_file, 'w', encoding='utf-8') as json_file:
+            json.dump([], json_file) 
+    
+    with open(nome_file, 'r', encoding='utf-8') as json_file:
+        data = json.load(json_file)
+
+    data.append(nuovo_dict)
+    with open(nome_file, 'w', encoding='utf-8') as file_json:
+        json.dump(data, file_json, ensure_ascii=False, indent=4)
+
+def update_log(nuovo_dict):
+    aggiorna_json(nuovo_dict, 'chat_log.json')
+
+
 
 ####### text parsers #####
 
@@ -711,6 +739,31 @@ def while_kb_press(start='alt',stop='ctrl'):
                     time.sleep(2)
             print("Finished loop.")
 
+
+##### LANGUAGE #####
+
+def rileva_lingua(testo):
+    # Reinizializzare il seed per ottenere risultati consistenti
+    DetectorFactory.seed = 0
+
+    # Mappa manuale dei codici delle lingue ai loro nomi completi
+    language_map = {
+        'en': 'English',
+        'it': 'Italian',
+        'fr': 'French',
+        'de': 'German',
+        'es': 'Spanish',
+        'pt': 'Portuguese',
+        'nl': 'Dutch',
+        'ru': 'Russian',
+        'zh-cn': 'Chinese (Simplified)',
+        'ja': 'Japanese',
+        # Aggiungere altre lingue se necessario
+    }
+
+    # Rileva la lingua del testo e la restituisce in formato esteso
+    codice_lingua = detect(testo)
+    return language_map.get(codice_lingua, 'Unknown')
 
 
 #%%
