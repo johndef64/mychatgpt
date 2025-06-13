@@ -316,7 +316,10 @@ with st.sidebar:
 ############################################################################################
 ############################################################################################
 
-from mychatgpt import gpt_models, deepseek_models, x_models, groq_models, Groq
+# from mychatgpt import gpt_models, deepseek_models, x_models, groq_models, Groq
+from groq import Groq
+
+
 # selct client
 def select_client(model):
     if model in gpt_models:
@@ -330,6 +333,9 @@ def select_client(model):
     elif model in groq_models:
         print("using Groq models")
         client = Groq(api_key=load_api_keys()["groq"])
+    # elif model in anthropic_models:
+    #     print("using Anthorpic models")
+    #     client = 
     return client
 
 

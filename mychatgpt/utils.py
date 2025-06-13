@@ -161,6 +161,125 @@ def get_chat():
     url = handle + file
     get_gitfile(url, dir=os.getcwd()+'/chats')
 
+
+
+
+
+### Models ###
+
+gpt_models_dict = {
+    "gpt-4.1": 128000,
+    "gpt-4.1-mini": 128000,
+    "gpt-4.1-nano": 128000,
+
+    "gpt-4o": 128000,
+    "gpt-4o-2024-05-13": 128000,
+    "gpt-4o-2024-08-06": 128000,
+    "chatgpt-4o-latest": 128000,
+    "gpt-4o-mini": 128000,
+    "gpt-4o-mini-2024-07-18": 128000,
+    "o1-preview": 128000,
+    "o1-preview-2024-09-12": 128000,
+    "o1-mini": 128000,
+    "o1-mini-2024-09-12": 128000,
+    "gpt-4-turbo": 128000,
+    "gpt-4-turbo-2024-04-09": 128000,
+    "gpt-4-turbo-preview": 128000,
+    "gpt-4-0125-preview": 128000,
+    "gpt-4-1106-preview": 128000,
+    "gpt-4": 8192,
+    "gpt-4-0613": 8192,
+    "gpt-4-0314": 8192,
+    "gpt-3.5-turbo-0125": 16385,
+    "gpt-3.5-turbo": 16385,
+    "gpt-3.5-turbo-1106": 16385,
+    "gpt-3.5-turbo-instruct": 4096,
+
+    "deepseek-chat": 128000,
+    'deepseek-reasoner': 128000,
+
+    "dolphin-mistral": 16385,
+    "gemma:2b" : 8192,
+    "gemma2:2b" : 8192,
+    "mistral" :  8192,
+    "llama2" :   4096,
+    "llama3" :   8192,
+    "vicuna" :   8192,
+
+    "gemini-2.0-flash-exp": 16385,
+    "gemini-1.5-flash-8b": 16385,
+    "gemini-1.5-flash-002": 16385,
+    "gemini-1.5-pro-002": 16385,
+    "gemini-2.0-flash-exp": 16385,
+}
+
+gpt_models = [i for i in gpt_models_dict.keys() if "gpt" in i or "o1" in i]+["dall-e-2", "dall-e-3", "whisper-1", "tts-1", "tts-1-hd"]
+deepseek_models = ["deepseek-chat", 'deepseek-reasoner']
+x_models = ["grok-2-1212", 'grok-2-vision-1212', "grok-2-latest"]
+aiml_models = ["cognitivecomputations/dolphin-2.5-mixtral-8x7", "qwen-turbo"]
+groq_models = [
+    "gemma2-9b-it",
+    "llama-3.3-70b-versatile",
+    "llama-3.1-8b-instant",
+    "llama-guard-3-8b",
+    "llama3-70b-8192",
+    "llama3-8b-8192",
+    "whisper-large-v3",
+    "whisper-large-v3-turbo",
+    "distil-whisper-large-v3-en",
+    "allam-2-7b",
+    "deepseek-r1-distill-llama-70b",
+    "meta-llama/llama-4-maverick-17b-128e-instruct",
+    "meta-llama/llama-4-scout-17b-16e-instruct",
+    "mistral-saba-24b",
+    "playai-tts",
+    "playai-tts-arabic",
+    "qwen-qwq-32b",
+    #"compound-beta",
+    #"compound-beta-mini",
+]
+anthropic_models = [
+    "claude-2",
+    "claude-2-100k",
+    "claude-3-opus",
+    "claude-3-haiku",
+    "claude-instant-100k",
+    "claude-instant-1",
+    "claude-instant-1.2",
+    "claude-sonnet-4-20250514"
+]
+
+openai_compliant = gpt_models + deepseek_models + x_models + aiml_models + groq_models #+ anthropic_models
+
+
+####### Image Models #######
+'''
+Model	Quality	Resolution	Price
+DALL·E 3	Standard	1024×1024	            $0.040 / image
+            Standard	1024×1792, 1792×1024	$0.080 / image
+DALL·E 3	HD	        1024×1024	            $0.080 / image
+            HD	        1024×1792, 1792×1024	$0.120 / image
+DALL·E 2		        1024×1024	            $0.020 / image
+                        512×512	                $0.018 / image
+                        256×256	                $0.016 / image
+'''
+
+####### Audio Models #######
+'''
+Model	Usage
+Whisper	$0.006 / minute (rounded to the nearest second)
+TTS	    $0.015 / 1K characters
+TTS HD	$0.030 / 1K characters
+'''
+
+
+
+
+
+
+
+
+
 ###### Manage Json #####
 import json
 
