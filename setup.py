@@ -5,8 +5,11 @@ setup(
     version='0.4.7',
     packages=find_packages(),  # Automatically find packages in your project
     install_requires=[         # Optional: specify dependencies
-        "openai","groq", "tiktoken", "langdetect", "pandas", "pyperclip", "gdown", "pyyaml","scipy", "nltk", "PyPDF2", 'cryptography', 'matplotlib', "pygame", "sounddevice", "soundfile", "keyboard", "markdown", "pillow", "ollama", "beautifulsoup4", "googlesearch-python", "tabulate"
-    ],
+        "openai","groq", "tiktoken", "langdetect", "pandas", "pyperclip", "gdown", "pyyaml","scipy", "nltk", "PyPDF2",
+          'cryptography', 'matplotlib', "pygame", "sounddevice", "soundfile", "keyboard", "markdown", "pillow", "ollama",
+            "beautifulsoup4", "googlesearch-python", "tabulate"
+    ],  #"anthropic",
+    
     #pip install google-generativeai
 
     #entry_points={             # Optional: command-line scripts

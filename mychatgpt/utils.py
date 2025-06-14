@@ -239,15 +239,14 @@ groq_models = [
     #"compound-beta-mini",
 ]
 anthropic_models = [
-    "claude-2",
-    "claude-2-100k",
-    "claude-3-opus",
-    "claude-3-haiku",
-    "claude-instant-100k",
-    "claude-instant-1",
-    "claude-instant-1.2",
-    "claude-sonnet-4-20250514"
-]
+    "claude-opus-4-0",          
+    "claude-sonnet-4-0",        
+    "claude-3-7-sonnet-latest", 
+    "claude-3-5-sonnet-latest", 
+    "claude-3-5-haiku-latest",  
+    "claude-3-opus-latest"
+        
+    ]
 
 openai_compliant = gpt_models + deepseek_models + x_models + aiml_models + groq_models #+ anthropic_models
 
