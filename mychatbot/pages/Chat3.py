@@ -77,8 +77,24 @@ api_models = ['gpt-4o-mini', 'gpt-4o',
               "qwen-qwq-32b",
               #"compound-beta",
               #"compound-beta-mini"
+
+              "claude-opus-4-0", 
+              "claude-sonnet-4-0", 
+              "claude-3-7-sonnet-latest",
+              "claude-3-5-sonnet-latest",
+              "claude-3-5-haiku-latest", 
+              "claude-3-opus-latest", 
               
               ]
+
+# claude_models = [
+#     ("claude-opus-4-0", "claude-opus-4-20250514"),
+#     ("claude-sonnet-4-0", "claude-sonnet-4-20250514"),
+#     ("claude-3-7-sonnet-latest", "claude-3-7-sonnet-20250219"),
+#     ("claude-3-5-sonnet-latest", "claude-3-5-sonnet-20241022"),
+#     ("claude-3-5-haiku-latest", "claude-3-5-haiku-20241022"),
+#     ("claude-3-opus-latest", "claude-3-opus-20240229")
+# ]
 
 
 # Function to be executed on button click
@@ -183,6 +199,7 @@ if len(list(load_api_keys().keys() )) > 0:
     ss.deepseek_api_key = api_keys.get("deepseek", "missing")
     ss.x_api_key        = api_keys.get("grok", "missing")
     ss.groq_api_key     = api_keys.get("groq", "missing")
+    ss.anthropic_api_key = api_keys.get("anthropic", "missing")
 
     # with open('openai_api_key.txt', 'r') as file:
     #     ss.openai_api_key = file.read().strip()
@@ -193,6 +210,7 @@ else:
     ss.deepseek_api_key = None
     ss.x_api_key        = None
     ss.groq_api_key    = None
+    ss.anthropic_api_key = None
 
 print("App Ready!")
 
@@ -208,6 +226,8 @@ with st.sidebar:
         ss.x_api_key  = st.text_input("Xai API Key",  type="password")
     if not ss.x_api_key:
         ss.groq_api_key  = st.text_input("Groq API Key",  type="password")
+    if not ss.x_api_key:
+        ss.anthropic_api_key  = st.text_input("Anthopic API Key",  type="password")
 
     # if ss.openai_api_key and ss.deepseek_api_key and ss.x_api_key:
     #     st.markdown("[API key provided]")
@@ -215,7 +235,8 @@ with st.sidebar:
         "OpenAI": ss.openai_api_key,
         "DeepSeek": ss.deepseek_api_key,
         "X": ss.x_api_key,
-        "Groq": ss.groq_api_key
+        "Groq": ss.groq_api_key,
+        "Anthropic": ss.anthropic_api_key
     }
     provided_keys = [name for name, key in keys.items() if key]
     st.markdown(", ".join(provided_keys) + " API key(s) provided" if provided_keys else "No API keys provided")
@@ -333,9 +354,9 @@ def select_client(model):
     elif model in groq_models:
         print("using Groq models")
         client = Groq(api_key=load_api_keys()["groq"])
-    # elif model in anthropic_models:
-    #     print("using Anthorpic models")
-    #     client = 
+    elif model in anthropic_models:
+        print("using Anthorpic models")
+        client = OpenAI(api_key=load_api_keys()["anthropic"],base_url="https://api.anthropic.com/v1")
     return client
 
 
@@ -581,9 +602,23 @@ if prompt := st.chat_input():
             elif not msg["content"].startswith('<<'):
                 chat_thread.append(msg)
 
+        max_tokens = 20000
+        def get_max_tokens(model):
+            if model in ["claude-3-5-haiku-latest", "claude-3-5-sonnet-latest"]:
+                return 8192
+            elif model in ["gpt-4.1", "gpt-4.1-mini", "gpt-4.1-nano"]:
+                return 128000
+            elif model in ["deepseek-chat", "deepseek-reasoner","grok-2-latest"]:
+                return 20000
+            elif model in groq_models:
+                return 20000
+            else:
+                return 8192
+
         # Generate Reply        
         response = client.chat.completions.create(model=model,
                                                 messages=chat_thread,
+                                                max_tokens=get_max_tokens(model),
                                                 stream=False,
                                                 #top_p=1,
                                                 #frequency_penalty=0,
