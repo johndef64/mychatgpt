@@ -1,3 +1,4 @@
+#%%
 import os
 import re
 import time
@@ -14,17 +15,29 @@ def get_gitfile(url, flag='', dir = os.getcwd()):
     with open(file_path, 'wb') as file:
         file.write(response.content)
 
-if not os.getcwd().endswith('pychatgpt.py'):
-    handle="https://raw.githubusercontent.com/johndef64/pychatgpt/main/"
-    files = ["pychatgpt.py"]
-    for file in files:
-        url = handle+file
-        get_gitfile(url)
-        time.sleep(1)
+# if not os.getcwd().endswith('mychatgpt.py'):
+#     handle="https://raw.githubusercontent.com/johndef64/pychatgpt/main/"
+#     files = ["pychatgpt.py"]
+#     for file in files:
+#         url = handle+file
+#         get_gitfile(url)
+#         time.sleep(1)
 
-import pychatgpt as op
-op.check_and_install_module('pyperclip')
-import pyperclip
+
+try:
+    import pyperclip
+except ImportError:
+    import subprocess
+    subprocess.check_call(['pip', 'install', 'pyperclip'])
+    import pyperclip
+
+try:
+    import mychatgpt
+except ImportError:
+    import subprocess
+    subprocess.check_call(['pip', 'install', 'mychatgpt'])
+    import mychatgpt
+from mychatgpt.utils import load_api_keys
 
 def get_boolean_input(prompt):
     while True:
@@ -66,6 +79,46 @@ dict = {
 ####### text-to-speech #######
 voices = ['alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer']
 models = ["tts-1","tts-1-hd"]
+from mychatgpt import load_api_keys, bot
+from openai import OpenAI
+import io
+import pygame
+english = bot("english")
+
+def play_audio_stream(audio_bytes):
+    """Play audio directly from bytes using pygame"""
+    audio_buffer = io.BytesIO(audio_bytes)
+    sound = pygame.mixer.Sound(audio_buffer)
+    sound.play()
+    
+    # Aspetta che il suono finisca
+    while pygame.mixer.get_busy():
+        pygame.time.wait(100)
+
+def openai_tts(text: str = '',
+                voice: str = "nova",
+                model: str = "tts-1",
+                stream:bool = True,
+                save_audio: bool = False,
+                response_format: str = "mp3",
+                filename: str = "audio",
+                speed: int = 1
+                ):    
+    client = OpenAI(api_key=load_api_keys()["openai"])
+    spoken_response = client.audio.speech.create(
+        model=model, # tts-1 or tts-1-hd
+        voice=voice,
+        response_format=response_format,
+        input=text+"  [pause]",
+        speed=speed
+    )
+    if stream:
+        play_audio_stream(spoken_response.read())
+    if save_audio:
+        filename = f"{filename}.{response_format}"
+        if os.path.exists(filename):
+            os.remove(filename)
+        spoken_response.write_to_file(filename)
 
 #-----------------------------------------------------
 # Run script:
@@ -112,11 +165,11 @@ while True:  # external cycle
 
                 # request to openai
                 print(clipboard_content)
-                op.text2speech_stream(clipboard_content, voice=voice, model=model)
+                openai_tts(clipboard_content, voice=voice,stream=True, model=model)
                 if translate:
                     #op.clearchat(False)
-                    op.english(clipboard_content, clip=False)
-                    op.text2speech_stream(op.reply, voice=voice, model=model)
+                    english.ask(clipboard_content, clip=False)
+                    openai_tts(english.ask_reply, voice=voice, model=model)
 
 
         time.sleep(1)  # Wait 1 second before checking again
@@ -126,12 +179,12 @@ while True:  # external cycle
         if safe_word == 'exitnow':
             exit()
 
-        if safe_word == 'maxtoken':
-            #global maxtoken
-            #custom = get_boolean_input('\ndo you want to cutomize token options? (yes:1/no:0):')
-            #if custom:
-            op.maxtoken = int(input('set max response tokens (800 default):'))
-            break
+        # if safe_word == 'maxtoken':
+        #     #global maxtoken
+        #     #custom = get_boolean_input('\ndo you want to cutomize token options? (yes:1/no:0):')
+        #     #if custom:
+        #     op.maxtoken = int(input('set max response tokens (800 default):'))
+        #     break
 
 # openai.error.InvalidRequestError: This model's maximum context length is 4097 tokens.  However, you requested 4116 tokens (2116 in the messages, 2000 in the completion).  Please reduce the length of the messages or completion.
 #%%

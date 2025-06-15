@@ -783,17 +783,49 @@ def image_encoder(image_path: str = None):
         image_path = f"data:image/jpeg;base64,{base64_image}"
     return image_path
 
-
+pygame.mixer.init()
 
 ###### audio functions  #####
 def play_audio(file_name):
-    pygame.mixer.init()
     pygame.mixer.music.load(file_name)
     pygame.mixer.music.play()
     while pygame.mixer.music.get_busy():
         pygame.time.Clock().tick(10)
     pygame.mixer.music.stop()
     pygame.mixer.quit() # Close the file after music play ends
+
+
+def play_audio_stream(audio_bytes):
+    """Play audio directly from bytes using pygame"""
+    audio_buffer = io.BytesIO(audio_bytes)
+    sound = pygame.mixer.Sound(audio_buffer)
+    sound.play()
+    
+    # Aspetta che il suono finisca
+    while pygame.mixer.get_busy():
+        pygame.time.wait(100)
+
+# def play_audio_wave(audio_bytes):
+#     """Play audio directly from bytes without saving to file"""
+#     audio_stream = io.BytesIO(audio_bytes)
+#     wf = wave.open(audio_stream, 'rb')
+    
+#     p = pyaudio.PyAudio()
+#     stream = p.open(format=p.get_format_from_width(wf.getsampwidth()),
+#                     channels=wf.getnchannels(),
+#                     rate=wf.getframerate(),
+#                     output=True)
+    
+#     chunk = 1024
+#     data = wf.readframes(chunk)
+#     while data:
+#         stream.write(data)
+#         data = wf.readframes(chunk)
+    
+#     stream.stop_stream()
+#     stream.close()
+#     p.terminate()
+
 
 def audio_loop(audio_file="speech.mp3", repeat='alt' , exit='shift'):
     print('Press '+repeat+' to repeat aloud, '+exit+' to exit.')
@@ -1004,10 +1036,7 @@ def Text2Speech(text: str = '',
                 filename: str = "speech",
                 speed: int = 1,
                 client=Client
-                
-                ):
-
-    filename = f"{filename}.{response_format}"
+                ):    
 
     spoken_response = client.audio.speech.create(
         model=model, # tts-1 or tts-1-hd
@@ -1020,24 +1049,21 @@ def Text2Speech(text: str = '',
     if stream:
         # Create a buffer using BytesIO to store the data
         buffer = io.BytesIO()
-
         # Iterate through the 'spoken_response' data in chunks of 4096 bytes and write each chunk to the buffer
         for chunk in spoken_response.iter_bytes(chunk_size=4096):
             buffer.write(chunk)
-
         # Set the position in the buffer to the beginning (0) to be able to read from the start
         buffer.seek(0)
-
         with sf.SoundFile(buffer, 'r') as sound_file:
             data = sound_file.read(dtype='int16')
             sd.play(data, sound_file.samplerate)
             sd.wait()
 
     if save_audio:
+        filename = f"{filename}.{response_format}"
         if os.path.exists(filename):
             os.remove(filename)
-
-        spoken_response.stream_to_file(filename)
+        spoken_response.write_to_file(filename)
 
 
 def Chat2Speech(#prompt: str = '',
