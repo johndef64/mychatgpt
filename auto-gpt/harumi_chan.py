@@ -79,11 +79,13 @@ dict = {
 ####### text-to-speech #######
 voices = ['alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer']
 models = ["tts-1","tts-1-hd"]
-from mychatgpt import load_api_keys, bot
+from mychatgpt.utils import load_api_keys #, bot
 from openai import OpenAI
 import io
 import pygame
-english = bot("english")
+# english = bot("english")
+
+pygame.mixer.init()
 
 def play_audio_stream(audio_bytes):
     """Play audio directly from bytes using pygame"""
@@ -119,6 +121,30 @@ def openai_tts(text: str = '',
         if os.path.exists(filename):
             os.remove(filename)
         spoken_response.write_to_file(filename)
+
+
+def create_translator(language='english'):
+    if language == 'Unknown':
+        language = 'english'
+    translator = f'''As an AI language model, you are tasked to function as an automatic translator for converting text inputs from any language into {language}. Implement the following steps:\n\n1. Take the input text from the user.\n2. Identify the language of the input text.\n3. If a non-{language} language is detected or specified, use your built-in translation capabilities to translate the text into {language}.\n4. Make sure to handle special cases such as idiomatic expressions and colloquialisms as accurately as possible. Some phrases may not translate directly, and it's essential that you understand and preserve the meaning in the translated text.\n5. Present the translated {language} text as the output. Maintain the original format if possible.\n6. Reply **only** with the translated sentence and nothing else.
+    '''
+    return translator
+
+client = OpenAI(api_key=load_api_keys()["openai"])
+
+def translate_text(text, target_language='english'):
+    """Translate text to the target language using OpenAI."""
+    response = client.chat.completions.create(
+        model="gpt-4.1-mini",
+        messages=[
+            {"role": "system", "content": create_translator(target_language)},
+            {"role": "user", "content": text}
+        ],
+        max_tokens=1000,
+        temperature=0.7
+    )
+    return response.choices[0].message.content.strip()
+
 
 #-----------------------------------------------------
 # Run script:
@@ -168,8 +194,8 @@ while True:  # external cycle
                 openai_tts(clipboard_content, voice=voice,stream=True, model=model)
                 if translate:
                     #op.clearchat(False)
-                    english.ask(clipboard_content, clip=False)
-                    openai_tts(english.ask_reply, voice=voice, model=model)
+                    tranlation = translate_text(clipboard_content)
+                    openai_tts(tranlation, voice=voice, model=model)
 
 
         time.sleep(1)  # Wait 1 second before checking again
@@ -186,5 +212,6 @@ while True:  # external cycle
         #     op.maxtoken = int(input('set max response tokens (800 default):'))
         #     break
 
+# 私は単純な女の子で
 # openai.error.InvalidRequestError: This model's maximum context length is 4097 tokens.  However, you requested 4116 tokens (2116 in the messages, 2000 in the completion).  Please reduce the length of the messages or completion.
 #%%
