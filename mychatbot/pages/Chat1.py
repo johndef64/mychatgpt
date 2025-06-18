@@ -87,6 +87,26 @@ api_models = ['gpt-4o-mini', 'gpt-4o',
               
               ]
 
+def get_max_tokens(model):
+    if model in ["claude-3-5-haiku-latest", "claude-3-5-sonnet-latest",
+                    "gemma2-9b-it",  "llama-3.1-8b-instant",  "llama-guard-3-8b",   "llama3-70b-8192",    "llama3-8b-8192",
+                    "meta-llama/llama-4-maverick-17b-128e-instruct",
+                "meta-llama/llama-4-scout-17b-16e-instruct",
+                    "mistral-saba-24b",]:
+    
+        return 8192
+    elif model in ["qwen-qwq-32b", "gpt-4.1", "gpt-4.1-mini", "gpt-4.1-nano", 
+                    "o1-mini", "gpt-4o-mini", "gpt-4o"]:
+        return 32000
+    elif model in ["deepseek-chat", "deepseek-reasoner",
+                    "llama-3.3-70b-versatile","deepseek-r1-distill-llama-70b", 
+                    "grok-2-latest"]:
+        return 20000
+    elif model in ["claude-opus-4-0", "claude-sonnet-4-0", "claude-3-7-sonnet-latest",]:
+        return 20000
+    else:
+        return 8192
+
 # claude_models = [
 #     ("claude-opus-4-0", "claude-opus-4-20250514"),
 #     ("claude-sonnet-4-0", "claude-sonnet-4-20250514"),
@@ -484,6 +504,8 @@ avatar_dict = {
     'delamain':"👨🏻‍💻",'snake':"👨🏻‍💻",'roger':"👨🏻‍💻",
     'alfred':"🤵🏻",
     'laura':"👩🏻",
+    'otaku_sensei':"👨🏻",
+    "chiyo_yamada": "👧🏻",
 }
 voice = voice_dict.get(get_assistant, "echo")
 chatbot_avi = avatar_dict.get(get_assistant, "🤖")
@@ -602,18 +624,8 @@ if prompt := st.chat_input():
             elif not msg["content"].startswith('<<'):
                 chat_thread.append(msg)
 
-        max_tokens = 20000
-        def get_max_tokens(model):
-            if model in ["claude-3-5-haiku-latest", "claude-3-5-sonnet-latest"]:
-                return 8192
-            elif model in ["gpt-4.1", "gpt-4.1-mini", "gpt-4.1-nano"]:
-                return 128000
-            elif model in ["deepseek-chat", "deepseek-reasoner","grok-2-latest"]:
-                return 20000
-            elif model in groq_models:
-                return 20000
-            else:
-                return 8192
+
+
 
         # Generate Reply        
         response = client.chat.completions.create(model=model,

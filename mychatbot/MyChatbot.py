@@ -505,6 +505,7 @@ avatar_dict = {
     'alfred':"🤵🏻",
     'laura':"👩🏻",
     'otaku_sensei':"👨🏻",
+    "chiyo_yamada": "👧🏻",
 }
 voice = voice_dict.get(get_assistant, "echo")
 chatbot_avi = avatar_dict.get(get_assistant, "🤖")
