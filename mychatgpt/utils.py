@@ -449,17 +449,41 @@ def salva_in_json(lista_dict, nome_file):
         file_json.close()
 
 #Function to update JSON file with new input
+# def aggiorna_json(nuovo_dict, nome_file):
+#     if not os.path.exists(nome_file):
+#         with open(nome_file, 'w', encoding='utf-8') as json_file:
+#             json.dump([], json_file) 
+    
+#     with open(nome_file, 'r', encoding='utf-8') as json_file:
+#         data = json.load(json_file)
+
+#     data.append(nuovo_dict)
+#     with open(nome_file, 'w', encoding='utf-8') as file_json:
+#         json.dump(data, file_json, ensure_ascii=False, indent=4)
+
 def aggiorna_json(nuovo_dict, nome_file):
+    nome_file = os.path.abspath(nome_file)
     if not os.path.exists(nome_file):
         with open(nome_file, 'w', encoding='utf-8') as json_file:
-            json.dump([], json_file) 
-    
-    with open(nome_file, 'r', encoding='utf-8') as json_file:
-        data = json.load(json_file)
+            json.dump([], json_file, ensure_ascii=False, indent=4)
+    try:
+        with open(nome_file, 'r', encoding='utf-8') as json_file:
+            try:
+                data = json.load(json_file)
+                if not isinstance(data, list):
+                    data = []
+            except json.JSONDecodeError:
+                data = []
+    except OSError as e:
+        print(f"Errore nell'apertura del file: {e}")
+        data = []
 
     data.append(nuovo_dict)
-    with open(nome_file, 'w', encoding='utf-8') as file_json:
-        json.dump(data, file_json, ensure_ascii=False, indent=4)
+    try:
+        with open(nome_file, 'w', encoding='utf-8') as file_json:
+            json.dump(data, file_json, ensure_ascii=False, indent=4)
+    except OSError as e:
+        print(f"Errore nella scrittura del file: {e}")
 
 def update_log(nuovo_dict):
     aggiorna_json(nuovo_dict, 'chat_log.json')
