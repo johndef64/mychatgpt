@@ -61,6 +61,8 @@ api_models = ['gpt-4o-mini', 'gpt-4o',
               # "o1-mini",
               "deepseek-chat", "deepseek-reasoner",
               "grok-2-latest",
+              "grok-3",
+              "grok-4",
 
               "gemma2-9b-it",
               #"llama-3.3-70b-versatile",
@@ -100,7 +102,7 @@ def get_max_tokens(model):
         return 32000
     elif model in ["deepseek-chat", "deepseek-reasoner",
                     "llama-3.3-70b-versatile","deepseek-r1-distill-llama-70b", 
-                    "grok-2-latest"]:
+                    "grok-2-latest", "grok-3","grok-4",]:
         return 20000
     elif model in ["claude-opus-4-0", "claude-sonnet-4-0", "claude-3-7-sonnet-latest",]:
         return 20000
@@ -368,10 +370,11 @@ def select_client(model):
     elif model in deepseek_models:
         print("using DeepSeek model")
         client = OpenAI(api_key=load_api_keys()["deepseek"], base_url="https://api.deepseek.com")
-    elif model in x_models:
+    # elif model in x_models:
+    elif "grok" in model:
         print("using Xai model")
         client = OpenAI(api_key=load_api_keys()["grok"], base_url="https://api.x.ai/v1")
-    elif model in groq_models:
+    elif model in groq_models: 
         print("using Groq models")
         client = Groq(api_key=load_api_keys()["groq"])
     elif model in anthropic_models:
