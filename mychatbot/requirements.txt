@@ -1,2 +1,0 @@
-streamlit>=1.28
-mychatgpt>=0.4.6
