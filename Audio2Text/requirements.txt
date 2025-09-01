@@ -1,0 +1,5 @@
+# Requirements for Audio2Text scripts
+openai>=1.0.0
+pyperclip>=1.8.0
+pathlib2>=2.3.0
+groq>=0.8.0
