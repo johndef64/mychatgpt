@@ -235,23 +235,25 @@ def clean_and_format_text(text, client):
     """Clean and format transcribed text using GPT model"""
     print("Cleaning and formatting text with AI...")
     
-    prompt = f"""Sei un esperto editor di testi. Il tuo compito è pulire e formattare la seguente trascrizione audio in italiano.
+    prompt = f"""You are an experienced text editor. Your task is to clean and format the following audio transcript in Italian.
 
-Segui queste istruzioni:
-1. Correggi errori grammaticali e di ortografia
-2. Migliora la punteggiatura e la struttura delle frasi
-3. Organizza il testo in paragrafi logici
-4. Aggiungi titoli e sottotitoli appropriati dove necessario
-5. Formatta il risultato finale in Markdown
-6. Mantieni il significato originale del contenuto
-7. Se ci sono ripetizioni o errori di trascrizione, correggili
-8. Se il testo sembra essere una conversazione, organizzalo di conseguenza
+Follow these instructions:
+1. Correct grammatical and spelling errors
+2. Improve punctuation and sentence structure
+3. Organise text into logical paragraphs
+4. Add appropriate titles and subtitles where necessary
+5. Format final output in Markdown
+6. Retain the original text as much as possible
+7. Use the original language of the transcript
+8. If there are repetitions or transcription errors, correct them
+9. If the text appears to be a conversation, organise it accordingly
 
-Ecco la trascrizione da pulire e formattare:
+Here is the transcript to be cleaned and formatted:
+
 
 {text}
 
-Fornisci SOLO il testo pulito e formattato in Markdown, senza commenti aggiuntivi."""
+Provide ONLY clean, formatted text in Markdown, without additional comments."""
 
     try:
         chat_completion = client.chat.completions.create(
