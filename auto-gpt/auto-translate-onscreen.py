@@ -1,6 +1,3 @@
-# pip install groq pyperclip pynput pytesseract Pillow
-# Su Linux ricorda: sudo apt install xclip tesseract-ocr
-
 import os
 import time
 import threading
@@ -107,17 +104,18 @@ def ocr_worker():
     
     while True:
         try:
-            img = ImageGrab.grab(bbox=ocr_region)
-            # Ottimizzazione: OCR veloce
-            text = pytesseract.image_to_string(img, lang='ita+eng', config='--psm 6')
-            clean_text = text.strip()
-            
-            if clean_text and clean_text != last_ocr_text:
-                # Filtraggio rumore (almeno 5 char e lettere)
-                if len(clean_text) > 5 and any(c.isalpha() for c in clean_text):
-                    print(f"OCR Rilevato: {clean_text[:20]}...")
-                    last_ocr_text = clean_text
-                    pyperclip.copy(clean_text) # Questo attiverà il clipboard_monitor
+            if ocr_region: # Controlla se la regione è definita
+                img = ImageGrab.grab(bbox=ocr_region)
+                # Ottimizzazione: OCR veloce
+                text = pytesseract.image_to_string(img, lang='ita+eng', config='--psm 6')
+                clean_text = text.strip()
+                
+                if clean_text and clean_text != last_ocr_text:
+                    # Filtraggio rumore (almeno 5 char e lettere)
+                    if len(clean_text) > 5 and any(c.isalpha() for c in clean_text):
+                        print(f"OCR Rilevato: {clean_text[:20]}...")
+                        last_ocr_text = clean_text
+                        pyperclip.copy(clean_text) # Questo attiverà il clipboard_monitor
             
         except Exception as e:
             print(f"Errore OCR Loop: {e}")
@@ -162,59 +160,8 @@ class ResizableWindow(tk.Tk):
         
         self.after(100, self.process_queue)
 
-    # def setup_ui_deprecated(self):
-    #     # 1. Barra Titolo Custom (per muovere)
-    #     self.title_bar = tk.Frame(self, bg="#1f1f1f", height=30)
-    #     self.title_bar.pack(fill="x", side="top")
-    #     self.title_bar.pack_propagate(False) # Ferma resize automatico
-        
-    #     lbl = tk.Label(self.title_bar, text="Groq Auto-Translate", bg="#1f1f1f", fg="#aaaaaa", font=("Segoe UI", 9))
-    #     lbl.pack(side="left", padx=10)
-        
-    #     btn_x = tk.Button(self.title_bar, text="✕", command=self.hide_window, 
-    #                      bg="#1f1f1f", fg="#ff5555", bd=0, width=4)
-    #     btn_x.pack(side="right", fill="y")
-
-    #     # 2. Area Testo
-    #     # self.text_area = scrolledtext.ScrolledText(
-    #     #     self, wrap=tk.WORD, font=("Segoe UI", 11), 
-    #     #     bg="#2b2b2b", fg="#e0e0e0", relief="flat",
-    #     #     padx=10, pady=10
-    #     # )
-    #     # 2. Area Testo (Sostituisci ScrolledText con Text standard)
-    #     # Nota: Usiamo 'Text' invece di 'scrolledtext.ScrolledText'
-    #     self.text_area = tk.Text(
-    #         self, 
-    #         wrap=tk.WORD, 
-    #         font=("Segoe UI", 11), 
-    #         bg="#2b2b2b", 
-    #         fg="#e0e0e0", 
-    #         relief="flat",
-    #         padx=10, 
-    #         pady=10,
-    #         highlightthickness=0, # Rimuove il bordo di focus
-    #         bd=0 # Rimuove bordi 3D
-    #     )
-    #     self.text_area.pack(fill="both", expand=True, padx=2, pady=2)
-        
-    #     # 3. Grip per Ridimensionare (Angolo basso-destra)
-    #     self.grip = tk.Label(self, text="◢", bg="#2b2b2b", fg="#555555", cursor="size_nw_se")
-    #     self.grip.place(relx=1.0, rely=1.0, anchor="se")
-
-    # def setup_bindings_deprecated(self):
-    #     # Muovere finestra
-    #     self.title_bar.bind("<ButtonPress-1>", self.start_move)
-    #     self.title_bar.bind("<B1-Motion>", self.do_move)
-        
-    #     # Ridimensionare finestra
-    #     self.grip.bind("<ButtonPress-1>", self.start_resize)
-    #     self.grip.bind("<B1-Motion>", self.do_resize)
-        
-    #     # Hotkeys
-    #     self.bind("<Escape>", lambda e: self.hide_window())
-
     def setup_ui(self):
-        # 1. Rimuoviamo completamente la self.title_bar
+        # 1. Rimuoviamo completamente la barra del titolo visibile (header)
         
         # 2. Area Testo (Pura, senza scrollbar visibile)
         self.text_area = tk.Text(
@@ -238,6 +185,10 @@ class ResizableWindow(tk.Tk):
         # 4. Menu Contestuale (Tasto Destro per sopperire alla mancanza della X)
         self.context_menu = tk.Menu(self, tearoff=0, bg="#2b2b2b", fg="white")
         self.context_menu.add_command(label="Nascondi (Esc)", command=self.hide_window)
+        
+        # NUOVO: Voce per resettare l'area
+        self.context_menu.add_command(label="Reimposta Area OCR", command=self.reset_ocr_selection)
+        
         self.context_menu.add_separator()
         self.context_menu.add_command(label="Chiudi App", command=lambda: os._exit(0))
 
@@ -260,6 +211,63 @@ class ResizableWindow(tk.Tk):
     def show_context_menu(self, event):
         self.context_menu.post(event.x_root, event.y_root)
 
+    def reset_ocr_selection(self):
+        """Apre un overlay per riselezionare l'area OCR al volo."""
+        self.withdraw() # Nasconde la finestra principale durante la selezione
+        
+        # Crea finestra overlay trasparente sopra tutto
+        sel_win = tk.Toplevel(self)
+        sel_win.attributes('-fullscreen', True)
+        sel_win.attributes('-alpha', 0.3)
+        sel_win.attributes('-topmost', True)
+        sel_win.configure(bg='black', cursor="cross")
+        
+        canvas = tk.Canvas(sel_win, bg="black", highlightthickness=0)
+        canvas.pack(fill="both", expand=True)
+        
+        # Istruzioni visive
+        canvas.create_text(
+            self.winfo_screenwidth()//2, 
+            self.winfo_screenheight()//2, 
+            text="DISEGNA LA NUOVA AREA", 
+            fill="white", font=("Segoe UI", 20, "bold")
+        )
+
+        # Variabili locali per la selezione
+        start_x, start_y = 0, 0
+        rect_id = None
+
+        def on_press(e):
+            nonlocal start_x, start_y, rect_id
+            start_x, start_y = e.x, e.y
+            rect_id = canvas.create_rectangle(start_x, start_y, start_x, start_y, outline='#00ff00', width=2)
+
+        def on_drag(e):
+            nonlocal rect_id
+            if rect_id:
+                canvas.coords(rect_id, start_x, start_y, e.x, e.y)
+
+        def on_release(e):
+            global ocr_region # Aggiorniamo la variabile globale usata dal thread OCR!
+            
+            x1, y1 = min(start_x, e.x), min(start_y, e.y)
+            x2, y2 = max(start_x, e.x), max(start_y, e.y)
+            
+            # Aggiorna solo se l'area è valida (> 10px)
+            if x2 - x1 > 10 and y2 - y1 > 10:
+                ocr_region = (x1, y1, x2, y2)
+                print(f"Area OCR aggiornata: {ocr_region}")
+            
+            sel_win.destroy()
+            # Non chiamiamo deiconify() qui, lasciamo che la prossima traduzione riapra la finestra se necessario
+            # Oppure, se vuoi che riappaia subito, usa:
+            # self.deiconify() 
+
+        # Binding eventi
+        canvas.bind("<ButtonPress-1>", on_press)
+        canvas.bind("<B1-Motion>", on_drag)
+        canvas.bind("<ButtonRelease-1>", on_release)
+        sel_win.bind("<Escape>", lambda e: sel_win.destroy())
 
     def start_move(self, event):
         self._drag_data["x"] = event.x
@@ -278,10 +286,6 @@ class ResizableWindow(tk.Tk):
 
     def do_resize(self, event):
         # Calcola nuova larghezza/altezza basata sul movimento del mouse relativo al grip
-        # Il grip è ancorato a bottom-right, quindi event.x/y sono relativi al grip
-        # Ma per il resize serve calcolare la differenza globale o usare coordinate root
-        
-        # Approccio semplificato: usiamo pointerx/y
         x1 = self.winfo_pointerx()
         y1 = self.winfo_pointery()
         x0 = self.winfo_rootx()
@@ -315,15 +319,14 @@ class ResizableWindow(tk.Tk):
 
 def main():
     global ocr_region
-
-    # prionts sull utlizzo dell app
+    
     print("Auto-GPT Groq Translate On-Screen")
     print("1. Seleziona l'area dello schermo da monitorare per OCR.")
     print("2. Quando viene rilevato testo, verrà tradotto e mostrato in una finestra ridimensionabile.")
     print("3. Usa CTRL + Click Sinistro per spostare la finestra.")
-    print("4. Usa il tasto destro per aprire il menu (Nascondi/Chiudi).")
+    print("4. Usa il tasto destro per aprire il menu (Nascondi/Chiudi/Reset Area).")
     print("5. Premi ESC per nascondere la finestra.")
-    
+
     # 1. Selezione Area (Bloccante all'inizio)
     print("Seleziona l'area da monitorare...")
     selector = AreaSelector()
