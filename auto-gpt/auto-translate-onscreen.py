@@ -346,7 +346,7 @@ class ResizableWindow(tk.Tk):
         self.text_area = tk.Text(
             self, 
             wrap=tk.WORD, 
-            font=("Segoe UI", 11), 
+            font=("Segoe UI", 11, "bold"),  # chanche here font size
             bg="#2b2b2b", 
             fg="#e0e0e0", 
             relief="flat",
@@ -409,7 +409,7 @@ class ResizableWindow(tk.Tk):
             self.winfo_screenwidth()//2, 
             self.winfo_screenheight()//2, 
             text="DISEGNA LA NUOVA AREA", 
-            fill="white", font=("Segoe UI", 30, "bold")
+            fill="white", font=("Segoe UI", 20, "bold")
         )
 
         # Variabili locali per la selezione
