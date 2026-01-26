@@ -1,0 +1,5 @@
+groq
+pyperclip
+pynput
+pytesseract
+Pillow
