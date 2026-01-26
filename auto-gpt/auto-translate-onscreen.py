@@ -84,7 +84,7 @@ class AreaSelector:
 # --- VARIABILI GLOBALI PER LA MEMORIA ---
 translation_memory = [] # Lista di stringhe (ultime traduzioni)
 last_translation_time = 0
-MEMORY_TIMEOUT = 20.0 # Secondi dopo i quali la memoria si azzera
+MEMORY_TIMEOUT = 50.0 # Secondi dopo i quali la memoria si azzera
 
 # --- LOGICA DI BACKGROUND ---
 def translate_text_no_context(text):
@@ -139,6 +139,7 @@ def translate_text(text):
         "3. Mantieni lo stile e il tono del testo originale."
     )
 
+    # Aggiungi contesto se disponibile (qui si può bypassare)
     if translation_memory:
         # Prende le ultime 5 (o 3) per dare più profondità se i testi sono brevi
         context_str = "\n".join(translation_memory[-5:]) 
