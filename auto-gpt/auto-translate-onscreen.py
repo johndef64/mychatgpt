@@ -9,6 +9,8 @@ from PIL import ImageGrab
 import pytesseract
 import json
 import queue
+from langdetect import detect, LangDetectException
+
 
 # --- CONFIGURAZIONE ---
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
@@ -79,11 +81,24 @@ class AreaSelector:
         self.root.mainloop()
         return self.selection
 
+# --- VARIABILI GLOBALI PER LA MEMORIA ---
+translation_memory = [] # Lista di stringhe (ultime traduzioni)
+last_translation_time = 0
+MEMORY_TIMEOUT = 20.0 # Secondi dopo i quali la memoria si azzera
+
 # --- LOGICA DI BACKGROUND ---
-def translate_text(text):
+def translate_text_no_context(text):
     if not text or len(text) < MIN_CHARS_TO_TRANSLATE:
         return None
     try:
+        """
+        aggiungere il contesto di traduzione: utilizzare come contesto le traduzioni precedenti, da aggiunegre nel sustem solo come contesto
+        1. mantenere una lista di traduzioni precedenti
+        2. aggiungere al system message
+
+        """
+
+
         client = Groq(api_key=GROQ_API_KEY)
         completion = client.chat.completions.create(
             messages=[
@@ -96,6 +111,68 @@ def translate_text(text):
         return completion.choices[0].message.content
     except Exception as e:
         return f"Errore API: {e}"
+
+def translate_text(text):
+    global translation_memory, last_translation_time
+    
+    if not text or len(text) < MIN_CHARS_TO_TRANSLATE:
+        return None
+    
+    # 1. Gestione Scadenza Memoria
+    current_time = time.time()
+    if current_time - last_translation_time > MEMORY_TIMEOUT:
+        translation_memory = [] # Azzera se passato troppo tempo
+        print(f"[Context] Memoria scaduta (> {MEMORY_TIMEOUT}s). Reset contesto.")
+    
+    # 2. Costruzione del System Message con Contesto
+    # system_prompt = "Sei un traduttore esperto verso l'italiano. Solo output tradotto."
+    # if translation_memory:
+    #     context_str = "\n".join(translation_memory[-3:]) # Usa le ultime 3 traduzioni come contesto
+    #     system_prompt += f"\n\nCONTESTO PRECEDENTE (per coerenza):\n{context_str}"
+
+    # Prompt Base: Istruzioni rigide + Ruolo
+    system_prompt = (
+        "Sei un sistema di traduzione professionale EN->IT in tempo reale per sottotitoli e dialoghi.\n"
+        "REGOLE:\n"
+        "1. Traduci SOLO il testo fornito dall'utente in Italiano.\n"
+        "2. NON aggiungere commenti, note o premesse.\n"
+        "3. Mantieni lo stile e il tono del testo originale."
+    )
+
+    if translation_memory:
+        # Prende le ultime 5 (o 3) per dare più profondità se i testi sono brevi
+        context_str = "\n".join(translation_memory[-5:]) 
+        
+        # Aggiunge il contesto marcandolo chiaramente come "Reference Only"
+        system_prompt += (
+            f"\n\n### CONTESTO RECENTE (Solo per riferimento, NON ritradurre):\n"
+            f"{context_str}\n"
+            f"### FINE CONTESTO\n"
+            f"Usa il contesto sopra solo per mantenere coerenza della traduzione."
+        )
+
+    try:
+        client = Groq(api_key=GROQ_API_KEY)
+        completion = client.chat.completions.create(
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": text}
+            ],
+            model=MODEL_ID,
+            temperature=0.3,
+        )
+        translated_text = completion.choices[0].message.content
+        
+        # 3. Aggiorna Memoria
+        if translated_text and not translated_text.startswith("Errore"):
+            translation_memory.append(translated_text)
+            last_translation_time = current_time
+            
+        return translated_text
+        
+    except Exception as e:
+        return f"Errore API: {e}"
+
 
 def ocr_worker():
     """Monitora l'area selezionata e aggiorna la clipboard se trova nuovo testo."""
@@ -122,11 +199,69 @@ def ocr_worker():
         
         time.sleep(1.0) # Check ogni secondo
 
-def clipboard_monitor():
+
+import re
+
+def is_valid_text_old(text):
+    """
+    Ritorna False se il testo sembra 'spazzatura' OCR o codice.
+    Criteri:
+    1. Deve contenere almeno una lettera.
+    2. Almeno il 70% dei caratteri deve essere 'normale' (lettere, numeri, spazi, punteggiatura base).
+    """
+    if not text: 
+        return False
+        
+    # 1. Check veloce: c'è almeno una lettera?
+    if not any(c.isalpha() for c in text):
+        return False
+        
+    # 2. Ratio check: conta caratteri validi (lettere, numeri, spazi, punteggiatura comune)
+    # Regex per caratteri 'buoni': Alfanumerici, spazi, e punteggiatura standard
+    # Include range estesi per lettere accentate europee
+    good_chars_count = len(re.findall(r'[a-zA-Z0-9\s.,;:\'"?!()\[\]\-\u00C0-\u00FF]', text))
+    total_chars = len(text)
+    
+    if total_chars == 0: 
+        return False
+        
+    ratio = good_chars_count / total_chars
+    
+    # Se meno del 70% è "testo normale", probabilmente è rumore
+    return ratio > 0.70
+
+
+def is_valid_text(text):
+    """
+    Usa langdetect per verificare se il testo è una lingua reale.
+    Ritorna False se è rumore, simboli o troppo breve.
+    """
+    if not text or len(text.strip()) < 3: 
+        return False
+        
+    try:
+        # detect() ritorna il codice lingua ('en', 'it', 'fr'...)
+        # Se fallisce (es. "123 !!!"), lancia LangDetectException
+        lang = detect(text)
+        
+        # Opzionale: Se vuoi escludere codici non latini se non ti interessano
+        # ma in generale se detect() non fallisce, è un testo coerente.
+        return True
+        
+    except LangDetectException:
+        # Langdetect non è riuscito a identificare una lingua (spesso rumore OCR)
+        return False
+    except Exception as e:
+        print(f"Warn: Langdetect error: {e}")
+        return False
+
+
+
+def clipboard_monitor_old():
     """Ascolta cambiamenti clipboard e traduce."""
     last_clip = pyperclip.paste()
     while True:
-        time.sleep(0.5)
+        time.sleep(0.1)
         try:
             curr = pyperclip.paste()
             if curr != last_clip:
@@ -138,6 +273,49 @@ def clipboard_monitor():
                         gui_queue.put(trans)
         except Exception:
             pass
+
+def clipboard_monitor():
+    """Ascolta cambiamenti clipboard e traduce."""
+    # Inizializza con il contenuto attuale pulito
+    last_clip = pyperclip.paste().strip()
+    
+    while True:
+        time.sleep(0.5) # Check ogni mezzo secondo
+        try:
+            # Leggi e pulisci subito
+            raw_curr = pyperclip.paste()
+            if not raw_curr: 
+                continue
+                
+            curr = raw_curr.strip()
+            
+            # Se dopo lo strip il contenuto è identico, non fare nulla
+            if curr == last_clip:
+                continue
+            
+            # Trovato testo veramente nuovo
+            last_clip = curr # Aggiorna il riferimento
+            
+            # 2. Filtro lunghezza minima
+            if len(curr) < MIN_CHARS_TO_TRANSLATE:
+                continue
+                
+            # 3. NUOVO: Filtro Qualità / Spazzatura
+            if not is_valid_text(curr):
+                print(f"Testo ignorato (rumore/codice): {curr[:20]}...")
+                continue
+
+            # Se passa tutti i filtri -> Traduci
+            print("Testo valido rilevato. Traduco...")
+            trans = translate_text(curr)
+            if trans:
+                gui_queue.put(trans)
+                    
+        except Exception as e:
+            print(f"Errore Clipboard Monitor: {e}")
+            time.sleep(1) # Attendi un po' in caso di errori ripetuti
+
+
 
 # --- GUI PRINCIPALE ---
 class ResizableWindow(tk.Tk):
