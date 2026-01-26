@@ -29,7 +29,7 @@ MODEL_ID = "meta-llama/llama-4-maverick-17b-128e-instruct"
 # Configura Tesseract se necessario (Windows)
 # pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
-MIN_CHARS_TO_TRANSLATE = 30
+MIN_CHARS_TO_TRANSLATE = 10
 gui_queue = queue.Queue()
 ocr_region = None # Sarà settata all'avvio
 
@@ -84,7 +84,7 @@ class AreaSelector:
 # --- VARIABILI GLOBALI PER LA MEMORIA ---
 translation_memory = [] # Lista di stringhe (ultime traduzioni)
 last_translation_time = 0
-MEMORY_TIMEOUT = 50.0 # Secondi dopo i quali la memoria si azzera
+MEMORY_TIMEOUT = 30.0 # Secondi dopo i quali la memoria si azzera
 
 # --- LOGICA DI BACKGROUND ---
 def translate_text_no_context(text):
@@ -409,7 +409,7 @@ class ResizableWindow(tk.Tk):
             self.winfo_screenwidth()//2, 
             self.winfo_screenheight()//2, 
             text="DISEGNA LA NUOVA AREA", 
-            fill="white", font=("Segoe UI", 20, "bold")
+            fill="white", font=("Segoe UI", 30, "bold")
         )
 
         # Variabili locali per la selezione
