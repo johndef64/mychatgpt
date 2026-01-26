@@ -328,7 +328,7 @@ def main():
     print("5. Premi ESC per nascondere la finestra.")
 
     # 1. Selezione Area (Bloccante all'inizio)
-    print("Seleziona l'area da monitorare...")
+    print("\nSeleziona l'area da monitorare...")
     selector = AreaSelector()
     ocr_region = selector.get_selection()
     
@@ -336,7 +336,7 @@ def main():
         print("Nessuna area selezionata. Esco.")
         return
 
-    print("Area memorizzata. Avvio threads...")
+    print("Area memorizzata. Avvio threads...\n\n------\n\n")
 
     # 2. Avvia Thread OCR e Clipboard
     threading.Thread(target=ocr_worker, daemon=True).start()
