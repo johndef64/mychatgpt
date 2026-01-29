@@ -1,6 +1,5 @@
 #%%
 import os
-from litellm import openrouter_models
 import requests
 import load_api_keys
 import tiktoken
@@ -15,7 +14,7 @@ def token_counter(text: str, model: str, fallback_encoding: str = "cl100k_base")
         enc = tiktoken.get_encoding(fallback_encoding)
     return len(enc.encode(text))
 
-def get_openrouter_models(api_key: str) -> list[dict]:
+def get_OPENROUTER_MODELS_DATA(api_key: str) -> list[dict]:
     """
     Recupera la lista completa dei modelli OpenRouter disponibili.
     
@@ -39,12 +38,15 @@ def get_openrouter_models(api_key: str) -> list[dict]:
     resp.raise_for_status()
     return resp.json()["data"]
 
-OPENROUTER_MODELS = get_openrouter_models(os.environ["OPENROUTER_API_KEY"])
+OPENROUTER_MODELS_DATA = get_OPENROUTER_MODELS_DATA(os.environ["OPENROUTER_API_KEY"])
+
+OPENROUTER_MODELS = [m["id"] for m in OPENROUTER_MODELS_DATA]
+
 #%%
 
 if __name__ == "__main__":
     models = []
-    for m in OPENROUTER_MODELS:
+    for m in OPENROUTER_MODELS_DATA:
         models.append({
             "id": m.get("id"),
             "name": m.get("name"),
@@ -66,14 +68,14 @@ if __name__ == "__main__":
 import os, requests
 
 
-def get_GROQ_MODELS(api_key: str) -> list[dict]:
+def get_GROQ_MODELS_DATA(api_key: str) -> list[dict]:
     # 1) list models
     resp = requests.get(
         "https://api.groq.com/openai/v1/models",
         headers={"Authorization": f"Bearer {api_key}"}
     )
     resp.raise_for_status()
-    GROQ_MODELS_base = resp.json()["data"]
+    GROQ_MODELS_DATA_base = resp.json()["data"]
 
     # 2) prezzi: esempio parziale (USD per 1M token) preso dalla pagina pricing
     # NOTA: devi mappare gli ID reali restituiti da /models ai nomi nella tabella pricing.
@@ -101,16 +103,17 @@ def get_GROQ_MODELS(api_key: str) -> list[dict]:
     ]
 
 
-    GROQ_MODELS = []
-    for m in GROQ_MODELS_base:
+    GROQ_MODELS_DATA = []
+    for m in GROQ_MODELS_DATA_base:
         model_id = m.get("id")
         pricing_info = next((item for item in pricing_per_million if item["id"] == model_id), None)
         if pricing_info:
             m["pricing"] = pricing_info["pricing"]
-        GROQ_MODELS.append(m)
-    return GROQ_MODELS
+        GROQ_MODELS_DATA.append(m)
+    return GROQ_MODELS_DATA
 
-GROQ_MODELS = get_GROQ_MODELS(os.environ["GROQ_API_KEY"])
+GROQ_MODELS_DATA = get_GROQ_MODELS_DATA(os.environ["GROQ_API_KEY"])
+GROQ_MODELS = [m["id"] for m in GROQ_MODELS_DATA]
 
 #%%
 # Mode retrieval functions
@@ -124,7 +127,7 @@ def get_model_from_query(
     
     Args:
         query: La stringa di ricerca (es. "gpt-4", "claude", "llama 70b")
-        models_list: Lista di dizionari (dati grezzi da get_openrouter_models) con struttura:
+        models_list: Lista di dizionari (dati grezzi da get_OPENROUTER_MODELS_DATA) con struttura:
             {
                 'id': 'anthropic/claude-3.5-sonnet',
                 'name': 'Anthropic: Claude 3.5 Sonnet',
@@ -140,7 +143,7 @@ def get_model_from_query(
         Ogni modello contiene tutti i campi originali OpenRouter.
     
     Example:
-        >>> data = get_openrouter_models(API_KEY)
+        >>> data = get_OPENROUTER_MODELS_DATA(API_KEY)
         >>> results = get_model_from_query("claude sonnet", data)
         >>> print(results[0]['id'])
         'anthropic/claude-3.5-sonnet'
@@ -257,8 +260,8 @@ def get_best_model(query: str, models_list: List[Dict]) -> Optional[Dict]:
 
 
 if __name__ == "__main__":
-    get_model_from_query("gpt-4", OPENROUTER_MODELS)[:3]
-    get_best_model("claude 4", OPENROUTER_MODELS)
+    get_model_from_query("gpt-4", OPENROUTER_MODELS_DATA)[:3]
+    get_best_model("claude 4", OPENROUTER_MODELS_DATA)
 
 #%%
 
@@ -379,7 +382,7 @@ if __name__ == "__main__":
     cost = estimate_text_cost_usd(
         text,
         model_id="llama-3.1-8b-instant",
-        models_list=GROQ_MODELS,
+        models_list=GROQ_MODELS_DATA,
         token_counter=token_counter,
         completion_tokens=200,  # stima output
     )
@@ -389,12 +392,12 @@ if __name__ == "__main__":
 
 # %%
 if __name__ == "__main__":
-    model_dict = get_best_model("gpt-4", OPENROUTER_MODELS)
+    model_dict = get_best_model("gpt-4", OPENROUTER_MODELS_DATA)
 
     cost = estimate_text_cost_usd(
         text,
         model_id=model_dict['id'],
-        models_list=OPENROUTER_MODELS,
+        models_list=OPENROUTER_MODELS_DATA,
         token_counter=token_counter,
         completion_tokens=200,  # stima output
     )
@@ -404,21 +407,21 @@ if __name__ == "__main__":
 # simulate 1000 requests to the model and estimate total cost
 if __name__ == "__main__":
     open_models = [
-        get_best_model("gpt-4", OPENROUTER_MODELS),
-        get_best_model("claude 4", OPENROUTER_MODELS)
+        get_best_model("gpt-4", OPENROUTER_MODELS_DATA),
+        get_best_model("claude 4", OPENROUTER_MODELS_DATA)
     ]
-    groq_models = [
-        get_best_model("llama-3.1-8b-instant", GROQ_MODELS),
-        get_best_model("meta-llama/llama-4-scout", GROQ_MODELS),
-        # get_best_model("kimi", GROQ_MODELS)
+    GROQ_MODELS_DATA = [
+        get_best_model("llama-3.1-8b-instant", GROQ_MODELS_DATA),
+        get_best_model("meta-llama/llama-4-scout", GROQ_MODELS_DATA),
+        # get_best_model("kimi", GROQ_MODELS_DATA)
         ]
 
     total_requests = 1000
-    for model_dict in open_models + groq_models:
+    for model_dict in open_models + GROQ_MODELS_DATA:
         if model_dict in open_models:
-            model_list = OPENROUTER_MODELS
+            model_list = OPENROUTER_MODELS_DATA
         else:
-            model_list = GROQ_MODELS
+            model_list = GROQ_MODELS_DATA
         print(f"Estimating cost for model: {model_dict['id']}")
         single_cost = estimate_text_cost_usd(
             text,
@@ -462,8 +465,8 @@ if __name__ == "__main__":
     import numpy as np
 
     # Estrai dati
-    openrouter_data = extract_pricing_data(OPENROUTER_MODELS, "OpenRouter")
-    groq_data = extract_pricing_data(GROQ_MODELS, "Groq")
+    openrouter_data = extract_pricing_data(OPENROUTER_MODELS_DATA, "OpenRouter")
+    groq_data = extract_pricing_data(GROQ_MODELS_DATA, "Groq")
 
     all_data = openrouter_data + groq_data
 
