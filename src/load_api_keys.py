@@ -18,5 +18,5 @@ for key in api_keys:
 # print all os environment variables that end with _API_KEY
 for key, value in os.environ.items():
     if key.endswith("_API_KEY"):
-        # print(f"{key}: {value[:4]}...{value[-4:]}")
+        print(f"{key}: {value[:4]}...{value[-4:]}")
         pass

@@ -2,10 +2,18 @@
 import os
 import requests
 import load_api_keys
+
 import tiktoken
 from typing import Dict, List, Optional, Union, Dict
 import re
+import json
 
+with open("api_keys.json") as f:
+    api_keys = json.load(f)
+
+os.environ["OPENROUTER_API_KEY"] = api_keys["openrouter"]
+os.environ["GROQ_API_KEY"] = api_keys["groq"]
+#%%
 
 def token_counter(text: str, model: str, fallback_encoding: str = "cl100k_base") -> int:
     try:
@@ -65,7 +73,6 @@ if __name__ == "__main__":
 
 
 #%%
-import os, requests
 
 
 def get_GROQ_MODELS_DATA(api_key: str) -> list[dict]:
@@ -308,8 +315,8 @@ def estimate_text_cost_usd(
     if "per_hour_usd" in pricing:
         raise ValueError(f"Modello '{model_id}' ha pricing orario (audio), non token-based.")
 
-    prompt_cost_per_token = float(pricing["prompt"], 0)
-    completion_cost_per_token = float(pricing["completion"], 0)
+    prompt_cost_per_token = float(pricing["prompt"])
+    completion_cost_per_token = float(pricing["completion"])
     audio_cost_per_hour = float(pricing.get("audio", 0))
     image_cost_per_image = float(pricing.get("image", 0))
     internal_reasoning_cost_per_token = float(pricing.get("internal_reasoning", 0))
@@ -350,8 +357,8 @@ def get_model_cost_data(
     if "per_hour_usd" in pricing:
         raise ValueError(f"Modello '{model_id}' ha pricing orario (audio), non token-based.")
 
-    prompt_cost_per_token = float(pricing["prompt"], 0)
-    completion_cost_per_token = float(pricing["completion"], 0)
+    prompt_cost_per_token = float(pricing["prompt"])
+    completion_cost_per_token = float(pricing["completion"])
     audio_cost_per_hour = float(pricing.get("audio", 0))
     image_cost_per_image = float(pricing.get("image", 0))
     internal_reasoning_cost_per_token = float(pricing.get("internal_reasoning", 0))
@@ -366,6 +373,109 @@ def get_model_cost_data(
     }
     
     return cost_data
+
+
+
+def estimate_job_cost(
+    queries: List[str],
+    system_prompt: str,
+    model_id: str,
+    models_list: List[Dict],
+    fallback_encoding: str = "cl100k_base"
+) -> Dict[str, Union[int, float]]:
+    """
+    Stima il costo di un job (lista di query) per un modello LLM.
+    
+    Il job è una lista di queries che il modello deve processare.
+    Stima un output con un numero di token 1.5 volte il numero di token in input.
+    I costi vengono recuperati automaticamente dal modello tramite get_model_cost_data.
+    
+    Args:
+        queries: Lista di query/messaggi da processare
+        system_prompt: Prompt di sistema da includere nel calcolo
+        model_id: ID del modello (es. "llama-3.1-8b-instant", "anthropic/claude-3.5-sonnet")
+        models_list: Lista di dizionari modello (OPENROUTER_MODELS_DATA o GROQ_MODELS_DATA)
+        fallback_encoding: Encoding di fallback per tiktoken (default: "cl100k_base")
+    
+    Returns:
+        Dizionario con:
+            - 'total_input_tokens': Numero totale di token in input
+            - 'estimated_output_tokens': Numero stimato di token in output (1.5x input)
+            - 'total_tokens': Totale token (input + output)
+            - 'input_cost': Costo input in USD
+            - 'output_cost': Costo output in USD
+            - 'total_cost': Costo totale in USD
+    
+    Example:
+        >>> queries = ["Ciao come stai?", "Parlami di Python"]
+        >>> system_prompt = "Sei un assistente utile"
+        >>> cost_info = estimate_job_cost(
+        ...     queries=queries,
+        ...     system_prompt=system_prompt,
+        ...     model_id="llama-3.1-8b-instant",
+        ...     models_list=GROQ_MODELS_DATA
+        ... )
+        >>> print(f"Costo totale: ${cost_info['total_cost']:.6f}")
+    """
+    # Recupera i costi dal modello
+    cost_data = get_model_cost_data(
+        model_id=model_id,
+        models_list=models_list,
+        token_counter=token_counter
+    )
+    
+    prompt_cost_per_token = cost_data["prompt_cost_per_token"]
+    completion_cost_per_token = cost_data["completion_cost_per_token"]
+    
+    # Conta i token del system prompt
+    system_tokens = token_counter(system_prompt, model_id, fallback_encoding)
+    
+    # Conta i token di tutte le query
+    queries_tokens = sum(token_counter(q, model_id, fallback_encoding) for q in queries)
+    
+    # Totale token in input (system prompt viene inviato una volta per ogni query)
+    # Assumiamo che il system prompt sia incluso in ogni chiamata
+    total_input_tokens = (system_tokens * len(queries)) + queries_tokens
+    
+    # Stima output: 1.5 volte l'input
+    estimated_output_tokens = int(total_input_tokens * 1.5)
+    
+    # Calcola i costi
+    input_cost = total_input_tokens * prompt_cost_per_token
+    output_cost = estimated_output_tokens * completion_cost_per_token
+    total_cost = input_cost + output_cost
+    
+    return {
+        'total_input_tokens': total_input_tokens,
+        'estimated_output_tokens': estimated_output_tokens,
+        'total_tokens': total_input_tokens + estimated_output_tokens,
+        'input_cost': input_cost,
+        'output_cost': output_cost,
+        'total_cost': total_cost
+    }
+
+
+if __name__ == "__main__":
+    queries = [
+        "Ciao, come stai?",
+        "Parlami di Python e delle sue librerie principali.",
+        "Quali sono le ultime novità nel campo dell'intelligenza artificiale?",
+        "Spiegami il concetto di machine learning in modo semplice.",
+        "Come posso iniziare a programmare in JavaScript?"
+    ]
+    # moltiplica le quesrties per 1000
+    queries = queries * 2000
+    system_prompt = "Sei un assistente utile e competente.Sei un assistente utile e competente.Sei un assistente utile e competente.Sei un assistente utile e competente.Sei un assistente utile e competente.Sei un assistente utile e competente.Sei un assistente utile e competente.Sei un assistente utile e competente.Sei un assistente utile e competente."
+    model_id = get_best_model("llama-4-scout-17b", GROQ_MODELS_DATA)['id']
+    cost = estimate_job_cost(
+        queries=queries,
+        system_prompt=system_prompt,
+        model_id=model_id,
+        models_list=GROQ_MODELS_DATA
+    )
+    print(f"Costo totale stimato per il job con il modello '{model_id}': ${cost['total_cost']:.6f}")
+
+#%%
 
 def import_text(file_path: str) -> str:
     with open(file_path, "r", encoding="utf-8") as f:
@@ -583,3 +693,4 @@ if __name__ == "__main__":
     plt.show()
 
 # %%
+
