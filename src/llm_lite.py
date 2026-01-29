@@ -19,59 +19,59 @@ os.environ["GROQ_API_KEY"] = api_keys.get("groq")
 os.environ["OPENROUTER_API_KEY"] = api_keys.get("openrouter")
 
 # Model dictionaries
-GROQ_MODELS = {
-    1: "meta-llama/llama-4-maverick-17b-128e-instruct",
-    2: "meta-llama/llama-4-scout-17b-16e-instruct",
-    3: "llama-3.1-8b-instant",
-    4: "llama-3.3-70b-versatile",
-    5: "openai/gpt-oss-20b",
-    6: "openai/gpt-oss-120b",
-}
+GROQ_MODELS = [
+  "meta-llama/llama-4-maverick-17b-128e-instruct",
+  "meta-llama/llama-4-scout-17b-16e-instruct",
+  "llama-3.1-8b-instant",
+  "llama-3.3-70b-versatile",
+  "openai/gpt-oss-20b",
+  "openai/gpt-oss-120b",
+]
 
-OPENROUTER_MODELS = {
-    1: "anthropic/claude-opus-4.5",
-    2: "anthropic/claude-sonnet-4.5",
-    3: "anthropic/claude-haiku-4.5",
-    4: "anthropic/claude-opus-4",
-    5: "anthropic/claude-sonnet-4",
-    6: "openai/gpt-5.2-pro",
-    7: "openai/gpt-5.2",
-    8: "openai/gpt-5.2-chat",
-    9: "openai/gpt-5.2-codex",
-    10: "openai/gpt-5.1-codex-max",
-    11: "google/gemini-3-flash-preview",
-    12: "x-ai/grok-4",
-    13: "x-ai/grok-4.1-fast",
-    14: "x-ai/grok-4-fast",
-    15: "x-ai/grok-3",
-    16: "x-ai/grok-3-mini",
-    17: "x-ai/grok-code-fast-1",
-    18: "mistralai/mistral-small-creative",
-    19: "deepseek/deepseek-v3.2",
-    20: "mistralai/ministral-14b-2512",
-    21: "mistralai/ministral-8b-2512",
-    22: "mistralai/ministral-3b-2512",
-    23: "mistralai/devstral-2512",
-    24: "allenai/olmo-3.1-32b-instruct",
-    25: "allenai/olmo-3.1-32b-think",
-    26: "moonshotai/kimi-k2.5",
-    27: "writer/palmyra-x5",
-    28: "minimax/minimax-m2-her",
-    29: "minimax/minimax-m2.1",
-    30: "prime-intellect/intellect-3",
-    31: "deepcogito/cogito-v2.1-671b",
-}
+OPENROUTER_MODELS = [
+    "anthropic/claude-opus-4.5",
+    "anthropic/claude-sonnet-4.5",
+    "anthropic/claude-haiku-4.5",
+    "anthropic/claude-opus-4",
+    "anthropic/claude-sonnet-4",
+    "openai/gpt-5.2-pro",
+    "openai/gpt-5.2",
+    "openai/gpt-5.2-chat",
+    "openai/gpt-5.2-codex",
+     "openai/gpt-5.1-codex-max",
+     "google/gemini-3-flash-preview",
+     "x-ai/grok-4",
+     "x-ai/grok-4.1-fast",
+     "x-ai/grok-4-fast",
+     "x-ai/grok-3",
+     "x-ai/grok-3-mini",
+     "x-ai/grok-code-fast-1",
+     "mistralai/mistral-small-creative",
+     "deepseek/deepseek-v3.2",
+     "mistralai/ministral-14b-2512",
+     "mistralai/ministral-8b-2512",
+     "mistralai/ministral-3b-2512",
+     "mistralai/devstral-2512",
+     "allenai/olmo-3.1-32b-instruct",
+     "allenai/olmo-3.1-32b-think",
+     "moonshotai/kimi-k2.5",
+     "writer/palmyra-x5",
+     "minimax/minimax-m2-her",
+     "minimax/minimax-m2.1",
+     "prime-intellect/intellect-3",
+     "deepcogito/cogito-v2.1-671b",
+]
 
 OPENROUTER_EMBEDDING_MODELS = [
     "google/gemini-embedding-001",
     "qwen/qwen3-embedding-8b",
-"qwen/qwen3-embedding-4b",
-"qwen/qwen3-embedding-0.6b",
-"openai/text-embedding-3-small",
-"openai/text-embedding-3-large",
-"mistralai/codestral-embed-2505",
-"openai/text-embedding-ada-002"
-]
+    "qwen/qwen3-embedding-4b",
+    "qwen/qwen3-embedding-0.6b",
+    "openai/text-embedding-3-small",
+    "openai/text-embedding-3-large",
+    "mistralai/codestral-embed-2505",
+    "openai/text-embedding-ada-002"
+    ]
 
 # Default model
 DEFAULT_MODEL = GROQ_MODELS[4]
@@ -85,13 +85,13 @@ SYSTEM_PROMPTS = {
 }
 
 
-def get_model(query: str, models_dict: Dict[int, str] = GROQ_MODELS) -> str:
+def get_model(query: str, models_list: Optional[list[str]] = None) -> str:
     """
     Select a model based on query content.
     
     Args:
         query: Search query with space-separated terms (e.g., "llama 3.3", "gpt 5", "claude")
-        models_dict: Dictionary of models to search (default: GROQ_MODELS)
+        models_list: List of models to search (default: GROQ_MODELS)
     
     Returns:
         Model string, or the first model if no match found
@@ -101,10 +101,10 @@ def get_model(query: str, models_dict: Dict[int, str] = GROQ_MODELS) -> str:
     query_parts = [part.lower().strip() for part in query.split() if part.strip()]
     
     if not query_parts:
-        return list(models_dict.values())[0]
+        return models_list[0] if models_list else DEFAULT_MODEL
     
     scores = {}
-    for key, model_name in models_dict.items():
+    for model_name in models_list or GROQ_MODELS:
         model_parts = [part.lower() for part in re.split(r'[-/]', model_name) if part]
         score = 0
         
@@ -122,7 +122,7 @@ def get_model(query: str, models_dict: Dict[int, str] = GROQ_MODELS) -> str:
         if score > 0:
             scores[model_name] = score
     
-    return max(scores.items(), key=lambda x: x[1])[0] if scores else list(models_dict.values())[0]
+    return max(scores.items(), key=lambda x: x[1])[0] if scores else (models_list[0] if models_list else DEFAULT_MODEL)
 
 
 def get_client(model: str) -> tuple[OpenAI, str]:
@@ -135,13 +135,13 @@ def get_client(model: str) -> tuple[OpenAI, str]:
     Returns:
         Tuple of (OpenAI client, provider name)
     """
-    if model in GROQ_MODELS.values():
+    if model in GROQ_MODELS:
         api_key = os.environ.get("GROQ_API_KEY")
         if not api_key:
             raise ValueError("No Groq API key found in environment.")
         return OpenAI(api_key=api_key, base_url="https://api.groq.com/openai/v1"), "groq"
     
-    elif model in OPENROUTER_MODELS.values():
+    elif model in OPENROUTER_MODELS:
         api_key = os.environ.get("OPENROUTER_API_KEY")
         if not api_key:
             raise ValueError("No OpenRouter API key found in environment.")
