@@ -4,6 +4,9 @@ from litellm import openrouter_models
 import requests
 import load_api_keys
 import tiktoken
+from typing import Dict, List, Optional, Union, Dict
+import re
+
 
 def token_counter(text: str, model: str, fallback_encoding: str = "cl100k_base") -> int:
     try:
@@ -11,7 +14,6 @@ def token_counter(text: str, model: str, fallback_encoding: str = "cl100k_base")
     except KeyError:
         enc = tiktoken.get_encoding(fallback_encoding)
     return len(enc.encode(text))
-
 
 def get_openrouter_models(api_key: str) -> list[dict]:
     """
@@ -57,10 +59,61 @@ if __name__ == "__main__":
     # esempio: stampa le prime 5 righe
     for row in models[:5]:
         print(row)
-#%%
-from typing import List, Dict, Optional
-import re
+        
 
+
+#%%
+import os, requests
+
+
+def get_GROQ_MODELS(api_key: str) -> list[dict]:
+    # 1) list models
+    resp = requests.get(
+        "https://api.groq.com/openai/v1/models",
+        headers={"Authorization": f"Bearer {api_key}"}
+    )
+    resp.raise_for_status()
+    GROQ_MODELS_base = resp.json()["data"]
+
+    # 2) prezzi: esempio parziale (USD per 1M token) preso dalla pagina pricing
+    # NOTA: devi mappare gli ID reali restituiti da /models ai nomi nella tabella pricing.
+    pricing_per_million = {
+        # "llama-3.1-8b-instant": {"input": 0.05, "output": 0.08},
+        # "openai/gpt-oss-120b": {"input": 0.15, "output": 0.60},
+    }
+
+    pricing_per_million = [
+        {"id": "llama-3.1-8b-instant", "pricing": {"prompt": "0.00000005", "completion": "0.00000008"}},  # $0.05 / 1M  # $0.08 / 1M
+        {"id": "llama-3.3-70b-versatile", "pricing": {"prompt": "0.00000059", "completion": "0.00000079"}},
+        {"id": "meta-llama/llama-guard-4-12b", "pricing": {"prompt": "0.00000020", "completion": "0.00000020"}},
+        {"id": "openai/gpt-oss-120b", "pricing": {"prompt": "0.00000015", "completion": "0.00000060"}},
+        {"id": "openai/gpt-oss-20b", "pricing": {"prompt": "0.000000075", "completion": "0.00000030"}},
+        # Audio pricing: non token-based, quindi non mappabile 1:1 al pricing OpenRouter per token.
+        {"id": "whisper-large-v3", "pricing": {"per_hour_usd": "0.111"}},
+        {"id": "whisper-large-v3-turbo", "pricing": {"per_hour_usd": "0.04"}},
+        {"id": "meta-llama/llama-4-maverick-17b-128e-instruct", "pricing": {"prompt": "0.00000020", "completion": "0.00000060"}},
+        {"id": "meta-llama/llama-4-scout-17b-16e-instruct", "pricing": {"prompt": "0.00000011", "completion": "0.00000034"}},
+        {"id": "meta-llama/llama-prompt-guard-2-22m", "pricing": {"prompt": "0.00000003", "completion": "0.00000003"}},
+        {"id": "meta-llama/llama-prompt-guard-2-86m", "pricing": {"prompt": "0.00000004", "completion": "0.00000004"}},
+        {"id": "moonshotai/kimi-k2-instruct-0905", "pricing": {"prompt": "0.00000100", "completion": "0.00000300"}},
+        {"id": "openai/gpt-oss-safeguard-20b", "pricing": {"prompt": "0.000000075", "completion": "0.00000030"}},
+        {"id": "qwen/qwen3-32b", "pricing": {"prompt": "0.00000029", "completion": "0.00000059"}},
+    ]
+
+
+    GROQ_MODELS = []
+    for m in GROQ_MODELS_base:
+        model_id = m.get("id")
+        pricing_info = next((item for item in pricing_per_million if item["id"] == model_id), None)
+        if pricing_info:
+            m["pricing"] = pricing_info["pricing"]
+        GROQ_MODELS.append(m)
+    return GROQ_MODELS
+
+GROQ_MODELS = get_GROQ_MODELS(os.environ["GROQ_API_KEY"])
+
+#%%
+# Mode retrieval functions
 def get_model_from_query(
     query: str,
     models_list: List[Dict],
@@ -188,7 +241,6 @@ def get_model_from_query(
     
     return results
 
-
 def get_best_model(query: str, models_list: List[Dict]) -> Optional[Dict]:
     """
     Restituisce il singolo modello che meglio corrisponde alla query.
@@ -209,59 +261,7 @@ if __name__ == "__main__":
     get_best_model("claude 4", OPENROUTER_MODELS)
 
 #%%
-import os, requests
 
-
-def get_GROQ_MODELS(api_key: str) -> list[dict]:
-    # 1) list models
-    resp = requests.get(
-        "https://api.groq.com/openai/v1/models",
-        headers={"Authorization": f"Bearer {api_key}"}
-    )
-    resp.raise_for_status()
-    GROQ_MODELS_base = resp.json()["data"]
-
-    # 2) prezzi: esempio parziale (USD per 1M token) preso dalla pagina pricing
-    # NOTA: devi mappare gli ID reali restituiti da /models ai nomi nella tabella pricing.
-    pricing_per_million = {
-        # "llama-3.1-8b-instant": {"input": 0.05, "output": 0.08},
-        # "openai/gpt-oss-120b": {"input": 0.15, "output": 0.60},
-    }
-
-    pricing_per_million = [
-        {"id": "llama-3.1-8b-instant", "pricing": {"prompt": "0.00000005", "completion": "0.00000008"}},  # $0.05 / 1M  # $0.08 / 1M
-        {"id": "llama-3.3-70b-versatile", "pricing": {"prompt": "0.00000059", "completion": "0.00000079"}},
-        {"id": "meta-llama/llama-guard-4-12b", "pricing": {"prompt": "0.00000020", "completion": "0.00000020"}},
-        {"id": "openai/gpt-oss-120b", "pricing": {"prompt": "0.00000015", "completion": "0.00000060"}},
-        {"id": "openai/gpt-oss-20b", "pricing": {"prompt": "0.000000075", "completion": "0.00000030"}},
-        # Audio pricing: non token-based, quindi non mappabile 1:1 al pricing OpenRouter per token.
-        {"id": "whisper-large-v3", "pricing": {"per_hour_usd": "0.111"}},
-        {"id": "whisper-large-v3-turbo", "pricing": {"per_hour_usd": "0.04"}},
-        {"id": "meta-llama/llama-4-maverick-17b-128e-instruct", "pricing": {"prompt": "0.00000020", "completion": "0.00000060"}},
-        {"id": "meta-llama/llama-4-scout-17b-16e-instruct", "pricing": {"prompt": "0.00000011", "completion": "0.00000034"}},
-        {"id": "meta-llama/llama-prompt-guard-2-22m", "pricing": {"prompt": "0.00000003", "completion": "0.00000003"}},
-        {"id": "meta-llama/llama-prompt-guard-2-86m", "pricing": {"prompt": "0.00000004", "completion": "0.00000004"}},
-        {"id": "moonshotai/kimi-k2-instruct-0905", "pricing": {"prompt": "0.00000100", "completion": "0.00000300"}},
-        {"id": "openai/gpt-oss-safeguard-20b", "pricing": {"prompt": "0.000000075", "completion": "0.00000030"}},
-        {"id": "qwen/qwen3-32b", "pricing": {"prompt": "0.00000029", "completion": "0.00000059"}},
-    ]
-
-
-    GROQ_MODELS = []
-    for m in GROQ_MODELS_base:
-        model_id = m.get("id")
-        pricing_info = next((item for item in pricing_per_million if item["id"] == model_id), None)
-        if pricing_info:
-            m["pricing"] = pricing_info["pricing"]
-        GROQ_MODELS.append(m)
-    return GROQ_MODELS
-
-GROQ_MODELS = get_GROQ_MODELS(os.environ["GROQ_API_KEY"])
-
-
-#%%
-
-from typing import Dict, Optional, Union
 
 def estimate_text_cost_usd(
     text: str,
@@ -364,7 +364,6 @@ def get_model_cost_data(
     
     return cost_data
 
-
 def import_text(file_path: str) -> str:
     with open(file_path, "r", encoding="utf-8") as f:
         return f.read()
@@ -387,7 +386,7 @@ if __name__ == "__main__":
     # print(cost)
 
 
-get_best_model("image gemini", OPENROUTER_MODELS)
+
 # %%
 if __name__ == "__main__":
     model_dict = get_best_model("gpt-4", OPENROUTER_MODELS)
@@ -434,8 +433,6 @@ if __name__ == "__main__":
         print("=" * 40)
 
 #%% plot cost per all OPENROUTER models and GROQ models in the same plot 
-import matplotlib.pyplot as plt
-import numpy as np
 
 def extract_pricing_data(models_list: List[Dict], source_name: str) -> List[Dict]:
     """Estrae i dati di pricing da una lista di modelli."""
@@ -461,6 +458,9 @@ def extract_pricing_data(models_list: List[Dict], source_name: str) -> List[Dict
     return data
 
 if __name__ == "__main__":
+    import matplotlib.pyplot as plt
+    import numpy as np
+
     # Estrai dati
     openrouter_data = extract_pricing_data(OPENROUTER_MODELS, "OpenRouter")
     groq_data = extract_pricing_data(GROQ_MODELS, "Groq")
