@@ -62,6 +62,17 @@ OPENROUTER_MODELS = {
     31: "deepcogito/cogito-v2.1-671b",
 }
 
+OPENROUTER_EMBEDDING_MODELS = [
+    "google/gemini-embedding-001",
+    "qwen/qwen3-embedding-8b",
+"qwen/qwen3-embedding-4b",
+"qwen/qwen3-embedding-0.6b",
+"openai/text-embedding-3-small",
+"openai/text-embedding-3-large",
+"mistralai/codestral-embed-2505",
+"openai/text-embedding-ada-002"
+]
+
 # Default model
 DEFAULT_MODEL = GROQ_MODELS[4]
 
