@@ -8,12 +8,20 @@ and minimizes complexity while supporting both Groq and OpenRouter models.
 
 import os
 import json
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, Union
 from openai import OpenAI
 
 # Load API keys
-with open("api_keys.json") as f:
-    api_keys = json.load(f)
+# se non trova il file "api_keys.json" lo cerca nella directory superiore (utile per evitare di commettere chiavi nel repo)
+try:
+    with open("api_keys.json") as f:
+        api_keys = json.load(f)
+except FileNotFoundError:
+     try: 
+         with open("../api_keys.json") as f:
+            api_keys = json.load(f)
+     except FileNotFoundError:
+         api_keys = {}
 
 os.environ["GROQ_API_KEY"] = api_keys.get("groq")
 os.environ["OPENROUTER_API_KEY"] = api_keys.get("openrouter")
@@ -151,7 +159,7 @@ def get_client(model: str) -> tuple[OpenAI, str]:
         raise ValueError(f"Model '{model}' not found in available models.")
 
 
-def llm(
+def llm_inference(
     prompt: str,
     system: Optional[str] = None,
     model: str = DEFAULT_MODEL,
@@ -189,6 +197,130 @@ def llm(
     response = client.chat.completions.create(**kwargs)
     return response.choices[0].message.content
 
+def _normalize_format(format_value: Union[str, type]) -> str:
+    allowed = {
+        "dict": {dict, "dict", "dizionario", "json", "object"},
+        "list": {list, "list", "lista", "array"},
+        "string": {str, "string", "str", "testo", "stringa"},
+        "int": {int, "int", "integer", "intero"},
+        "float": {float, "float", "numero", "decimale"},
+        "bool": {bool, "bool", "boolean", "booleano"},
+    }
+    if isinstance(format_value, str):
+        normalized = format_value.strip().lower()
+        for key, values in allowed.items():
+            if normalized in {val for val in values if isinstance(val, str)}:
+                return key
+    else:
+        for key, values in allowed.items():
+            if format_value in values:
+                return key
+    raise ValueError("format must be one of Dict, List, string, int, float, bool")
+
+def _parse_response(value: str, target: str) -> Any:
+    text = value.strip()
+    if target == "dict":
+        try:
+            parsed = json.loads(text)
+        except json.JSONDecodeError as exc:
+            raise ValueError(f"invalid JSON object: {exc}") from exc
+        if not isinstance(parsed, dict):
+            raise ValueError("response is not a JSON object")
+        return parsed
+    if target == "list":
+        try:
+            parsed = json.loads(text)
+        except json.JSONDecodeError as exc:
+            raise ValueError(f"invalid JSON array: {exc}") from exc
+        if not isinstance(parsed, list):
+            raise ValueError("response is not a JSON array")
+        return parsed
+    if target == "string":
+        if (text.startswith("\"") and text.endswith("\"")) or (text.startswith("'") and text.endswith("'")):
+            text = text[1:-1]
+        return text
+    if target == "int":
+        try:
+            return int(text)
+        except ValueError as exc:
+            raise ValueError("response is not an integer literal") from exc
+    if target == "float":
+        try:
+            return float(text)
+        except ValueError as exc:
+            raise ValueError("response is not a float literal") from exc
+    if target == "bool":
+        lowered = text.lower()
+        if lowered == "true":
+            return True
+        if lowered == "false":
+            return False
+        raise ValueError("response is not a boolean literal (true/false)")
+    raise ValueError(f"Unsupported format '{target}'")
+
+FORMAT_INSTRUCTIONS: Dict[str, str] = {
+    "dict": "Return only a valid JSON object (dictionary) with no additional text.",
+    "list": "Return only a valid JSON array with no additional text.",
+    "string": "Return only the requested string without surrounding quotes or extra text.",
+    "int": "Return only an integer number with no extra text.",
+    "float": "Return only a valid decimal number with no extra text.",
+    "bool": "Return only the boolean literal true or false with no extra text.",
+}
+
+def llm_agentic_inference(
+    prompt: str,
+    system: Optional[str] = None,
+    model: str = DEFAULT_MODEL,
+    temperature: float = 0.7,
+    max_tokens: Optional[int] = None,
+    format: Union[str, type] = "string",
+) -> Any:
+    """
+    Variant of llm_inference che impone un formato di uscita.
+
+    Oltre agli argomenti di llm_inference accetta "format" che deve essere uno fra
+    Dict, List, string, int, float, bool (anche come tipo Python). Il modello riceve
+    istruzioni aggiuntive per rispettare il formato e, in caso di errore di parsing,
+    viene effettuato un tentativo di correzione basato sull'errore rilevato.
+    """
+    target = _normalize_format(format)
+    system_base = system or SYSTEM_PROMPTS["default"]
+    system_prompt = f"{system_base.rstrip()}\n\n{FORMAT_INSTRUCTIONS[target]}"
+    attempts = 0
+    max_attempts = 2  # prima risposta + un tentativo di correzione
+    current_prompt = prompt
+    last_error: Optional[Exception] = None
+    last_response: Optional[str] = None
+
+    while attempts < max_attempts:
+        attempts += 1
+        response = llm_inference(
+            current_prompt,
+            system=system_prompt,
+            model=model,
+            temperature=temperature,
+            max_tokens=max_tokens,
+        )
+        last_response = response
+        try:
+            return _parse_response(response, target)
+        except ValueError as exc:
+            last_error = exc
+            if attempts >= max_attempts:
+                break
+            correction_instruction = (
+                f"WARNING: the previous response is not a valid {target}."
+                f"\nResponse: {response}"
+                f"\nParsing error: {exc}."
+                f"\nCorrect it by returning only a valid {target} with no extra text."
+            )
+            current_prompt = f"{prompt}\n\n{correction_instruction}"
+
+    raise ValueError(
+        "Impossibile ottenere un output nel formato richiesto: "
+        f"{target}. Ultimo errore: {last_error}. Ultima risposta: {last_response}"
+    )
+
 
 def llm_safe(
     prompt: str,
@@ -211,7 +343,7 @@ def llm_safe(
         Dict with keys: success (bool), content (str or None), error (str or None), provider (str)
     """
     try:
-        content = llm(prompt, system, model, temperature, max_tokens)
+        content = llm_inference(prompt, system, model, temperature, max_tokens)
         client, provider = get_client(model)
         return {
             "success": True,
@@ -232,12 +364,12 @@ def llm_safe(
 if __name__ == "__main__":
     # Test 1: Simple query
     print("Test 1: Simple query")
-    response = llm("What is the capital of France?")
+    response = llm_inference("What is the capital of France?")
     print(f"Response: {response}\n")
     
     # Test 2: With custom system prompt
     print("Test 2: Custom system prompt")
-    response = llm(
+    response = llm_inference(
         "Explain quantum computing in one sentence.",
         system="You are a physics teacher. Explain concepts simply.",
         temperature=0.5
@@ -257,7 +389,7 @@ if __name__ == "__main__":
     print("Test 4: Model selection")
     model = get_model("claude", OPENROUTER_MODELS)
     print(f"Selected model: {model}")
-    response = llm("Hello!", model=model, max_tokens=50)
+    response = llm_inference("Hello!", model=model, max_tokens=50)
     print(f"Response: {response}\n")
 
 
